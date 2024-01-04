@@ -1,0 +1,8 @@
+{
+  "rust-analyzer.cargo.extraEnv": {
+    "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib",
+    "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include"
+    // "RUSTFLAGS": "-Clinker=clang -Clink-arg=-fuse-ld=lld"
+  },
+  "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"]
+}

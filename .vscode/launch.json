@@ -1,0 +1,49 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'bevy_pokemon_roguelike'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=bevy_pokemon_roguelike",
+          "--package=bevy_pokemon_roguelike"
+        ],
+        "filter": {
+          "name": "bevy_pokemon_roguelike",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "CARGO_MANIFEST_DIR": "${workspaceFolder}",
+        "DYLD_LIBRARY_PATH": "${userHome}/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/lib:${workspaceFolder}/target/debug/deps"
+      }
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'bevy_pokemon_roguelike'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=bevy_pokemon_roguelike",
+          "--package=bevy_pokemon_roguelike"
+        ],
+        "filter": {
+          "name": "bevy_pokemon_roguelike",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

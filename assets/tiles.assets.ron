@@ -1,0 +1,13 @@
+({
+    "tiles.forest_path": TextureAtlas (
+        path: "images/tiles/forest_path_tiles.png",
+        tile_size_x: 24.,
+        tile_size_y: 24.,
+        columns: 21,
+        rows: 24,
+        padding_x: 1,
+        padding_y: 1,
+        offset_x: 1,
+        offset_y: 1,
+    )
+})
