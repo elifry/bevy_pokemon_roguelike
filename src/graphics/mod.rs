@@ -20,7 +20,8 @@ pub struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((TilesPlugin, PiecesPlugin));
+        app.add_event::<GraphicsWaitEvent>()
+            .add_plugins((TilesPlugin, PiecesPlugin));
     }
 }
 

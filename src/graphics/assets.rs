@@ -46,7 +46,7 @@ impl FromWorld for PokemonAnimationAssets {
                 let path = path.strip_prefix("images/pokemons").unwrap();
                 let parent = path.parent().unwrap().to_str().unwrap();
 
-                return parent;
+                parent
             })
             .into_iter()
             .map(|(parent, group)| {
@@ -57,7 +57,8 @@ impl FromWorld for PokemonAnimationAssets {
                         let path = Path::new(file);
                         let filename: &str = path.file_name().unwrap().to_str().unwrap();
                         println!("{}", filename);
-                        return (filename, image.to_owned());
+
+                        (filename, image.to_owned())
                     })
                     .collect();
                 let image = group_map.get("Idle-Anim.png").unwrap().to_owned();
@@ -71,10 +72,10 @@ impl FromWorld for PokemonAnimationAssets {
                     idle: handle_texture_atlas,
                 };
 
-                return (parent.to_string(), pokemon_animation);
+                (parent.to_string(), pokemon_animation)
             })
             .collect();
 
-        return PokemonAnimationAssets { files: test };
+        PokemonAnimationAssets { files: test }
     }
 }

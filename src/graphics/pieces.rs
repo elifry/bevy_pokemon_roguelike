@@ -1,12 +1,15 @@
+use std::collections::VecDeque;
+
 use bevy::{ecs::query, prelude::*};
 
 use crate::{
+    actions::{walk_action::WalkAction, ActionExecutedEvent},
     map::Position,
     pieces::{Piece, PieceKind},
     GameState,
 };
 
-use super::{assets::PokemonAnimationAssets, PIECE_SIZE, PIECE_Z};
+use super::{assets::PokemonAnimationAssets, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE};
 
 pub struct PiecesPlugin;
 
@@ -15,7 +18,8 @@ impl Plugin for PiecesPlugin {
         app.add_systems(
             Update,
             (spawn_piece_renderer, animate_piece_sprite).run_if(in_state(GameState::Playing)),
-        );
+        )
+        .add_systems(Update, (walk_animation, path_animator_update));
     }
 }
 
@@ -24,6 +28,9 @@ pub struct AnimationIndices {
     first: usize,
     last: usize,
 }
+
+#[derive(Component)]
+pub struct PathAnimator(pub VecDeque<Vec3>);
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
@@ -73,6 +80,48 @@ fn animate_piece_sprite(
             } else {
                 sprite.index + 1
             };
+        }
+    }
+}
+
+fn walk_animation(
+    mut commands: Commands,
+    mut ev_action: EventReader<ActionExecutedEvent>,
+    mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
+) {
+    for ev in ev_action.read() {
+        let action = ev.0.as_any();
+        if let Some(action) = action.downcast_ref::<WalkAction>() {
+            let target = super::get_world_vec(action.targeted_position, PIECE_Z);
+            commands
+                .entity(action.entity)
+                .insert(PathAnimator(VecDeque::from([target])));
+            ev_wait.send(super::GraphicsWaitEvent);
+        }
+    }
+}
+
+fn path_animator_update(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut PathAnimator, &mut Transform), With<Piece>>,
+    time: Res<Time>,
+    mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
+) {
+    for (entity, mut animator, mut transform) in query.iter_mut() {
+        if animator.0.len() == 0 {
+            commands.entity(entity).remove::<PathAnimator>();
+            continue;
+        }
+        ev_wait.send(super::GraphicsWaitEvent);
+
+        let target = *animator.0.get(0).unwrap();
+        let d = (target - transform.translation).length();
+        if d > POSITION_TOLERANCE {
+            transform.translation = transform
+                .translation
+                .lerp(target, PIECE_SPEED * time.delta_seconds());
+        } else {
+            transform.translation = target;
         }
     }
 }

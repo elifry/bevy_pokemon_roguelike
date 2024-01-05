@@ -14,6 +14,9 @@ pub struct Health {
 #[derive(Component, Default)]
 pub struct Actor(pub Vec<Box<dyn Action>>);
 
+#[derive(Component, Default)]
+pub struct ActiveActor;
+
 #[derive(Component)]
 pub struct Piece {
     pub kind: PieceKind,

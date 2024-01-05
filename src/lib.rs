@@ -1,3 +1,4 @@
+use actions::ActionsPlugin;
 use ai::AIPlugin;
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -6,21 +7,26 @@ use bevy::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
+use game_control::{GameControl, GameControlPlugin};
 use graphics::GraphicsPlugin;
 use loading::LoadingPlugin;
 use map::MapPlugin;
 use menu::MenuPlugin;
 use player::PlayerPlugin;
+use turn::TurnPlugin;
 
 mod actions;
 mod ai;
 mod camera;
+mod game_control;
 mod graphics;
 mod loading;
 mod map;
 mod menu;
 mod pieces;
 mod player;
+mod turn;
+mod utils;
 
 // This example game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
@@ -48,6 +54,9 @@ impl Plugin for GamePlugin {
             CameraPlugin,
             PlayerPlugin,
             AIPlugin,
+            GameControlPlugin,
+            ActionsPlugin,
+            TurnPlugin,
         ));
 
         #[cfg(debug_assertions)]
