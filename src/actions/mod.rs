@@ -1,11 +1,7 @@
 use bevy::prelude::*;
-use std::{any::Any, collections::VecDeque};
+use std::any::Any;
 
-use crate::{
-    pieces::{ActiveActor, Actor},
-    player::Player,
-    GameState,
-};
+use crate::{pieces::Actor, player::Player, turn::CurrentActor, GameState};
 
 pub mod walk_action;
 
@@ -13,8 +9,7 @@ pub struct ActionsPlugin;
 
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ActorQueue>()
-            .add_event::<TickEvent>()
+        app.add_event::<TickEvent>()
             .add_event::<ActionExecutedEvent>()
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
@@ -35,9 +30,6 @@ pub trait Action: Send + Sync {
 #[derive(Default, Resource)]
 pub struct PendingActions(pub Vec<Box<dyn Action>>);
 
-#[derive(Default, Resource)]
-pub struct ActorQueue(pub VecDeque<Entity>);
-
 #[derive(Event)]
 pub struct ActionExecutedEvent(pub Box<dyn Action>);
 
@@ -51,13 +43,17 @@ pub struct ActionProcessedEvent;
 pub struct ProcessActionFailed;
 
 fn process_action_queue(world: &mut World) {
-    let mut active_actor_query = world.query_filtered::<(Entity, &mut Actor), With<ActiveActor>>();
+    let current_actor = world.get_resource::<CurrentActor>().unwrap();
 
-    let Ok((entity, mut actor)) = active_actor_query.get_single_mut(world) else {
-        // this can mean that the current actor
-        // has been removed from the world since creating the queue
-        // cue the next one
-        // world.send_event(NextActorEvent);
+    let Some(entity) = current_actor.0 else {
+        return;
+    };
+
+    let mut actor_query = world.query::<&mut Actor>();
+
+    let Ok(mut actor) = actor_query.get_mut(world, entity) else {
+        // otherwise the actor has been despawned
+        world.send_event(ActionProcessedEvent);
         return;
     };
 

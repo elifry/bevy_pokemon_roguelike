@@ -2,7 +2,7 @@ use std::any::Any;
 
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Actor, player::Player, GameState};
+use crate::{map::Position, pieces::Actor, player::Player, vector2_int::Vector2Int, GameState};
 
 pub struct GameControlPlugin;
 
@@ -15,18 +15,18 @@ impl Plugin for GameControlPlugin {
     }
 }
 
-const DIR_KEY_MAPPING: [(KeyCode, IVec2); 4] = [
-    (KeyCode::W, IVec2 { x: 0, y: 1 }),
-    (KeyCode::S, IVec2 { x: 0, y: -1 }),
-    (KeyCode::A, IVec2 { x: -1, y: 0 }),
-    (KeyCode::D, IVec2 { x: 1, y: 0 }),
+const DIR_KEY_MAPPING: [(KeyCode, Vector2Int); 4] = [
+    (KeyCode::W, Vector2Int { x: 0, y: 1 }),
+    (KeyCode::S, Vector2Int { x: 0, y: -1 }),
+    (KeyCode::A, Vector2Int { x: -1, y: 0 }),
+    (KeyCode::D, Vector2Int { x: 1, y: 0 }),
 ];
 
 #[derive(Event)]
 pub struct GameControlEvent(pub GameControl);
 
 pub enum GameControl {
-    Target(IVec2),
+    Target(Vector2Int),
     Other,
 }
 

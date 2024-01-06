@@ -1,8 +1,11 @@
+use std::collections::VecDeque;
+
 use bevy::prelude::*;
 
 use crate::{
-    actions::{ActionProcessedEvent, ActorQueue, TickEvent},
-    pieces::{ActiveActor, Actor, Piece, PieceKind},
+    actions::ActionProcessedEvent,
+    pieces::{Actor, Piece},
+    player::{Player, PlayerActionEvent},
     GameState,
 };
 
@@ -10,47 +13,87 @@ pub struct TurnPlugin;
 
 impl Plugin for TurnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            handle_action_processed_event.run_if(on_event::<ActionProcessedEvent>()),
-        )
-        .add_systems(
-            Update,
-            add_actor_to_queue.run_if(in_state(GameState::Playing)),
-        );
+        app.init_resource::<CurrentActor>()
+            .init_resource::<ActorQueue>()
+            .add_event::<NextActorEvent>()
+            .add_state::<TurnState>()
+            .add_systems(
+                Update,
+                handle_action_processed_event.run_if(on_event::<ActionProcessedEvent>()),
+            )
+            .add_systems(OnEnter(GameState::Playing), handle_game_start)
+            .add_systems(
+                Update,
+                player_taking_action.run_if(on_event::<PlayerActionEvent>()),
+            )
+            .add_systems(
+                Update,
+                add_actor_to_queue.run_if(in_state(GameState::Playing)),
+            );
     }
 }
 
+#[derive(Clone, Debug, Default, Hash, Eq, States, PartialEq)]
+pub enum TurnState {
+    #[default]
+    None,
+    PlayerTurn,
+    TakingTurn,
+    NPCTurn,
+}
+
+#[derive(Resource, Default)]
+pub struct CurrentActor(pub Option<Entity>);
+
+#[derive(Default, Resource)]
+pub struct ActorQueue(pub VecDeque<Entity>);
+
+#[derive(Event)]
+pub struct NextActorEvent;
+
+fn player_taking_action(mut next_state: ResMut<NextState<TurnState>>) {
+    next_state.set(TurnState::TakingTurn);
+}
+
+fn handle_game_start(mut next_state: ResMut<NextState<TurnState>>) {
+    next_state.set(TurnState::PlayerTurn);
+}
+
 fn handle_action_processed_event(
-    mut commands: Commands,
     actor_queue: ResMut<ActorQueue>,
-    mut active_actor_query: Query<Entity, With<ActiveActor>>,
+    mut res_current_actor: ResMut<CurrentActor>,
+    mut ev_next_actor: EventWriter<NextActorEvent>,
 ) {
-    let Ok(entity) = active_actor_query.get_single() else {
+    let Some(current_actor) = res_current_actor.0 else {
         return;
     };
-    info!("End turn");
-    // commands.entity(entity).remove::<ActiveActor>();
+    let current_actor_index = actor_queue
+        .0
+        .iter()
+        .position(|actor| *actor == current_actor)
+        .unwrap();
 
-    // TODO:
-    // remove current active actor
-    // select the next current active actor
-    // set the active actor
+    info!("current actor index {}", current_actor_index);
+
+    let next_actor_index = (current_actor_index + 1) % actor_queue.0.len();
+
+    res_current_actor.0 = actor_queue.0.get(next_actor_index).copied();
+
+    ev_next_actor.send(NextActorEvent);
 }
 
 fn add_actor_to_queue(
-    mut commands: Commands,
     query: Query<(Entity, &Piece), Added<Actor>>,
+    player_query: Query<&Player>,
     mut actor_queue: ResMut<ActorQueue>,
-    mut ev_tick: EventWriter<TickEvent>,
+    mut current_actor: ResMut<CurrentActor>,
 ) {
     for (entity, piece) in query.iter() {
         info!("Add {:?} to actor queue", entity);
         actor_queue.0.push_back(entity);
 
-        if let PieceKind::Player = piece.kind {
-            commands.entity(entity).insert(ActiveActor);
-            ev_tick.send(TickEvent)
+        if let Ok(_player) = player_query.get(entity) {
+            current_actor.0 = Some(entity);
         }
     }
 }

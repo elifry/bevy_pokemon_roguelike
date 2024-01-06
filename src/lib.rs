@@ -26,7 +26,7 @@ mod menu;
 mod pieces;
 mod player;
 mod turn;
-mod utils;
+mod vector2_int;
 
 // This example game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html

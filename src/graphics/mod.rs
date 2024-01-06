@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::map::Position;
+use crate::{map::Position, vector2_int::Vector2Int};
 
 use self::{pieces::PiecesPlugin, tiles::TilesPlugin};
 
@@ -36,6 +36,6 @@ fn get_world_position(position: &Position, z: f32) -> Vec3 {
     )
 }
 
-fn get_world_vec(v: IVec2, z: f32) -> Vec3 {
+fn get_world_vec(v: Vector2Int, z: f32) -> Vec3 {
     Vec3::new(TILE_SIZE * v.x as f32, TILE_SIZE * v.y as f32, z)
 }

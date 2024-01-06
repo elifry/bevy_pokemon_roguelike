@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 
-use crate::GameState;
+use crate::{vector2_int::Vector2Int, GameState};
 
 pub struct MapPlugin;
 
@@ -14,11 +14,11 @@ impl Plugin for MapPlugin {
 
 #[derive(Default, Resource)]
 pub struct CurrentMap {
-    pub tiles: HashMap<IVec2, Entity>,
+    pub tiles: HashMap<Vector2Int, Entity>,
 }
 
 #[derive(Component)]
-pub struct Position(pub IVec2);
+pub struct Position(pub Vector2Int);
 
 #[derive(Component)]
 pub struct Tilemap;
@@ -33,7 +33,7 @@ fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>) {
         .id();
     for x in 0..8 {
         for y in 0..8 {
-            let position = IVec2::new(x, y);
+            let position = Vector2Int::new(x, y);
             let tile = commands
                 .spawn((
                     Position(position),

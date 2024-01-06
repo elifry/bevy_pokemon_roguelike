@@ -3,13 +3,14 @@ use bevy::prelude::*;
 use crate::{
     map::{CurrentMap, Position},
     pieces::Occupier,
+    vector2_int::Vector2Int,
 };
 
 use super::Action;
 
 pub struct WalkAction {
     pub entity: Entity,
-    pub targeted_position: IVec2,
+    pub targeted_position: Vector2Int,
 }
 
 impl Action for WalkAction {
