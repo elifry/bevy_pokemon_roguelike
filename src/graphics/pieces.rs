@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use bevy::{ecs::query, prelude::*};
+use bevy::{prelude::*};
 
 use crate::{
     actions::{walk_action::WalkAction, ActionExecutedEvent},
@@ -52,7 +52,7 @@ fn spawn_piece_renderer(
         let animation_indices = AnimationIndices { first: 0, last: 3 };
         let mut sprite = TextureAtlasSprite::new(animation_indices.first);
         sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
-        let v = super::get_world_position(&position, PIECE_Z);
+        let v = super::get_world_position(position, PIECE_Z);
 
         commands.entity(entity).insert((
             SpriteSheetBundle {

@@ -118,7 +118,7 @@ fn execute_action(action: Box<dyn Action>, world: &mut World) -> bool {
         world.send_event(ActionExecutedEvent(action));
         return true;
     }
-    return false;
+    false
 }
 
 fn wait_for_animation(mut ev_action_finished: EventWriter<ActionFinishedEvent>) {

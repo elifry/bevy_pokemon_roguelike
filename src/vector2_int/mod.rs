@@ -25,7 +25,7 @@ impl Add for Vector2Int {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        return Vector2Int::new(self.x + other.x, self.y + other.y);
+        Vector2Int::new(self.x + other.x, self.y + other.y)
     }
 }
 
@@ -42,7 +42,7 @@ impl Sub for Vector2Int {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
-        return Vector2Int::new(self.x - other.x, self.y - other.y);
+        Vector2Int::new(self.x - other.x, self.y - other.y)
     }
 }
 
@@ -59,7 +59,7 @@ impl Div<i32> for Vector2Int {
     type Output = Self;
 
     fn div(self, other: i32) -> Self {
-        return Vector2Int::new(self.x / other, self.y / other);
+        Vector2Int::new(self.x / other, self.y / other)
     }
 }
 
@@ -67,7 +67,7 @@ impl Mul<i32> for Vector2Int {
     type Output = Self;
 
     fn mul(self, other: i32) -> Self {
-        return Vector2Int::new(self.x * other, self.y * other);
+        Vector2Int::new(self.x * other, self.y * other)
     }
 }
 
@@ -75,7 +75,7 @@ impl Mul<Vector2Int> for i32 {
     type Output = Vector2Int;
 
     fn mul(self, other: Vector2Int) -> Vector2Int {
-        return Vector2Int::new(other.x * self, other.y * self);
+        Vector2Int::new(other.x * self, other.y * self)
     }
 }
 

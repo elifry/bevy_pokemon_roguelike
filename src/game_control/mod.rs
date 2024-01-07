@@ -1,8 +1,8 @@
-use std::any::Any;
+
 
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Actor, player::Player, vector2_int::Vector2Int, GameState};
+use crate::{map::Position, player::Player, vector2_int::Vector2Int, GameState};
 
 pub struct GameControlPlugin;
 
@@ -32,7 +32,7 @@ pub enum GameControl {
 
 fn player_input_controls(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&Position), With<Player>>,
+    mut player_query: Query<&Position, With<Player>>,
     mut ev_game_control: EventWriter<GameControlEvent>,
 ) {
     let Ok(position) = player_query.get_single_mut() else {

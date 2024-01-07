@@ -3,9 +3,8 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{ActionFinishedEvent, ActionProcessedEvent},
-    graphics::GraphicsWaitEvent,
-    pieces::{Actor, Piece},
+    actions::{ActionFinishedEvent},
+    pieces::{Actor},
     player::{Player, PlayerActionEvent},
     GameState,
 };
@@ -95,7 +94,7 @@ fn handle_action_finished(
 }
 
 fn add_actor_to_queue(
-    query: Query<(Entity), Added<Actor>>,
+    query: Query<Entity, Added<Actor>>,
     player_query: Query<&Player>,
     mut actor_queue: ResMut<ActorQueue>,
     mut current_actor: ResMut<CurrentActor>,

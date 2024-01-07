@@ -1,13 +1,12 @@
 use actions::ActionsPlugin;
 use ai::AIPlugin;
 use bevy::app::App;
-#[cfg(debug_assertions)]
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+
 use bevy::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
-use game_control::{GameControl, GameControlPlugin};
+use game_control::{GameControlPlugin};
 use graphics::GraphicsPlugin;
 use loading::LoadingPlugin;
 use map::MapPlugin;
