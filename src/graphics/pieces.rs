@@ -9,7 +9,10 @@ use crate::{
     GameState,
 };
 
-use super::{assets::PokemonAnimationAssets, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE};
+use super::{
+    assets::PokemonAnimationAssets, AnimationFinishedEvent, PIECE_SIZE, PIECE_SPEED, PIECE_Z,
+    POSITION_TOLERANCE,
+};
 
 pub struct PiecesPlugin;
 
@@ -106,22 +109,27 @@ fn path_animator_update(
     mut query: Query<(Entity, &mut PathAnimator, &mut Transform), With<Piece>>,
     time: Res<Time>,
     mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
+    mut ev_animation_finished: EventWriter<super::AnimationFinishedEvent>,
 ) {
     for (entity, mut animator, mut transform) in query.iter_mut() {
-        if animator.0.len() == 0 {
+        if animator.0.is_empty() {
+            // this entity has completed it's animation
             commands.entity(entity).remove::<PathAnimator>();
             continue;
         }
         ev_wait.send(super::GraphicsWaitEvent);
 
-        let target = *animator.0.get(0).unwrap();
+        let target = *animator.0.front().unwrap();
         let d = (target - transform.translation).length();
         if d > POSITION_TOLERANCE {
             transform.translation = transform
                 .translation
                 .lerp(target, PIECE_SPEED * time.delta_seconds());
         } else {
+            // the entity is at the desired path position
             transform.translation = target;
+            animator.0.pop_front();
+            ev_animation_finished.send(AnimationFinishedEvent);
         }
     }
 }

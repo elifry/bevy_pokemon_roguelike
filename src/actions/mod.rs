@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use std::any::Any;
 
-use crate::{pieces::Actor, player::Player, turn::CurrentActor, GameState};
+use crate::{
+    graphics::AnimationFinishedEvent, pieces::Actor, player::Player, turn::CurrentActor, GameState,
+};
 
 pub mod walk_action;
 
@@ -13,6 +15,11 @@ impl Plugin for ActionsPlugin {
             .add_event::<ActionExecutedEvent>()
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
+            .add_event::<ActionFinishedEvent>()
+            .add_systems(
+                Update,
+                wait_for_animation.run_if(on_event::<AnimationFinishedEvent>()),
+            )
             .add_systems(
                 Update,
                 process_action_queue
@@ -27,6 +34,9 @@ pub trait Action: Send + Sync {
     fn as_any(&self) -> &dyn Any;
 }
 
+// Execution Order of action
+// ActionExecutedEvent -> ActionProcessedEvent -> ActionFinishedEvent
+
 #[derive(Default, Resource)]
 pub struct PendingActions(pub Vec<Box<dyn Action>>);
 
@@ -40,9 +50,16 @@ pub struct TickEvent;
 pub struct ActionProcessedEvent;
 
 #[derive(Event)]
+pub struct ActionFinishedEvent;
+
+#[derive(Event)]
 pub struct ProcessActionFailed;
 
 fn process_action_queue(world: &mut World) {
+    if process_pending_actions(world) {
+        return;
+    }
+
     let current_actor = world.get_resource::<CurrentActor>().unwrap();
 
     let Some(entity) = current_actor.0 else {
@@ -53,7 +70,7 @@ fn process_action_queue(world: &mut World) {
 
     let Ok(mut actor) = actor_query.get_mut(world, entity) else {
         // otherwise the actor has been despawned
-        world.send_event(ActionProcessedEvent);
+        world.send_event(ActionFinishedEvent);
         return;
     };
 
@@ -78,6 +95,20 @@ fn process_action_queue(world: &mut World) {
     world.send_event(ActionProcessedEvent);
 }
 
+fn process_pending_actions(world: &mut World) -> bool {
+    // returns true if at least one pending action has been processed
+    // take action objects without holding the mutable reference to the world
+    let pending = match world.get_resource_mut::<PendingActions>() {
+        Some(mut res) => res.0.drain(..).collect::<Vec<_>>(),
+        _ => return false,
+    };
+    let mut success = false;
+    for action in pending {
+        success = success || execute_action(action, world);
+    }
+    success
+}
+
 fn execute_action(action: Box<dyn Action>, world: &mut World) -> bool {
     if let Ok(next_actions) = action.execute(world) {
         if let Some(mut pending_actions) = world.get_resource_mut::<PendingActions>() {
@@ -88,4 +119,9 @@ fn execute_action(action: Box<dyn Action>, world: &mut World) -> bool {
         return true;
     }
     return false;
+}
+
+fn wait_for_animation(mut ev_action_finished: EventWriter<ActionFinishedEvent>) {
+    info!("wait_for_animation");
+    ev_action_finished.send(ActionFinishedEvent);
 }

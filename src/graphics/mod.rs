@@ -21,12 +21,16 @@ pub struct GraphicsPlugin;
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GraphicsWaitEvent>()
+            .add_event::<AnimationFinishedEvent>()
             .add_plugins((TilesPlugin, PiecesPlugin));
     }
 }
 
 #[derive(Event)]
 pub struct GraphicsWaitEvent;
+
+#[derive(Event)]
+pub struct AnimationFinishedEvent;
 
 fn get_world_position(position: &Position, z: f32) -> Vec3 {
     Vec3::new(

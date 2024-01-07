@@ -3,7 +3,8 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::ActionProcessedEvent,
+    actions::{ActionFinishedEvent, ActionProcessedEvent},
+    graphics::GraphicsWaitEvent,
     pieces::{Actor, Piece},
     player::{Player, PlayerActionEvent},
     GameState,
@@ -19,7 +20,7 @@ impl Plugin for TurnPlugin {
             .add_state::<TurnState>()
             .add_systems(
                 Update,
-                handle_action_processed_event.run_if(on_event::<ActionProcessedEvent>()),
+                handle_action_finished.run_if(on_event::<ActionFinishedEvent>()),
             )
             .add_systems(OnEnter(GameState::Playing), handle_game_start)
             .add_systems(
@@ -59,11 +60,14 @@ fn handle_game_start(mut next_state: ResMut<NextState<TurnState>>) {
     next_state.set(TurnState::PlayerTurn);
 }
 
-fn handle_action_processed_event(
+fn handle_action_finished(
     actor_queue: ResMut<ActorQueue>,
+    player_query: Query<&Player>,
+    mut next_state: ResMut<NextState<TurnState>>,
     mut res_current_actor: ResMut<CurrentActor>,
     mut ev_next_actor: EventWriter<NextActorEvent>,
 ) {
+    info!("handle_action_finished");
     let Some(current_actor) = res_current_actor.0 else {
         return;
     };
@@ -77,18 +81,26 @@ fn handle_action_processed_event(
 
     let next_actor_index = (current_actor_index + 1) % actor_queue.0.len();
 
-    res_current_actor.0 = actor_queue.0.get(next_actor_index).copied();
+    let next_actor = actor_queue.0.get(next_actor_index).copied();
+
+    if let Ok(_player) = player_query.get(next_actor.unwrap()) {
+        next_state.set(TurnState::PlayerTurn);
+    } else {
+        next_state.set(TurnState::NPCTurn);
+    }
+
+    res_current_actor.0 = next_actor;
 
     ev_next_actor.send(NextActorEvent);
 }
 
 fn add_actor_to_queue(
-    query: Query<(Entity, &Piece), Added<Actor>>,
+    query: Query<(Entity), Added<Actor>>,
     player_query: Query<&Player>,
     mut actor_queue: ResMut<ActorQueue>,
     mut current_actor: ResMut<CurrentActor>,
 ) {
-    for (entity, piece) in query.iter() {
+    for entity in query.iter() {
         info!("Add {:?} to actor queue", entity);
         actor_queue.0.push_back(entity);
 

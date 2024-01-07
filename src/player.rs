@@ -5,7 +5,7 @@ use crate::actions::{Action, TickEvent};
 use crate::game_control::{GameControl, GameControlEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, Health, Occupier, Piece, PieceKind};
-use crate::turn::CurrentActor;
+use crate::turn::{CurrentActor, TurnState};
 use crate::vector2_int::Vector2Int;
 use crate::GameState;
 
@@ -15,7 +15,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
             .add_systems(OnEnter(GameState::Playing), spawn_player)
-            .add_systems(Update, take_action.run_if(in_state(GameState::Playing)));
+            .add_systems(Update, take_action.run_if(in_state(TurnState::PlayerTurn)));
     }
 }
 
