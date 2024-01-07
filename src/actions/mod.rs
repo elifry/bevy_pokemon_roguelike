@@ -5,6 +5,8 @@ use crate::{
     graphics::AnimationFinishedEvent, pieces::Actor, player::Player, turn::CurrentActor, GameState,
 };
 
+pub mod damage_action;
+pub mod melee_hit_action;
 pub mod walk_action;
 
 pub struct ActionsPlugin;
