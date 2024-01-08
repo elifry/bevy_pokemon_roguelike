@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     actions::{walk_action::WalkAction, ActionExecutedEvent},
@@ -10,8 +10,8 @@ use crate::{
 };
 
 use super::{
-    assets::PokemonAnimationAssets, AnimationFinishedEvent, PIECE_SIZE, PIECE_SPEED, PIECE_Z,
-    POSITION_TOLERANCE,
+    assets::PokemonAnimationAssets, AnimationFinishedEvent, Orientation, PIECE_SIZE, PIECE_SPEED,
+    PIECE_Z, POSITION_TOLERANCE,
 };
 
 pub struct PiecesPlugin;
@@ -27,16 +27,41 @@ impl Plugin for PiecesPlugin {
 }
 
 #[derive(Component)]
+pub struct PathAnimator(pub VecDeque<Vec3>);
+
+#[derive(Component, Deref, DerefMut)]
+pub struct AnimationTimer(Timer);
+
 pub struct AnimationIndices {
     first: usize,
     last: usize,
 }
 
-#[derive(Component)]
-pub struct PathAnimator(pub VecDeque<Vec3>);
+impl AnimationIndices {
+    fn new(first: usize, last: usize) -> Self {
+        return AnimationIndices { first, last };
+    }
+}
 
-#[derive(Component, Deref, DerefMut)]
-pub struct AnimationTimer(Timer);
+#[derive(Component)]
+pub struct AnimationInfo {
+    pub orientation: Orientation,
+}
+
+impl AnimationInfo {
+    fn indices(&self) -> AnimationIndices {
+        match self.orientation {
+            Orientation::South => AnimationIndices::new(0, 3),
+            Orientation::SouthEst => AnimationIndices::new(4, 7),
+            Orientation::Est => AnimationIndices::new(8, 11),
+            Orientation::NorthEst => AnimationIndices::new(12, 15),
+            Orientation::North => AnimationIndices::new(16, 19),
+            Orientation::NorthWest => AnimationIndices::new(20, 23),
+            Orientation::West => AnimationIndices::new(24, 27),
+            Orientation::SouthWest => AnimationIndices::new(28, 31),
+        }
+    }
+}
 
 fn spawn_piece_renderer(
     mut commands: Commands,
@@ -61,7 +86,9 @@ fn spawn_piece_renderer(
                 transform: Transform::from_translation(v),
                 ..default()
             },
-            animation_indices,
+            AnimationInfo {
+                orientation: Orientation::North,
+            },
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         ));
     }
@@ -69,17 +96,13 @@ fn spawn_piece_renderer(
 
 fn animate_piece_sprite(
     time: Res<Time>,
-    mut query: Query<(
-        &AnimationIndices,
-        &mut AnimationTimer,
-        &mut TextureAtlasSprite,
-    )>,
+    mut query: Query<(&AnimationInfo, &mut AnimationTimer, &mut TextureAtlasSprite)>,
 ) {
-    for (indices, mut timer, mut sprite) in &mut query {
+    for (info, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            sprite.index = if sprite.index == indices.last {
-                indices.first
+            sprite.index = if sprite.index == info.indices().last {
+                info.indices().first
             } else {
                 sprite.index + 1
             };

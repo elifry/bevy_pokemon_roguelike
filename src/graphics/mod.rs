@@ -2,8 +2,13 @@ use bevy::prelude::*;
 
 use crate::{map::Position, vector2_int::Vector2Int};
 
-use self::{pieces::PiecesPlugin, tiles::TilesPlugin};
+use self::{
+    anim_data::{AnimData, AnimDataLoader},
+    pieces::PiecesPlugin,
+    tiles::TilesPlugin,
+};
 
+pub mod anim_data;
 pub mod assets;
 mod pieces;
 mod tiles;
@@ -20,7 +25,9 @@ pub struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<GraphicsWaitEvent>()
+        app.init_asset::<AnimData>()
+            .init_asset_loader::<AnimDataLoader>()
+            .add_event::<GraphicsWaitEvent>()
             .add_event::<AnimationFinishedEvent>()
             .add_plugins((TilesPlugin, PiecesPlugin));
     }
@@ -31,6 +38,17 @@ pub struct GraphicsWaitEvent;
 
 #[derive(Event)]
 pub struct AnimationFinishedEvent;
+
+pub enum Orientation {
+    South,
+    SouthEst,
+    Est,
+    NorthEst,
+    North,
+    NorthWest,
+    West,
+    SouthWest,
+}
 
 fn get_world_position(position: &Position, z: f32) -> Vec3 {
     Vec3::new(

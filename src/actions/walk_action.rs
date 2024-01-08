@@ -13,6 +13,12 @@ pub struct WalkAction {
     pub targeted_position: Vector2Int,
 }
 
+#[derive(Event)]
+pub struct MovingEvent {
+    from: Position,
+    to: Position,
+}
+
 impl Action for WalkAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
         // retrieve the board
