@@ -14,6 +14,7 @@ pub struct ActionsPlugin;
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<TickEvent>()
+            .init_resource::<PendingActions>()
             .add_event::<ActionExecutedEvent>()
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()

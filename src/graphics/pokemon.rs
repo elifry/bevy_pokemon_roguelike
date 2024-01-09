@@ -3,9 +3,9 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{walk_action::WalkAction, ActionExecutedEvent},
+    actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
     map::Position,
-    pieces::{Piece},
+    pieces::Piece,
     pokemons::Pokemon,
     GameState,
 };
@@ -24,7 +24,10 @@ impl Plugin for PiecesPlugin {
             Update,
             (spawn_pokemon_renderer, animate_pokemon_sprite).run_if(in_state(GameState::Playing)),
         )
-        .add_systems(Update, (walk_animation, path_animator_update));
+        .add_systems(
+            Update,
+            (walk_animation, melee_animation, path_animator_update),
+        );
     }
 }
 
@@ -136,6 +139,28 @@ fn walk_animation(
             commands
                 .entity(action.entity)
                 .insert(PathAnimator(VecDeque::from([target])));
+            ev_wait.send(super::GraphicsWaitEvent);
+        }
+    }
+}
+
+fn melee_animation(
+    mut commands: Commands,
+    query_position: Query<&Position>,
+    mut ev_action: EventReader<ActionExecutedEvent>,
+    mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
+) {
+    for ev in ev_action.read() {
+        let action = ev.0.as_any();
+        if let Some(action) = action.downcast_ref::<MeleeHitAction>() {
+            let Ok(base_position) = query_position.get(action.attacker) else {
+                continue;
+            };
+            let base = super::get_world_position(base_position, PIECE_Z);
+            let target = 0.5 * (base + super::get_world_vec(action.target, PIECE_Z));
+            commands
+                .entity(action.attacker)
+                .insert(PathAnimator(VecDeque::from([target, base])));
             ev_wait.send(super::GraphicsWaitEvent);
         }
     }

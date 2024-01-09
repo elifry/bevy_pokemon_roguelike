@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, TickEvent};
 use crate::game_control::{GameControl, GameControlEvent};
@@ -37,13 +38,14 @@ fn spawn_player(mut commands: Commands) {
         Piece {
             kind: PieceKind::Player,
         },
-        Position(Vector2Int::new(0, 0)),
+        Position(Vector2Int::new(1, 0)),
     ));
 }
 
 fn take_action(
     mut ev_game_control: EventReader<GameControlEvent>,
     mut player_query: Query<(Entity, &mut Actor), With<Player>>,
+    mut target_query: Query<(Entity, &Position), With<Health>>,
     current_actor: Res<CurrentActor>,
     mut ev_tick: EventWriter<TickEvent>,
     mut ev_action: EventWriter<PlayerActionEvent>,
@@ -65,12 +67,26 @@ fn take_action(
             continue;
         };
 
-        let walk_action = Box::new(WalkAction {
-            entity,
-            targeted_position: *target,
-        }) as Box<dyn Action>;
+        // check if there a target when the player move
+        let target_entities = target_query
+            .iter()
+            .filter(|(_, p)| p.0 == *target)
+            .collect::<Vec<_>>();
 
-        actor.0 = vec![walk_action];
+        let action: Box<dyn Action> = if !target_entities.is_empty() {
+            Box::new(MeleeHitAction {
+                attacker: entity,
+                target: *target,
+                damage: 1,
+            })
+        } else {
+            Box::new(WalkAction {
+                entity,
+                targeted_position: *target,
+            })
+        };
+
+        actor.0 = vec![action];
 
         ev_tick.send(TickEvent);
 
