@@ -11,6 +11,7 @@ use graphics::GraphicsPlugin;
 
 use map::MapPlugin;
 use menu::MenuPlugin;
+use pieces::PiecesPlugin;
 use player::PlayerPlugin;
 use turn::TurnPlugin;
 
@@ -51,6 +52,7 @@ impl Plugin for GamePlugin {
             // LoadingPlugin, // custom assets loading system can't use for now
             MenuPlugin,
             MapPlugin,
+            PiecesPlugin,
             GraphicsPlugin,
             CameraPlugin,
             PlayerPlugin,

@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{ActionFinishedEvent},
-    pieces::{Actor},
+    actions::ActionFinishedEvent,
+    pieces::{Actor, PieceDeathEvent},
     player::{Player, PlayerActionEvent},
     GameState,
 };
@@ -29,7 +29,8 @@ impl Plugin for TurnPlugin {
             .add_systems(
                 Update,
                 add_actor_to_queue.run_if(in_state(GameState::Playing)),
-            );
+            )
+            .add_systems(Update, handle_actor_death);
     }
 }
 
@@ -51,6 +52,23 @@ pub struct ActorQueue(pub VecDeque<Entity>);
 #[derive(Event)]
 pub struct NextActorEvent;
 
+fn handle_actor_death(
+    mut actor_queue: ResMut<ActorQueue>,
+    mut ev_piece_death: EventReader<PieceDeathEvent>,
+) {
+    for ev in ev_piece_death.read() {
+        let actor_index = actor_queue
+            .0
+            .iter()
+            .position(|entity| *entity == ev.entity)
+            .unwrap();
+        info!("Removed {:?} from the actor queue", ev.entity);
+        actor_queue.0.remove(actor_index);
+
+        // TODO: set up next actor if it was the current actor
+    }
+}
+
 fn player_taking_action(mut next_state: ResMut<NextState<TurnState>>) {
     next_state.set(TurnState::TakingTurn);
 }
@@ -60,13 +78,12 @@ fn handle_game_start(mut next_state: ResMut<NextState<TurnState>>) {
 }
 
 fn handle_action_finished(
-    actor_queue: ResMut<ActorQueue>,
+    actor_queue: Res<ActorQueue>,
     player_query: Query<&Player>,
     mut next_state: ResMut<NextState<TurnState>>,
     mut res_current_actor: ResMut<CurrentActor>,
     mut ev_next_actor: EventWriter<NextActorEvent>,
 ) {
-    info!("handle_action_finished");
     let Some(current_actor) = res_current_actor.0 else {
         return;
     };
@@ -76,11 +93,11 @@ fn handle_action_finished(
         .position(|actor| *actor == current_actor)
         .unwrap();
 
-    info!("current actor index {}", current_actor_index);
-
     let next_actor_index = (current_actor_index + 1) % actor_queue.0.len();
 
     let next_actor = actor_queue.0.get(next_actor_index).copied();
+
+    info!("-- Next actor turn {:?}", next_actor);
 
     if let Ok(_player) = player_query.get(next_actor.unwrap()) {
         next_state.set(TurnState::PlayerTurn);

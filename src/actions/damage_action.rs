@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::pieces::Health;
+use crate::pieces::{Health, PieceDeathEvent};
 
 use super::Action;
 
@@ -14,6 +14,7 @@ impl Action for DamageAction {
         health.value = health.value.saturating_sub(self.1);
         if health.value == 0 {
             // the unit is killed
+            world.send_event(PieceDeathEvent { entity: self.0 });
             world.despawn(self.0);
         }
         Ok(Vec::new())
