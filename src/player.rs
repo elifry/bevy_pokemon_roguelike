@@ -5,6 +5,7 @@ use crate::actions::{Action, TickEvent};
 use crate::game_control::{GameControl, GameControlEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, Health, Occupier, Piece, PieceKind};
+use crate::pokemons::{Pokemon, Pokemons};
 use crate::turn::{CurrentActor, TurnState};
 use crate::vector2_int::Vector2Int;
 use crate::GameState;
@@ -28,6 +29,7 @@ pub struct PlayerActionEvent;
 fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
+        Pokemon(Pokemons::Charmander),
         Player,
         Occupier,
         Health { value: 10 },

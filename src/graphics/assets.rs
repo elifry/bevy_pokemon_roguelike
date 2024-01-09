@@ -4,6 +4,7 @@ use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;
 
 use crate::graphics::anim_data::AnimData;
+use crate::pokemons::Pokemons;
 
 #[derive(AssetCollection, Resource)]
 pub struct TileAssets {
@@ -23,7 +24,7 @@ pub struct TileAssets {
 }
 
 #[derive(Resource, Debug, Default)]
-pub struct PokemonAnimationAssets(pub HashMap<String, PokemonAnimation>);
+pub struct PokemonAnimationAssets(pub HashMap<Pokemons, PokemonAnimation>);
 
 #[derive(Default, Resource)]
 pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
@@ -31,5 +32,7 @@ pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 #[derive(Debug)]
 pub struct PokemonAnimation {
     pub idle: Handle<TextureAtlas>,
+    pub walk: Handle<TextureAtlas>,
+    pub attack: Handle<TextureAtlas>,
     pub anim_data: Handle<AnimData>,
 }

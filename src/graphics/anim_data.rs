@@ -8,7 +8,7 @@ use bevy::{
 };
 use quick_xml::de::from_reader;
 use serde::Deserialize;
-use strum::IntoEnumIterator;
+use strum::{Display, IntoEnumIterator};
 use thiserror::Error;
 
 use super::Orientation;
@@ -80,7 +80,7 @@ pub struct AnimsRaw {
     pub anim: Vec<Anim>,
 }
 
-#[derive(Debug, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Debug, Display, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum AnimKey {
     Walk,
     Attack,
@@ -141,14 +141,14 @@ struct AnimRaw {
     return_frame: Option<i64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct AnimValue {
-    name: AnimKey,
-    index: i64,
-    frame_width: i64,
-    frame_height: i64,
-    durations: Durations,
+    pub name: AnimKey,
+    pub index: i64,
+    pub frame_width: i64,
+    pub frame_height: i64,
+    pub durations: Durations,
     // rush_frame: Option<i64>,
     // hit_frame: Option<i64>,
     // return_frame: Option<i64>,
@@ -162,16 +162,16 @@ pub struct AnimCopyOf {
     copy_of: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct Durations {
     pub duration: Vec<Duration>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Duration {
     #[serde(rename = "$text")]
-    pub value: String,
+    pub value: i64,
 }
 
 // Dirty hack for enum deserialize issue: https://github.com/tafia/quick-xml/issues/203

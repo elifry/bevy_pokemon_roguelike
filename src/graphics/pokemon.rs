@@ -6,12 +6,14 @@ use crate::{
     actions::{walk_action::WalkAction, ActionExecutedEvent},
     map::Position,
     pieces::{Piece, PieceKind},
+    pokemons::Pokemon,
     GameState,
 };
 
 use super::{
-    assets::PokemonAnimationAssets, AnimationFinishedEvent, Orientation, PIECE_SIZE, PIECE_SPEED,
-    PIECE_Z, POSITION_TOLERANCE,
+    anim_data::{AnimData, AnimInfo, AnimKey, AnimValue},
+    assets::PokemonAnimationAssets,
+    AnimationFinishedEvent, Orientation, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
 
 pub struct PiecesPlugin;
@@ -20,7 +22,7 @@ impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_piece_renderer, animate_piece_sprite).run_if(in_state(GameState::Playing)),
+            (spawn_pokemon_renderer, animate_pokemon_sprite).run_if(in_state(GameState::Playing)),
         )
         .add_systems(Update, (walk_animation, path_animator_update));
     }
@@ -45,64 +47,76 @@ impl AnimationIndices {
 
 #[derive(Component)]
 pub struct AnimationInfo {
+    pub indices: AnimationIndices,
     pub orientation: Orientation,
 }
 
 impl AnimationInfo {
-    fn indices(&self) -> AnimationIndices {
-        match self.orientation {
-            Orientation::South => AnimationIndices::new(0, 3),
-            Orientation::SouthEst => AnimationIndices::new(4, 7),
-            Orientation::Est => AnimationIndices::new(8, 11),
-            Orientation::NorthEst => AnimationIndices::new(12, 15),
-            Orientation::North => AnimationIndices::new(16, 19),
-            Orientation::NorthWest => AnimationIndices::new(20, 23),
-            Orientation::West => AnimationIndices::new(24, 27),
-            Orientation::SouthWest => AnimationIndices::new(28, 31),
+    fn from_animation(orientation: Orientation, anim_info: &AnimInfo) -> Self {
+        let anim_step = anim_info.value().durations.duration.len() - 1;
+
+        let start_index = match orientation {
+            Orientation::South => 0,
+            Orientation::SouthEst => anim_step + 1,
+            Orientation::Est => (anim_step * 2) + 2,
+            Orientation::NorthEst => (anim_step * 3) + 3,
+            Orientation::North => (anim_step * 4) + 4,
+            Orientation::NorthWest => (anim_step * 5) + 5,
+            Orientation::West => (anim_step * 6) + 6,
+            Orientation::SouthWest => (anim_step * 7) + 7,
+        };
+
+        let end_index = start_index + anim_step;
+
+        let indices = AnimationIndices::new(start_index, end_index);
+
+        AnimationInfo {
+            orientation,
+            indices,
         }
     }
 }
 
-fn spawn_piece_renderer(
+fn spawn_pokemon_renderer(
     mut commands: Commands,
     assets: Res<PokemonAnimationAssets>,
-    query: Query<(Entity, &Position, &Piece), Added<Piece>>,
+    anim_data_assets: Res<Assets<AnimData>>,
+    query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
 ) {
-    for (entity, position, piece) in query.iter() {
-        let texture_atlas = match piece.kind {
-            PieceKind::Player => assets.0.get("charmander").unwrap().idle.clone(),
-            _ => assets.0.get("rattata").unwrap().idle.clone(),
-        };
+    for (entity, position, pokemon) in query.iter() {
+        let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
-        let animation_indices = AnimationIndices { first: 0, last: 3 };
-        let mut sprite = TextureAtlasSprite::new(animation_indices.first);
+        let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
+        let anim_info = anim_data.get(AnimKey::Idle);
+
+        let texture_atlas = pokemon_animation.idle.to_owned();
+
+        let mut sprite = TextureAtlasSprite::new(0);
         sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
         let v = super::get_world_position(position, PIECE_Z);
 
         commands.entity(entity).insert((
+            AnimationInfo::from_animation(Orientation::South, &anim_info),
             SpriteSheetBundle {
                 texture_atlas,
                 sprite,
                 transform: Transform::from_translation(v),
                 ..default()
             },
-            AnimationInfo {
-                orientation: Orientation::North,
-            },
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         ));
     }
 }
 
-fn animate_piece_sprite(
+fn animate_pokemon_sprite(
     time: Res<Time>,
     mut query: Query<(&AnimationInfo, &mut AnimationTimer, &mut TextureAtlasSprite)>,
 ) {
     for (info, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            sprite.index = if sprite.index == info.indices().last {
-                info.indices().first
+            sprite.index = if sprite.index == info.indices.last {
+                info.indices.first
             } else {
                 sprite.index + 1
             };

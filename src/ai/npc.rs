@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::{
     map::Position,
     pieces::{Actor, Health, Occupier, Piece, PieceKind},
+    pokemons::{Pokemon, Pokemons},
     vector2_int::Vector2Int,
 };
 
@@ -12,6 +13,7 @@ use super::{PossibleActions, AI};
 pub struct NPCBundle {
     actor: Actor,
     name: Name,
+    pokemon: Pokemon,
     health: Health,
     ai: AI,
     possible_actions: PossibleActions,
@@ -25,6 +27,7 @@ impl Default for NPCBundle {
         Self {
             actor: Actor::default(),
             name: Name::new("NPC"),
+            pokemon: Pokemon(Pokemons::Rattata),
             health: Health { value: 1 },
             ai: AI,
             possible_actions: PossibleActions::default(),

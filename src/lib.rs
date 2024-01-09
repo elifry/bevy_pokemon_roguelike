@@ -24,6 +24,7 @@ mod map;
 mod menu;
 mod pieces;
 mod player;
+mod pokemons;
 mod turn;
 mod vector2_int;
 

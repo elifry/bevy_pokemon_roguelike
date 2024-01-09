@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, str::FromStr};
 
 use bevy::{
     asset::{self, LoadState, LoadedFolder},
@@ -11,6 +11,7 @@ use strum::EnumIter;
 use crate::{
     graphics::{anim_data::AnimKey, assets::PokemonAnimation},
     map::Position,
+    pokemons::Pokemons,
     vector2_int::Vector2Int,
     GameState,
 };
@@ -18,13 +19,13 @@ use crate::{
 use self::{
     anim_data::{AnimData, AnimDataLoader},
     assets::{PokemonAnimationAssets, PokemonAssetsFolder, TileAssets},
-    pieces::PiecesPlugin,
+    pokemon::PiecesPlugin,
     tiles::TilesPlugin,
 };
 
 pub mod anim_data;
 pub mod assets;
-mod pieces;
+mod pokemon;
 mod tiles;
 
 pub const TILE_Z: f32 = 0.;
@@ -152,7 +153,9 @@ fn process_assets(
             continue;
         };
 
-        let mut hashmap_files = folder
+        let pokemon = Pokemons::from_str(pokemon).unwrap();
+
+        let mut hashmap_files: HashMap<&str, &UntypedHandle> = folder
             .handles
             .iter()
             .map(|handle| {
@@ -178,42 +181,66 @@ fn process_assets(
 
         let anim_data = anim_data_assets.get(&anim_data_handle).unwrap();
 
-        let Some(idle_anim_handle) = hashmap_files
-            .get_mut("Idle-Anim.png")
-            .map(|handle| handle.to_owned().typed::<Image>())
-        else {
-            panic!("Couldn't load the idle animation asset for {pokemon}")
-        };
-
-        let idle_anim_info = anim_data.get(AnimKey::Idle);
-
-        let tile_size = idle_anim_info.tile_size();
-        let columns = idle_anim_info.columns();
-        let rows = idle_anim_info.rows();
-
-        println!("{} {} {}", tile_size, columns, rows);
-
-        let idle_texture_atlas = TextureAtlas::from_grid(
-            idle_anim_handle,
-            idle_anim_info.tile_size(),
-            idle_anim_info.columns(),
-            idle_anim_info.rows(),
-            None,
-            None,
+        let idle_texture_handle = get_texture_atlas_by_anim_key(
+            AnimKey::Idle,
+            anim_data,
+            &mut hashmap_files,
+            &mut texture_atlasses,
         );
 
-        let idle_texture_handle = texture_atlasses.add(idle_texture_atlas);
+        let walk_texture_handle = get_texture_atlas_by_anim_key(
+            AnimKey::Walk,
+            anim_data,
+            &mut hashmap_files,
+            &mut texture_atlasses,
+        );
+
+        let attack_texture_handle = get_texture_atlas_by_anim_key(
+            AnimKey::Walk,
+            anim_data,
+            &mut hashmap_files,
+            &mut texture_atlasses,
+        );
 
         let pokemon_animation = PokemonAnimation {
             idle: idle_texture_handle,
+            walk: walk_texture_handle,
+            attack: attack_texture_handle,
             anim_data: anim_data_handle,
         };
 
         pokemon_animation_assets
             .0
-            .insert(pokemon.to_string(), pokemon_animation);
+            .insert(pokemon, pokemon_animation);
     }
 
     info!("Assets processed");
     next_state.set(GameState::Playing);
+}
+
+fn get_texture_atlas_by_anim_key(
+    anim_key: AnimKey,
+    anim_data: &AnimData,
+    hashmap_files: &mut HashMap<&str, &UntypedHandle>,
+    texture_atlasses: &mut ResMut<'_, Assets<TextureAtlas>>,
+) -> Handle<TextureAtlas> {
+    let Some(idle_anim_handle) = hashmap_files
+        .get_mut("Idle-Anim.png")
+        .map(|handle| handle.to_owned().typed::<Image>())
+    else {
+        panic!("Couldn't load the {anim_key} animation asset")
+    };
+
+    let idle_anim_info = anim_data.get(anim_key);
+
+    let idle_texture_atlas = TextureAtlas::from_grid(
+        idle_anim_handle,
+        idle_anim_info.tile_size(),
+        idle_anim_info.columns(),
+        idle_anim_info.rows(),
+        None,
+        None,
+    );
+
+    texture_atlasses.add(idle_texture_atlas)
 }
