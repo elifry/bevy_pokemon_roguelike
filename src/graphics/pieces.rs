@@ -70,8 +70,8 @@ fn spawn_piece_renderer(
 ) {
     for (entity, position, piece) in query.iter() {
         let texture_atlas = match piece.kind {
-            PieceKind::Player => assets.files.get("charmander").unwrap().idle.clone(),
-            _ => assets.files.get("rattata").unwrap().idle.clone(),
+            PieceKind::Player => assets.0.get("charmander").unwrap().idle.clone(),
+            _ => assets.0.get("rattata").unwrap().idle.clone(),
         };
 
         let animation_indices = AnimationIndices { first: 0, last: 3 };

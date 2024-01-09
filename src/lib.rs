@@ -6,7 +6,7 @@ use bevy::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
-use game_control::{GameControlPlugin};
+use game_control::GameControlPlugin;
 use graphics::GraphicsPlugin;
 use loading::LoadingPlugin;
 use map::MapPlugin;
@@ -35,6 +35,7 @@ enum GameState {
     // During the loading State the LoadingPlugin will load our assets
     #[default]
     Loading,
+    AssetsLoaded,
     // During this State the actual game logic is executed
     Playing,
     // Here the menu is drawn and waiting for player interaction
@@ -46,7 +47,7 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<GameState>().add_plugins((
-            LoadingPlugin,
+            // LoadingPlugin, // custom assets loading system can't use for now
             MenuPlugin,
             MapPlugin,
             GraphicsPlugin,

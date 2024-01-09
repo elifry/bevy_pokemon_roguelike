@@ -1,5 +1,5 @@
 use crate::{
-    graphics::assets::{PokemonAnimationAssets, PokemonAssets, TileAssets},
+    graphics::assets::{PokemonAnimationAssets, TileAssets},
     GameState,
 };
 use bevy::prelude::*;
@@ -13,11 +13,8 @@ impl Plugin for LoadingPlugin {
     fn build(&self, app: &mut App) {
         app.add_loading_state(
             LoadingState::new(GameState::Loading)
-                .continue_to_state(GameState::Playing)
                 .with_dynamic_assets_file::<StandardDynamicAssetCollection>("tiles.assets.ron")
-                .load_collection::<TileAssets>()
-                .load_collection::<PokemonAssets>()
-                .init_resource::<PokemonAnimationAssets>(),
+                .load_collection::<TileAssets>(),
         );
     }
 }
