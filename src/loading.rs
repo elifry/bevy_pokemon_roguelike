@@ -1,5 +1,5 @@
 use crate::{
-    graphics::assets::{PokemonAnimationAssets, TileAssets},
+    graphics::assets::{TileAssets},
     GameState,
 };
 use bevy::prelude::*;

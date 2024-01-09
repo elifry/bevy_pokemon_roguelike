@@ -1,7 +1,7 @@
-use std::{path::Path, str::FromStr};
+use std::{str::FromStr};
 
 use bevy::{
-    asset::{self, LoadState, LoadedFolder},
+    asset::{LoadState, LoadedFolder},
     prelude::*,
     utils::hashbrown::HashMap,
 };

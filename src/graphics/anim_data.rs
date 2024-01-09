@@ -1,4 +1,4 @@
-use std::error::{self, Error};
+use std::error::{Error};
 
 use bevy::{
     asset::{io::Reader, Asset, AssetLoader, AsyncReadExt, LoadContext},

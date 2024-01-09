@@ -8,7 +8,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
 use game_control::GameControlPlugin;
 use graphics::GraphicsPlugin;
-use loading::LoadingPlugin;
+
 use map::MapPlugin;
 use menu::MenuPlugin;
 use player::PlayerPlugin;

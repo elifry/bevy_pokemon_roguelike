@@ -5,13 +5,13 @@ use bevy::prelude::*;
 use crate::{
     actions::{walk_action::WalkAction, ActionExecutedEvent},
     map::Position,
-    pieces::{Piece, PieceKind},
+    pieces::{Piece},
     pokemons::Pokemon,
     GameState,
 };
 
 use super::{
-    anim_data::{AnimData, AnimInfo, AnimKey, AnimValue},
+    anim_data::{AnimData, AnimInfo, AnimKey},
     assets::PokemonAnimationAssets,
     AnimationFinishedEvent, Orientation, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
@@ -41,7 +41,7 @@ pub struct AnimationIndices {
 
 impl AnimationIndices {
     fn new(first: usize, last: usize) -> Self {
-        return AnimationIndices { first, last };
+        AnimationIndices { first, last }
     }
 }
 
