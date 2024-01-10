@@ -1,5 +1,3 @@
-
-
 use bevy::prelude::*;
 
 use crate::{map::Position, player::Player, vector2_int::Vector2Int, GameState};
@@ -27,7 +25,7 @@ pub struct GameControlEvent(pub GameControl);
 
 pub enum GameControl {
     Target(Vector2Int),
-    Other,
+    Skip,
 }
 
 fn player_input_controls(
@@ -38,6 +36,10 @@ fn player_input_controls(
     let Ok(position) = player_query.get_single_mut() else {
         return;
     };
+
+    if (keyboard_input.just_pressed(KeyCode::Space)) {
+        ev_game_control.send(GameControlEvent(GameControl::Skip));
+    }
 
     for (key, dir) in DIR_KEY_MAPPING {
         if !keyboard_input.just_pressed(key) {

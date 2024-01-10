@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::actions::melee_hit_action::MeleeHitAction;
+use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, TickEvent};
 use crate::game_control::{GameControl, GameControlEvent};
@@ -45,7 +46,7 @@ fn spawn_player(mut commands: Commands) {
 fn take_action(
     mut ev_game_control: EventReader<GameControlEvent>,
     mut player_query: Query<(Entity, &mut Actor), With<Player>>,
-    mut target_query: Query<(Entity, &Position), With<Health>>,
+    target_query: Query<(Entity, &Position), With<Health>>,
     current_actor: Res<CurrentActor>,
     mut ev_tick: EventWriter<TickEvent>,
     mut ev_action: EventWriter<PlayerActionEvent>,
@@ -63,27 +64,30 @@ fn take_action(
             return;
         }
 
-        let GameControlEvent(GameControl::Target(target)) = ev else {
-            continue;
-        };
+        let action = match ev.0 {
+            GameControl::Target(target) => {
+                // check if there a target when the player move
+                let target_entities = target_query
+                    .iter()
+                    .filter(|(_, p)| p.0 == target)
+                    .collect::<Vec<_>>();
 
-        // check if there a target when the player move
-        let target_entities = target_query
-            .iter()
-            .filter(|(_, p)| p.0 == *target)
-            .collect::<Vec<_>>();
+                let action: Box<dyn Action> = if !target_entities.is_empty() {
+                    Box::new(MeleeHitAction {
+                        attacker: entity,
+                        target,
+                        damage: 1,
+                    })
+                } else {
+                    Box::new(WalkAction {
+                        entity,
+                        targeted_position: target,
+                    })
+                };
 
-        let action: Box<dyn Action> = if !target_entities.is_empty() {
-            Box::new(MeleeHitAction {
-                attacker: entity,
-                target: *target,
-                damage: 1,
-            })
-        } else {
-            Box::new(WalkAction {
-                entity,
-                targeted_position: *target,
-            })
+                action
+            }
+            GameControl::Skip => Box::new(SkipAction),
         };
 
         actor.0 = vec![action];

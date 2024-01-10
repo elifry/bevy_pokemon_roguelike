@@ -1,15 +1,11 @@
 use bevy::prelude::*;
 use std::any::Any;
 
-use crate::{
-    pieces::Actor,
-    player::Player,
-    turn::{CurrentActor, TurnState},
-    GameState,
-};
+use crate::{pieces::Actor, player::Player, turn::CurrentActor, GameState};
 
 pub mod damage_action;
 pub mod melee_hit_action;
+pub mod skip_action;
 pub mod walk_action;
 
 pub struct ActionsPlugin;
@@ -36,7 +32,7 @@ pub trait Action: Send + Sync {
 }
 
 // Execution Order of action
-// ActionExecutedEvent -> ActionProcessedEvent -> ActionFinishedEvent
+// ActionExecutedEvent -> ActionProcessedEvent / ProcessActionFailed
 
 #[derive(Default, Resource)]
 pub struct PendingActions(pub Vec<Box<dyn Action>>);
