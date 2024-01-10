@@ -1,8 +1,9 @@
-use std::error::{Error};
+use std::error::Error;
 
 use bevy::{
     asset::{io::Reader, Asset, AssetLoader, AsyncReadExt, LoadContext},
     math::Vec2,
+    prelude::*,
     reflect::TypePath,
     utils::{hashbrown::HashMap, BoxedFuture},
 };
@@ -12,6 +13,15 @@ use strum::{Display, IntoEnumIterator};
 use thiserror::Error;
 
 use super::Orientation;
+
+pub struct AnimDataPlugin;
+
+impl Plugin for AnimDataPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_asset::<AnimData>()
+            .init_asset_loader::<AnimDataLoader>();
+    }
+}
 
 #[derive(Asset, TypePath, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]

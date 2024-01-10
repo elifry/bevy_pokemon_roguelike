@@ -130,11 +130,18 @@ fn animate_pokemon_sprite(
     }
 }
 
-fn walk_animation(mut commands: Commands, mut ev_action: EventReader<ActionExecutedEvent>) {
+fn walk_animation(
+    mut commands: Commands,
+    query_position: Query<&Position>,
+    mut ev_action: EventReader<ActionExecutedEvent>,
+) {
     for ev in ev_action.read() {
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
             let target = super::get_world_vec(action.targeted_position, PIECE_Z);
+
+            let position = query_position.get(action.entity).unwrap().0;
+
             commands.entity(action.entity).insert(PathAnimator {
                 target: VecDeque::from([target]),
                 should_emit_graphics_wait: false,
