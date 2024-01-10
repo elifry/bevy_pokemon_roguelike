@@ -79,6 +79,25 @@ impl Mul<Vector2Int> for i32 {
     }
 }
 
+impl Vector2Int {
+    pub fn magnitude(&self) -> f64 {
+        ((self.x.pow(2) + self.y.pow(2)) as f64).sqrt()
+    }
+
+    pub fn normalize(&self) -> Vector2Int {
+        let mag = self.magnitude();
+        if mag != 0.0 {
+            Vector2Int {
+                x: (self.x as f64 / mag) as i32,
+                y: (self.y as f64 / mag) as i32,
+            }
+        } else {
+            // Handle the case when the magnitude is 0 to avoid division by zero
+            Vector2Int { x: 0, y: 0 }
+        }
+    }
+}
+
 pub const ORTHO_DIRECTIONS: [Vector2Int; 4] = [
     Vector2Int::UP,
     Vector2Int::DOWN,

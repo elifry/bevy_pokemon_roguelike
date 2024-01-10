@@ -167,7 +167,7 @@ fn process_assets(
         );
 
         let attack_texture_handle = get_texture_atlas_by_anim_key(
-            AnimKey::Walk,
+            AnimKey::Attack,
             anim_data,
             &mut hashmap_files,
             &mut texture_atlasses,
@@ -195,8 +195,14 @@ fn get_texture_atlas_by_anim_key(
     hashmap_files: &mut HashMap<&str, &UntypedHandle>,
     texture_atlasses: &mut ResMut<'_, Assets<TextureAtlas>>,
 ) -> Handle<TextureAtlas> {
+    let anim_key_str: &'static str = anim_key.into();
+    let mut anim_file = anim_key_str.to_owned();
+    anim_file.push_str("-Anim.png");
+
+    let anim_file = anim_file.as_str();
+
     let Some(idle_anim_handle) = hashmap_files
-        .get_mut("Idle-Anim.png")
+        .get_mut(anim_file)
         .map(|handle| handle.to_owned().typed::<Image>())
     else {
         panic!("Couldn't load the {anim_key} animation asset")

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
 
 use crate::{
     actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
@@ -13,7 +13,7 @@ use crate::{
 use super::{
     anim_data::{AnimData, AnimInfo, AnimKey},
     assets::PokemonAnimationAssets,
-    Orientation, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
+    get_orientation_from_vector, Orientation, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
 
 pub struct PiecesPlugin;
@@ -22,11 +22,14 @@ impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_pokemon_renderer, animate_pokemon_sprite).run_if(in_state(GameState::Playing)),
-        )
-        .add_systems(
-            Update,
-            (walk_animation, melee_animation, path_animator_update),
+            (
+                spawn_pokemon_renderer,
+                animate_pokemon_sprite,
+                walk_animation,
+                melee_animation,
+                path_animator_update,
+            )
+                .run_if(in_state(GameState::Playing)),
         );
     }
 }
@@ -40,6 +43,7 @@ pub struct PathAnimator {
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
 
+#[derive(Debug)]
 pub struct AnimationIndices {
     first: usize,
     last: usize,
@@ -97,12 +101,16 @@ fn spawn_pokemon_renderer(
 
         let texture_atlas = pokemon_animation.idle.to_owned();
 
-        let mut sprite = TextureAtlasSprite::new(0);
-        sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
+        let animation_info = AnimationInfo::from_animation(Orientation::North, &anim_info);
+
+        let mut sprite = TextureAtlasSprite::new(animation_info.indices.first);
+        // sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
         let v = super::get_world_position(position, PIECE_Z);
 
+        info!("Animation indices {:?}", animation_info.indices);
+
         commands.entity(entity).insert((
-            AnimationInfo::from_animation(Orientation::South, &anim_info),
+            animation_info,
             SpriteSheetBundle {
                 texture_atlas,
                 sprite,
@@ -132,20 +140,46 @@ fn animate_pokemon_sprite(
 
 fn walk_animation(
     mut commands: Commands,
-    query_position: Query<&Position>,
+    query_position: Query<(&Pokemon, &Transform)>,
     mut ev_action: EventReader<ActionExecutedEvent>,
+    assets: Res<PokemonAnimationAssets>,
+    anim_data_assets: Res<Assets<AnimData>>,
 ) {
     for ev in ev_action.read() {
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
-            let target = super::get_world_vec(action.targeted_position, PIECE_Z);
+            let target = super::get_world_vec(action.to, PIECE_Z);
 
-            let _position = query_position.get(action.entity).unwrap().0;
+            let (pokemon, transform) = query_position.get(action.entity).unwrap();
+            let direction = action.to - action.from;
+            let orientation = get_orientation_from_vector(direction);
 
-            commands.entity(action.entity).insert(PathAnimator {
-                target: VecDeque::from([target]),
-                should_emit_graphics_wait: false,
-            });
+            let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
+
+            let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
+            let anim_info = anim_data.get(AnimKey::Walk);
+
+            let animation_info = AnimationInfo::from_animation(orientation, &anim_info);
+
+            let texture_atlas = pokemon_animation.walk.to_owned();
+
+            let mut sprite = TextureAtlasSprite::new(animation_info.indices.first);
+            // sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
+
+            commands.entity(action.entity).insert((
+                animation_info,
+                SpriteSheetBundle {
+                    texture_atlas,
+                    sprite,
+                    transform: *transform,
+                    ..default()
+                },
+                PathAnimator {
+                    target: VecDeque::from([target]),
+                    should_emit_graphics_wait: false,
+                },
+                AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            ));
         }
     }
 }

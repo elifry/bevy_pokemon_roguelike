@@ -136,7 +136,8 @@ fn plan_walk(
             PossibleAction {
                 action: Box::new(WalkAction {
                     entity,
-                    targeted_position: *v,
+                    from: position.0,
+                    to: *v,
                 }) as Box<dyn Action>,
                 score: MOVE_SCORE + d,
             }

@@ -9,7 +9,7 @@ use bevy::{
 };
 use quick_xml::de::from_reader;
 use serde::Deserialize;
-use strum::{Display, IntoEnumIterator};
+use strum::{Display, IntoEnumIterator, IntoStaticStr};
 use thiserror::Error;
 
 use super::Orientation;
@@ -90,7 +90,7 @@ pub struct AnimsRaw {
     pub anim: Vec<Anim>,
 }
 
-#[derive(Debug, Display, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Debug, IntoStaticStr, Display, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum AnimKey {
     Walk,
     Attack,

@@ -45,14 +45,14 @@ fn spawn_player(mut commands: Commands) {
 
 fn take_action(
     mut ev_game_control: EventReader<GameControlEvent>,
-    mut player_query: Query<(Entity, &mut Actor), With<Player>>,
+    mut player_query: Query<(Entity, &mut Actor, &Position), With<Player>>,
     target_query: Query<(Entity, &Position), With<Health>>,
     current_actor: Res<CurrentActor>,
     mut ev_tick: EventWriter<TickEvent>,
     mut ev_action: EventWriter<PlayerActionEvent>,
 ) {
     for ev in ev_game_control.read() {
-        let Ok((entity, mut actor)) = player_query.get_single_mut() else {
+        let Ok((entity, mut actor, position)) = player_query.get_single_mut() else {
             return;
         };
 
@@ -81,7 +81,8 @@ fn take_action(
                 } else {
                     Box::new(WalkAction {
                         entity,
-                        targeted_position: target,
+                        from: position.0,
+                        to: target,
                     })
                 };
 

@@ -10,7 +10,8 @@ use super::Action;
 
 pub struct WalkAction {
     pub entity: Entity,
-    pub targeted_position: Vector2Int,
+    pub to: Vector2Int,
+    pub from: Vector2Int,
 }
 
 #[derive(Event)]
@@ -25,21 +26,21 @@ impl Action for WalkAction {
         let board = world.get_resource::<CurrentMap>().ok_or(())?;
 
         // check if the targeted position is on the board
-        if !board.tiles.contains_key(&self.targeted_position) {
+        if !board.tiles.contains_key(&self.to) {
             return Err(());
         };
 
         if world
             .query_filtered::<&Position, With<Occupier>>()
             .iter(world)
-            .any(|p| p.0 == self.targeted_position)
+            .any(|p| p.0 == self.to)
         {
             return Err(());
         };
 
         // get the position of the entity
         let mut position = world.get_mut::<Position>(self.entity).ok_or(())?;
-        position.0 = self.targeted_position;
+        position.0 = self.to;
 
         Ok(Vec::new())
     }
