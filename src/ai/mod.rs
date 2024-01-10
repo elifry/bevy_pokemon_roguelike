@@ -73,6 +73,8 @@ fn npc_action(
         return;
     };
 
+    info!("Npc {:?} take action", current_actor);
+
     let mut possible_actions = possible_actions.0.drain(..).collect::<Vec<_>>();
 
     possible_actions.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
@@ -94,8 +96,6 @@ fn plan_walk(
     occupier_query: Query<&Position, With<Occupier>>,
     map: Res<CurrentMap>,
 ) {
-    info!("plan_walk");
-
     let Some(current_actor) = current_actor.0 else {
         return;
     };

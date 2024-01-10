@@ -1,4 +1,4 @@
-use std::{str::FromStr};
+use std::str::FromStr;
 
 use bevy::{
     asset::{LoadState, LoadedFolder},
@@ -46,7 +46,6 @@ impl Plugin for GraphicsPlugin {
             .init_resource::<PokemonAnimationAssets>()
             .init_asset_loader::<AnimDataLoader>()
             .add_event::<GraphicsWaitEvent>()
-            .add_event::<AnimationFinishedEvent>()
             .add_systems(OnEnter(GameState::Loading), load_assets)
             .add_systems(OnEnter(GameState::AssetsLoaded), process_assets)
             .add_systems(
@@ -59,9 +58,6 @@ impl Plugin for GraphicsPlugin {
 
 #[derive(Event)]
 pub struct GraphicsWaitEvent;
-
-#[derive(Event)]
-pub struct AnimationFinishedEvent;
 
 #[derive(EnumIter)]
 pub enum Orientation {

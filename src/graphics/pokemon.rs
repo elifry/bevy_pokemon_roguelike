@@ -13,7 +13,7 @@ use crate::{
 use super::{
     anim_data::{AnimData, AnimInfo, AnimKey},
     assets::PokemonAnimationAssets,
-    AnimationFinishedEvent, Orientation, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
+    Orientation, PIECE_SIZE, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
 
 pub struct PiecesPlugin;
@@ -32,7 +32,10 @@ impl Plugin for PiecesPlugin {
 }
 
 #[derive(Component)]
-pub struct PathAnimator(pub VecDeque<Vec3>);
+pub struct PathAnimator {
+    pub target: VecDeque<Vec3>,
+    pub should_emit_graphics_wait: bool,
+}
 
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
@@ -127,19 +130,15 @@ fn animate_pokemon_sprite(
     }
 }
 
-fn walk_animation(
-    mut commands: Commands,
-    mut ev_action: EventReader<ActionExecutedEvent>,
-    mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
-) {
+fn walk_animation(mut commands: Commands, mut ev_action: EventReader<ActionExecutedEvent>) {
     for ev in ev_action.read() {
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
             let target = super::get_world_vec(action.targeted_position, PIECE_Z);
-            commands
-                .entity(action.entity)
-                .insert(PathAnimator(VecDeque::from([target])));
-            ev_wait.send(super::GraphicsWaitEvent);
+            commands.entity(action.entity).insert(PathAnimator {
+                target: VecDeque::from([target]),
+                should_emit_graphics_wait: false,
+            });
         }
     }
 }
@@ -158,9 +157,10 @@ fn melee_animation(
             };
             let base = super::get_world_position(base_position, PIECE_Z);
             let target = 0.5 * (base + super::get_world_vec(action.target, PIECE_Z));
-            commands
-                .entity(action.attacker)
-                .insert(PathAnimator(VecDeque::from([target, base])));
+            commands.entity(action.attacker).insert(PathAnimator {
+                target: VecDeque::from([target, base]),
+                should_emit_graphics_wait: true,
+            });
             ev_wait.send(super::GraphicsWaitEvent);
         }
     }
@@ -171,17 +171,19 @@ fn path_animator_update(
     mut query: Query<(Entity, &mut PathAnimator, &mut Transform), With<Piece>>,
     time: Res<Time>,
     mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
-    mut ev_animation_finished: EventWriter<super::AnimationFinishedEvent>,
 ) {
     for (entity, mut animator, mut transform) in query.iter_mut() {
-        if animator.0.is_empty() {
+        if animator.target.is_empty() {
             // this entity has completed it's animation
             commands.entity(entity).remove::<PathAnimator>();
             continue;
         }
-        ev_wait.send(super::GraphicsWaitEvent);
 
-        let target = *animator.0.front().unwrap();
+        if animator.should_emit_graphics_wait {
+            ev_wait.send(super::GraphicsWaitEvent);
+        }
+
+        let target = *animator.target.front().unwrap();
         let d = (target - transform.translation).length();
         if d > POSITION_TOLERANCE {
             transform.translation = transform
@@ -190,8 +192,7 @@ fn path_animator_update(
         } else {
             // the entity is at the desired path position
             transform.translation = target;
-            animator.0.pop_front();
-            ev_animation_finished.send(AnimationFinishedEvent);
+            animator.target.pop_front();
         }
     }
 }

@@ -2,7 +2,10 @@ use bevy::prelude::*;
 use std::any::Any;
 
 use crate::{
-    graphics::AnimationFinishedEvent, pieces::Actor, player::Player, turn::CurrentActor, GameState,
+    pieces::Actor,
+    player::Player,
+    turn::{CurrentActor, TurnState},
+    GameState,
 };
 
 pub mod damage_action;
@@ -18,11 +21,6 @@ impl Plugin for ActionsPlugin {
             .add_event::<ActionExecutedEvent>()
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
-            .add_event::<ActionFinishedEvent>()
-            .add_systems(
-                Update,
-                wait_for_animation.run_if(on_event::<AnimationFinishedEvent>()),
-            )
             .add_systems(
                 Update,
                 process_action_queue
@@ -53,9 +51,6 @@ pub struct TickEvent;
 pub struct ActionProcessedEvent;
 
 #[derive(Event)]
-pub struct ActionFinishedEvent;
-
-#[derive(Event)]
 pub struct ProcessActionFailed;
 
 fn process_action_queue(world: &mut World) {
@@ -73,7 +68,7 @@ fn process_action_queue(world: &mut World) {
 
     let Ok(mut actor) = actor_query.get_mut(world, entity) else {
         // otherwise the actor has been despawned
-        world.send_event(ActionFinishedEvent);
+        world.send_event(ActionProcessedEvent);
         return;
     };
 
@@ -122,9 +117,4 @@ fn execute_action(action: Box<dyn Action>, world: &mut World) -> bool {
         return true;
     }
     false
-}
-
-fn wait_for_animation(mut ev_action_finished: EventWriter<ActionFinishedEvent>) {
-    info!("wait_for_animation");
-    ev_action_finished.send(ActionFinishedEvent);
 }
