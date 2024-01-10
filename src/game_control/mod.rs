@@ -37,7 +37,7 @@ fn player_input_controls(
         return;
     };
 
-    if (keyboard_input.just_pressed(KeyCode::Space)) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
         ev_game_control.send(GameControlEvent(GameControl::Skip));
     }
 

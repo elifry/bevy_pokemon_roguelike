@@ -140,7 +140,7 @@ fn walk_animation(
         if let Some(action) = action.downcast_ref::<WalkAction>() {
             let target = super::get_world_vec(action.targeted_position, PIECE_Z);
 
-            let position = query_position.get(action.entity).unwrap().0;
+            let _position = query_position.get(action.entity).unwrap().0;
 
             commands.entity(action.entity).insert(PathAnimator {
                 target: VecDeque::from([target]),

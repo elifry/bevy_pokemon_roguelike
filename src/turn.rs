@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
 
-use bevy::{ecs::component::Tick, prelude::*};
+use bevy::{prelude::*};
 
 use crate::{
     actions::{PendingActions, TickEvent},
     graphics::GraphicsWaitEvent,
     pieces::{Actor, PieceDeathEvent},
-    player::{Player, PlayerActionEvent},
+    player::{Player},
     GameState,
 };
 
