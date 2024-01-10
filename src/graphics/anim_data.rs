@@ -175,11 +175,11 @@ pub struct AnimCopyOf {
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct Durations {
-    pub duration: Vec<Duration>,
+    pub duration: Vec<DurationValue>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Duration {
+pub struct DurationValue {
     #[serde(rename = "$text")]
     pub value: i64,
 }

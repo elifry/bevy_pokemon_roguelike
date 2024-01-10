@@ -5,10 +5,12 @@ use strum::{Display, EnumIter};
 use crate::{map::Position, vector2_int::Vector2Int};
 
 use self::{
-    anim_data::AnimDataPlugin, assets::AssetsPlugin, pokemon::PiecesPlugin, tiles::TilesPlugin,
+    anim_data::AnimDataPlugin, animations::AnimationsPlugin, assets::AssetsPlugin,
+    pokemon::PiecesPlugin, tiles::TilesPlugin,
 };
 
 pub mod anim_data;
+mod animations;
 pub mod assets;
 mod pokemon;
 mod tiles;
@@ -30,6 +32,7 @@ impl Plugin for GraphicsPlugin {
             PiecesPlugin,
             AssetsPlugin,
             AnimDataPlugin,
+            AnimationsPlugin,
         ));
     }
 }

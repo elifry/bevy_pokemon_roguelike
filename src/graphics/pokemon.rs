@@ -1,9 +1,10 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, time::Duration};
 
 use bevy::{prelude::*, transform};
 
 use crate::{
     actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
+    graphics::animations::Animator,
     map::Position,
     pieces::Piece,
     pokemons::Pokemon,
@@ -12,6 +13,7 @@ use crate::{
 
 use super::{
     anim_data::{AnimData, AnimInfo, AnimKey},
+    animations::{AnimationFrame, AnimationIndices},
     assets::PokemonAnimationAssets,
     get_orientation_from_vector, Orientation, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
@@ -24,7 +26,6 @@ impl Plugin for PiecesPlugin {
             Update,
             (
                 spawn_pokemon_renderer,
-                animate_pokemon_sprite,
                 walk_animation,
                 melee_animation,
                 path_animator_update,
@@ -40,53 +41,6 @@ pub struct PathAnimator {
     pub should_emit_graphics_wait: bool,
 }
 
-#[derive(Component, Deref, DerefMut)]
-pub struct AnimationTimer(Timer);
-
-#[derive(Debug)]
-pub struct AnimationIndices {
-    first: usize,
-    last: usize,
-}
-
-impl AnimationIndices {
-    fn new(first: usize, last: usize) -> Self {
-        AnimationIndices { first, last }
-    }
-}
-
-#[derive(Component)]
-pub struct AnimationInfo {
-    pub indices: AnimationIndices,
-    pub orientation: Orientation,
-}
-
-impl AnimationInfo {
-    fn from_animation(orientation: Orientation, anim_info: &AnimInfo) -> Self {
-        let anim_step = anim_info.value().durations.duration.len() - 1;
-
-        let start_index = match orientation {
-            Orientation::South => 0,
-            Orientation::SouthEst => anim_step + 1,
-            Orientation::Est => (anim_step * 2) + 2,
-            Orientation::NorthEst => (anim_step * 3) + 3,
-            Orientation::North => (anim_step * 4) + 4,
-            Orientation::NorthWest => (anim_step * 5) + 5,
-            Orientation::West => (anim_step * 6) + 6,
-            Orientation::SouthWest => (anim_step * 7) + 7,
-        };
-
-        let end_index = start_index + anim_step;
-
-        let indices = AnimationIndices::new(start_index, end_index);
-
-        AnimationInfo {
-            orientation,
-            indices,
-        }
-    }
-}
-
 fn spawn_pokemon_renderer(
     mut commands: Commands,
     assets: Res<PokemonAnimationAssets>,
@@ -96,51 +50,69 @@ fn spawn_pokemon_renderer(
     for (entity, position, pokemon) in query.iter() {
         let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
-        let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
-        let anim_info = anim_data.get(AnimKey::Idle);
+        let animator = get_animator(
+            &anim_data_assets,
+            pokemon_animation,
+            AnimKey::Idle,
+            Orientation::South,
+        );
 
-        let texture_atlas = pokemon_animation.idle.to_owned();
-
-        let animation_info = AnimationInfo::from_animation(Orientation::North, &anim_info);
-
-        let mut sprite = TextureAtlasSprite::new(animation_info.indices.first);
-        // sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
         let v = super::get_world_position(position, PIECE_Z);
-
-        info!("Animation indices {:?}", animation_info.indices);
+        let sprite = TextureAtlasSprite::new(animator.frames.first().unwrap().atlas_index);
+        let texture_atlas = animator.texture_atlas.clone();
 
         commands.entity(entity).insert((
-            animation_info,
+            animator,
             SpriteSheetBundle {
                 texture_atlas,
                 sprite,
                 transform: Transform::from_translation(v),
                 ..default()
             },
-            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         ));
     }
 }
 
-fn animate_pokemon_sprite(
-    time: Res<Time>,
-    mut query: Query<(&AnimationInfo, &mut AnimationTimer, &mut TextureAtlasSprite)>,
-) {
-    for (info, mut timer, mut sprite) in &mut query {
-        timer.tick(time.delta());
-        if timer.just_finished() {
-            sprite.index = if sprite.index == info.indices.last {
-                info.indices.first
-            } else {
-                sprite.index + 1
-            };
-        }
+fn get_animator(
+    anim_data_assets: &Res<'_, Assets<AnimData>>,
+    pokemon_animation: &super::assets::PokemonAnimation,
+    anim_key: AnimKey,
+    orientation: Orientation,
+) -> Animator {
+    let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
+    let anim_info = anim_data.get(anim_key);
+
+    let texture_atlas = match anim_key {
+        AnimKey::Walk => pokemon_animation.walk.to_owned(),
+        AnimKey::Attack => pokemon_animation.attack.to_owned(),
+        AnimKey::Idle => pokemon_animation.idle.to_owned(),
+        _ => panic!("Not implemented"),
+    };
+
+    let animation_indices = AnimationIndices::from_animation(orientation, &anim_info);
+
+    let frames = anim_info
+        .value()
+        .durations
+        .duration
+        .iter()
+        .enumerate()
+        .map(|(index, duration)| AnimationFrame {
+            duration: Duration::from_millis((duration.value * 22).try_into().unwrap()),
+            atlas_index: animation_indices.first + index,
+        })
+        .collect::<Vec<_>>();
+
+    Animator {
+        texture_atlas: texture_atlas.clone(),
+        frames,
+        ..default()
     }
 }
 
 fn walk_animation(
     mut commands: Commands,
-    query_position: Query<(&Pokemon, &Transform)>,
+    query_pokemon: Query<(&Pokemon)>,
     mut ev_action: EventReader<ActionExecutedEvent>,
     assets: Res<PokemonAnimationAssets>,
     anim_data_assets: Res<Assets<AnimData>>,
@@ -148,37 +120,27 @@ fn walk_animation(
     for ev in ev_action.read() {
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
-            let target = super::get_world_vec(action.to, PIECE_Z);
+            let pokemon = query_pokemon.get(action.entity).unwrap();
+            let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
-            let (pokemon, transform) = query_position.get(action.entity).unwrap();
             let direction = action.to - action.from;
             let orientation = get_orientation_from_vector(direction);
 
-            let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
+            let animator = get_animator(
+                &anim_data_assets,
+                pokemon_animation,
+                AnimKey::Walk,
+                orientation,
+            );
 
-            let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
-            let anim_info = anim_data.get(AnimKey::Walk);
-
-            let animation_info = AnimationInfo::from_animation(orientation, &anim_info);
-
-            let texture_atlas = pokemon_animation.walk.to_owned();
-
-            let mut sprite = TextureAtlasSprite::new(animation_info.indices.first);
-            // sprite.custom_size = Some(Vec2::splat(PIECE_SIZE));
+            let target = super::get_world_vec(action.to, PIECE_Z);
 
             commands.entity(action.entity).insert((
-                animation_info,
-                SpriteSheetBundle {
-                    texture_atlas,
-                    sprite,
-                    transform: *transform,
-                    ..default()
-                },
+                animator,
                 PathAnimator {
                     target: VecDeque::from([target]),
                     should_emit_graphics_wait: false,
                 },
-                AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             ));
         }
     }

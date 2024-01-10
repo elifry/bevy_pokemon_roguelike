@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use bevy::a11y::accesskit::Orientation;
 use bevy::asset::{LoadState, LoadedFolder};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -10,6 +11,7 @@ use crate::pokemons::Pokemons;
 use crate::GameState;
 
 use super::anim_data::AnimKey;
+use super::animations::AnimationIndices;
 
 pub struct AssetsPlugin;
 
@@ -50,7 +52,7 @@ pub struct PokemonAnimationAssets(pub HashMap<Pokemons, PokemonAnimation>);
 #[derive(Default, Resource)]
 pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PokemonAnimation {
     pub idle: Handle<TextureAtlas>,
     pub walk: Handle<TextureAtlas>,
