@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
-    pieces::{Actor, Health, Occupier, Piece, PieceKind},
+    pieces::{Actor, Health, Occupier, Orientation, Piece, PieceKind},
     pokemons::{Pokemon, Pokemons},
     vector2_int::Vector2Int,
 };
@@ -34,6 +34,7 @@ impl Default for NPCBundle {
             occupier: Occupier,
             piece: Piece {
                 kind: PieceKind::Npc,
+                orientation: Orientation::South,
             },
             position: Position(Vector2Int::new(0, 0)),
         }

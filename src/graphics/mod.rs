@@ -40,18 +40,6 @@ impl Plugin for GraphicsPlugin {
 #[derive(Event)]
 pub struct GraphicsWaitEvent;
 
-#[derive(Debug, EnumIter, Display)]
-pub enum Orientation {
-    South,
-    SouthEst,
-    Est,
-    NorthEst,
-    North,
-    NorthWest,
-    West,
-    SouthWest,
-}
-
 fn get_world_position(position: &Position, z: f32) -> Vec3 {
     Vec3::new(
         TILE_SIZE * position.0.x as f32,
@@ -62,21 +50,4 @@ fn get_world_position(position: &Position, z: f32) -> Vec3 {
 
 fn get_world_vec(v: Vector2Int, z: f32) -> Vec3 {
     Vec3::new(TILE_SIZE * v.x as f32, TILE_SIZE * v.y as f32, z)
-}
-
-fn get_orientation_from_vector(direction: Vector2Int) -> Orientation {
-    match direction {
-        Vector2Int { x: 0, y: -1 } => Orientation::South,
-        Vector2Int { x: 1, y: -1 } => Orientation::SouthEst,
-        Vector2Int { x: 1, y: 0 } => Orientation::Est,
-        Vector2Int { x: 1, y: 1 } => Orientation::NorthEst,
-        Vector2Int { x: 0, y: 1 } => Orientation::North,
-        Vector2Int { x: -1, y: 1 } => Orientation::NorthWest,
-        Vector2Int { x: -1, y: 0 } => Orientation::West,
-        Vector2Int { x: -1, y: -1 } => Orientation::SouthWest,
-        Vector2Int { x, y } => {
-            warn!("unable to get orientation from {:?}", direction);
-            Orientation::South
-        }
-    }
 }

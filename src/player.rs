@@ -6,7 +6,7 @@ use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, TickEvent};
 use crate::game_control::{GameControl, GameControlEvent};
 use crate::map::Position;
-use crate::pieces::{Actor, Health, Occupier, Piece, PieceKind};
+use crate::pieces::{Actor, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::{Pokemon, Pokemons};
 use crate::turn::{CurrentActor, TurnState};
 use crate::vector2_int::Vector2Int;
@@ -38,6 +38,7 @@ fn spawn_player(mut commands: Commands) {
         Actor::default(),
         Piece {
             kind: PieceKind::Player,
+            orientation: Orientation::South,
         },
         Position(Vector2Int::new(1, 0)),
     ));

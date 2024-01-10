@@ -3,9 +3,10 @@ use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use std::time::Duration;
 
+use crate::pieces::Orientation;
 use crate::GameState;
 
-use super::{anim_data::AnimInfo, Orientation};
+use super::anim_data::AnimInfo;
 
 pub struct AnimationsPlugin;
 

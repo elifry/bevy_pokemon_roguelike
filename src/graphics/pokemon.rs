@@ -6,7 +6,7 @@ use crate::{
     actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
     graphics::animations::Animator,
     map::Position,
-    pieces::Piece,
+    pieces::{get_orientation_from_vector, Orientation, Piece},
     pokemons::Pokemon,
     GameState,
 };
@@ -15,7 +15,7 @@ use super::{
     anim_data::{AnimData, AnimInfo, AnimKey},
     animations::{AnimationFrame, AnimationIndices},
     assets::PokemonAnimationAssets,
-    get_orientation_from_vector, Orientation, PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
+    PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
 
 pub struct PiecesPlugin;
@@ -40,6 +40,8 @@ pub struct PathAnimator {
     pub target: VecDeque<Vec3>,
     pub should_emit_graphics_wait: bool,
 }
+
+pub struct PokemonAnimationState {}
 
 fn spawn_pokemon_renderer(
     mut commands: Commands,

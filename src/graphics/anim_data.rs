@@ -12,7 +12,7 @@ use serde::Deserialize;
 use strum::{Display, IntoEnumIterator, IntoStaticStr};
 use thiserror::Error;
 
-use super::Orientation;
+use crate::pieces::Orientation;
 
 pub struct AnimDataPlugin;
 
