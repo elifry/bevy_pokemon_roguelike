@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use bevy::a11y::accesskit::Orientation;
 use bevy::asset::{LoadState, LoadedFolder};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -11,7 +10,6 @@ use crate::pokemons::Pokemons;
 use crate::GameState;
 
 use super::anim_data::AnimKey;
-use super::animations::AnimationIndices;
 
 pub struct AssetsPlugin;
 

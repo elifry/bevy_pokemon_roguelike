@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, time::Duration};
 
-use bevy::{prelude::*, transform};
+use bevy::prelude::*;
 
 use crate::{
     actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
@@ -12,7 +12,7 @@ use crate::{
 };
 
 use super::{
-    anim_data::{AnimData, AnimInfo, AnimKey},
+    anim_data::{AnimData, AnimKey},
     animations::{AnimationFrame, AnimationIndices},
     assets::PokemonAnimationAssets,
     PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
@@ -25,13 +25,16 @@ impl Plugin for PiecesPlugin {
         app.add_systems(
             Update,
             (
+                //pokemon_animation_state,
                 spawn_pokemon_renderer,
+                path_animator_update,
                 walk_animation,
                 melee_animation,
-                path_animator_update,
             )
+                .chain()
                 .run_if(in_state(GameState::Playing)),
-        );
+        )
+        .add_systems(Update, pokemon_animation_state);
     }
 }
 
@@ -41,30 +44,51 @@ pub struct PathAnimator {
     pub should_emit_graphics_wait: bool,
 }
 
-pub struct PokemonAnimationState {}
+#[derive(Component)]
+pub struct PokemonAnimationState {
+    pub state: AnimKey,
+    pub orientation: Orientation,
+}
 
-fn spawn_pokemon_renderer(
+fn pokemon_animation_state(
     mut commands: Commands,
-    assets: Res<PokemonAnimationAssets>,
+    query: Query<(Entity, &PokemonAnimationState, &Pokemon), Changed<PokemonAnimationState>>,
     anim_data_assets: Res<Assets<AnimData>>,
-    query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
+    assets: Res<PokemonAnimationAssets>,
 ) {
-    for (entity, position, pokemon) in query.iter() {
+    for (entity, animation_state, pokemon) in query.iter() {
+        info!("pokemon_animation_state {:?}", entity);
+
         let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
         let animator = get_animator(
             &anim_data_assets,
             pokemon_animation,
-            AnimKey::Idle,
-            Orientation::South,
+            &animation_state.state,
+            &animation_state.orientation,
         );
 
+        commands.entity(entity).insert(animator);
+    }
+}
+
+fn spawn_pokemon_renderer(
+    mut commands: Commands,
+    assets: Res<PokemonAnimationAssets>,
+    query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
+) {
+    for (entity, position, pokemon) in query.iter() {
+        let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
+
         let v = super::get_world_position(position, PIECE_Z);
-        let sprite = TextureAtlasSprite::new(animator.frames.first().unwrap().atlas_index);
-        let texture_atlas = animator.texture_atlas.clone();
+        let sprite = TextureAtlasSprite::new(0);
+        let texture_atlas = pokemon_animation.idle.clone();
 
         commands.entity(entity).insert((
-            animator,
+            PokemonAnimationState {
+                state: AnimKey::Idle,
+                orientation: Orientation::South,
+            },
             SpriteSheetBundle {
                 texture_atlas,
                 sprite,
@@ -78,11 +102,11 @@ fn spawn_pokemon_renderer(
 fn get_animator(
     anim_data_assets: &Res<'_, Assets<AnimData>>,
     pokemon_animation: &super::assets::PokemonAnimation,
-    anim_key: AnimKey,
-    orientation: Orientation,
+    anim_key: &AnimKey,
+    orientation: &Orientation,
 ) -> Animator {
     let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
-    let anim_info = anim_data.get(anim_key);
+    let anim_info = anim_data.get(*anim_key);
 
     let texture_atlas = match anim_key {
         AnimKey::Walk => pokemon_animation.walk.to_owned(),
@@ -114,36 +138,28 @@ fn get_animator(
 
 fn walk_animation(
     mut commands: Commands,
-    query_pokemon: Query<(&Pokemon)>,
+    mut query_animation: Query<&mut PokemonAnimationState>,
     mut ev_action: EventReader<ActionExecutedEvent>,
-    assets: Res<PokemonAnimationAssets>,
-    anim_data_assets: Res<Assets<AnimData>>,
 ) {
     for ev in ev_action.read() {
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
-            let pokemon = query_pokemon.get(action.entity).unwrap();
-            let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
+            let Ok(mut animation) = query_animation.get_mut(action.entity) else {
+                return;
+            };
 
             let direction = action.to - action.from;
             let orientation = get_orientation_from_vector(direction);
 
-            let animator = get_animator(
-                &anim_data_assets,
-                pokemon_animation,
-                AnimKey::Walk,
-                orientation,
-            );
+            animation.orientation = orientation;
+            animation.state = AnimKey::Walk;
 
             let target = super::get_world_vec(action.to, PIECE_Z);
 
-            commands.entity(action.entity).insert((
-                animator,
-                PathAnimator {
-                    target: VecDeque::from([target]),
-                    should_emit_graphics_wait: false,
-                },
-            ));
+            commands.entity(action.entity).insert((PathAnimator {
+                target: VecDeque::from([target]),
+                should_emit_graphics_wait: false,
+            },));
         }
     }
 }
@@ -173,7 +189,8 @@ fn melee_animation(
 
 fn path_animator_update(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut PathAnimator, &mut Transform), With<Piece>>,
+    mut query: Query<(Entity, &mut PathAnimator, &mut Transform), With<Pokemon>>,
+    mut query_animation: Query<(&mut PokemonAnimationState), With<Pokemon>>,
     time: Res<Time>,
     mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
 ) {
@@ -181,6 +198,9 @@ fn path_animator_update(
         if animator.target.is_empty() {
             // this entity has completed it's animation
             commands.entity(entity).remove::<PathAnimator>();
+            if let Ok(mut animation) = query_animation.get_mut(entity) {
+                animation.state = AnimKey::Idle;
+            }
             continue;
         }
 

@@ -38,7 +38,6 @@ fn spawn_player(mut commands: Commands) {
         Actor::default(),
         Piece {
             kind: PieceKind::Player,
-            orientation: Orientation::South,
         },
         Position(Vector2Int::new(1, 0)),
     ));

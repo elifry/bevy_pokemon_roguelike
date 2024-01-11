@@ -44,7 +44,7 @@ impl AnimationIndices {
         AnimationIndices { first, last }
     }
 
-    pub fn from_animation(orientation: Orientation, anim_info: &AnimInfo) -> Self {
+    pub fn from_animation(orientation: &Orientation, anim_info: &AnimInfo) -> Self {
         let anim_step = anim_info.value().durations.duration.len() - 1;
 
         let start_index = match orientation {

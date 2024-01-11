@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-use strum::{Display, EnumIter};
-
 use crate::{map::Position, vector2_int::Vector2Int};
 
 use self::{
@@ -20,8 +18,8 @@ pub const TILE_SIZE: f32 = 24.;
 
 pub const PIECE_Z: f32 = 10.;
 // pub const PIECE_SIZE: f32 = 32.;
-pub const PIECE_SPEED: f32 = 10.;
-pub const POSITION_TOLERANCE: f32 = 0.1;
+pub const PIECE_SPEED: f32 = 5.;
+pub const POSITION_TOLERANCE: f32 = 1.;
 
 pub struct GraphicsPlugin;
 

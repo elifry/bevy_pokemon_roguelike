@@ -31,7 +31,6 @@ pub struct Actor(pub Vec<Box<dyn Action>>);
 #[derive(Component)]
 pub struct Piece {
     pub kind: PieceKind,
-    pub orientation: Orientation,
 }
 
 pub enum PieceKind {
