@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, time::Duration};
 
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
     actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
@@ -81,7 +81,11 @@ fn spawn_pokemon_renderer(
         let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
         let v = super::get_world_position(position, PIECE_Z);
-        let sprite = TextureAtlasSprite::new(0);
+        let sprite = TextureAtlasSprite {
+            index: 0,
+            anchor: Anchor::Center,
+            ..default()
+        };
         let texture_atlas = pokemon_animation.idle.clone();
 
         commands.entity(entity).insert((
@@ -108,10 +112,10 @@ fn get_animator(
     let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
     let anim_info = anim_data.get(*anim_key);
 
-    let texture_atlas = match anim_key {
-        AnimKey::Walk => pokemon_animation.walk.to_owned(),
-        AnimKey::Attack => pokemon_animation.attack.to_owned(),
-        AnimKey::Idle => pokemon_animation.idle.to_owned(),
+    let (texture_atlas, is_loop) = match anim_key {
+        AnimKey::Walk => (pokemon_animation.walk.to_owned(), false),
+        AnimKey::Attack => (pokemon_animation.attack.to_owned(), false),
+        AnimKey::Idle => (pokemon_animation.idle.to_owned(), true),
         _ => panic!("Not implemented"),
     };
 
@@ -132,6 +136,7 @@ fn get_animator(
     Animator {
         texture_atlas: texture_atlas.clone(),
         frames,
+        is_loop,
         ..default()
     }
 }
@@ -145,13 +150,12 @@ fn walk_animation(
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
             let Ok(mut animation) = query_animation.get_mut(action.entity) else {
-                return;
+                continue;
             };
 
             let direction = action.to - action.from;
-            let orientation = get_orientation_from_vector(direction);
 
-            animation.orientation = orientation;
+            animation.orientation = get_orientation_from_vector(direction);
             animation.state = AnimKey::Walk;
 
             let target = super::get_world_vec(action.to, PIECE_Z);
@@ -167,6 +171,7 @@ fn walk_animation(
 fn melee_animation(
     mut commands: Commands,
     query_position: Query<&Position>,
+    mut query_animation: Query<&mut PokemonAnimationState>,
     mut ev_action: EventReader<ActionExecutedEvent>,
     mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
 ) {
@@ -176,12 +181,22 @@ fn melee_animation(
             let Ok(base_position) = query_position.get(action.attacker) else {
                 continue;
             };
-            let base = super::get_world_position(base_position, PIECE_Z);
-            let target = 0.5 * (base + super::get_world_vec(action.target, PIECE_Z));
-            commands.entity(action.attacker).insert(PathAnimator {
-                target: VecDeque::from([target, base]),
-                should_emit_graphics_wait: true,
-            });
+            let Ok(mut animation) = query_animation.get_mut(action.attacker) else {
+                continue;
+            };
+
+            let direction = action.target - base_position.0;
+
+            animation.orientation = get_orientation_from_vector(direction);
+            animation.state = AnimKey::Attack;
+
+            // let base = super::get_world_position(base_position, PIECE_Z);
+            // let target = 0.5 * (base + super::get_world_vec(action.target, PIECE_Z));
+
+            // commands.entity(action.attacker).insert(PathAnimator {
+            //     target: VecDeque::from([target, base]),
+            //     should_emit_graphics_wait: true,
+            // });
             ev_wait.send(super::GraphicsWaitEvent);
         }
     }

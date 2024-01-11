@@ -7,6 +7,7 @@ use crate::pieces::Orientation;
 use crate::GameState;
 
 use super::anim_data::AnimInfo;
+use super::GraphicsWaitEvent;
 
 pub struct AnimationsPlugin;
 
@@ -30,7 +31,14 @@ pub struct Animator {
     pub texture_atlas: Handle<TextureAtlas>,
     pub current_frame: usize,
     pub timer: Timer,
+    pub is_loop: bool,
     pub frames: Vec<AnimationFrame>,
+}
+
+impl Animator {
+    pub fn is_finished(&self) -> bool {
+        !self.is_loop && self.current_frame == self.frames.len() - 1
+    }
 }
 
 #[derive(Debug)]
@@ -72,8 +80,17 @@ fn animation_system(
         &mut Handle<TextureAtlas>,
         &mut TextureAtlasSprite,
     )>,
+    mut ev_wait: EventWriter<GraphicsWaitEvent>,
 ) {
     for (entity, mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
+        if animator.is_finished() {
+            continue;
+        }
+
+        if !animator.is_loop {
+            ev_wait.send(GraphicsWaitEvent);
+        }
+
         animator.timer.tick(time.delta());
 
         if !animator.timer.finished() {
@@ -82,8 +99,10 @@ fn animation_system(
 
         animator.current_frame = if animator.current_frame + 1 < animator.frames.len() {
             animator.current_frame + 1
-        } else {
+        } else if animator.is_loop {
             0
+        } else {
+            animator.current_frame
         };
 
         let Some(frame) = animator.frames.get(animator.current_frame).cloned() else {
