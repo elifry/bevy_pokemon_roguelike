@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     anim_data::{AnimData, AnimKey},
-    animations::{AnimationFrame, AnimationIndices},
+    animations::{AnimationFinished, AnimationFrame, AnimationIndices},
     assets::PokemonAnimationAssets,
     PIECE_SPEED, PIECE_Z, POSITION_TOLERANCE,
 };
@@ -27,14 +27,15 @@ impl Plugin for PiecesPlugin {
             (
                 //pokemon_animation_state,
                 spawn_pokemon_renderer,
+                fallback_idle_animation,
+                pokemon_animation_state,
                 walk_animation,
                 melee_animation,
             )
                 .chain()
                 .run_if(in_state(GameState::Playing)),
         )
-        .add_systems(FixedUpdate, path_animator_update)
-        .add_systems(Update, pokemon_animation_state);
+        .add_systems(FixedUpdate, path_animator_update);
     }
 }
 
@@ -50,19 +51,33 @@ pub struct PathAnimator {
 pub struct PokemonAnimationState {
     pub state: AnimKey,
     pub orientation: Orientation,
-    pub next_states: Vec<AnimKey>,
+}
+
+fn fallback_idle_animation(
+    mut ev_animation_finished: EventReader<AnimationFinished>,
+    mut query_animation_state: Query<&mut PokemonAnimationState>,
+) {
+    for ev in ev_animation_finished.read() {
+        let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
+            continue;
+        };
+
+        if animation_state.state != AnimKey::Idle {
+            animation_state.state = AnimKey::Idle;
+        }
+    }
 }
 
 fn pokemon_animation_state(
     mut commands: Commands,
-    query_animation_state: Query<
+    query_animation_state_changed: Query<
         (Entity, &PokemonAnimationState, &Pokemon),
         Changed<PokemonAnimationState>,
     >,
     anim_data_assets: Res<Assets<AnimData>>,
     assets: Res<PokemonAnimationAssets>,
 ) {
-    for (entity, animation_state, pokemon) in query_animation_state.iter() {
+    for (entity, animation_state, pokemon) in query_animation_state_changed.iter() {
         info!(
             "pokemon_animation_state changed {:?} to {:?}",
             entity, animation_state.state
@@ -122,10 +137,10 @@ fn get_animator(
     let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
     let anim_info = anim_data.get(*anim_key);
 
-    let (texture_atlas, is_loop) = match anim_key {
-        AnimKey::Walk => (pokemon_animation.walk.to_owned(), false),
-        AnimKey::Attack => (pokemon_animation.attack.to_owned(), false),
-        AnimKey::Idle => (pokemon_animation.idle.to_owned(), true),
+    let (texture_atlas, is_loop, emit_graphics_wait) = match anim_key {
+        AnimKey::Walk => (pokemon_animation.walk.to_owned(), false, false),
+        AnimKey::Attack => (pokemon_animation.attack.to_owned(), false, true),
+        AnimKey::Idle => (pokemon_animation.idle.to_owned(), true, false),
         _ => panic!("Not implemented"),
     };
 
@@ -147,6 +162,7 @@ fn get_animator(
         texture_atlas: texture_atlas.clone(),
         frames,
         is_loop,
+        emit_graphics_wait,
         ..default()
     }
 }
@@ -155,7 +171,6 @@ fn walk_animation(
     mut commands: Commands,
     mut query_animation: Query<(&mut PokemonAnimationState, &Transform)>,
     mut ev_action: EventReader<ActionExecutedEvent>,
-    mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
 ) {
     for ev in ev_action.read() {
         let action = ev.0.as_any();
@@ -179,14 +194,11 @@ fn walk_animation(
                 should_emit_graphics_wait: false,
                 ..default()
             },));
-
-            ev_wait.send(super::GraphicsWaitEvent);
         }
     }
 }
 
 fn melee_animation(
-    mut commands: Commands,
     query_position: Query<&Position>,
     mut query_animation: Query<&mut PokemonAnimationState>,
     mut ev_action: EventReader<ActionExecutedEvent>,

@@ -1,5 +1,4 @@
-use bevy::{ecs::reflect, prelude::*};
-use bevy_inspector_egui::prelude::*;
+use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use std::time::Duration;
 
@@ -13,12 +12,15 @@ pub struct AnimationsPlugin;
 
 impl Plugin for AnimationsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<AnimationFinished>().add_systems(
             Update,
             animation_system.run_if(in_state(GameState::Playing)),
         );
     }
 }
+
+#[derive(Event)]
+pub struct AnimationFinished(pub Entity);
 
 #[derive(Debug, Copy, Clone)]
 pub struct AnimationFrame {
@@ -32,6 +34,7 @@ pub struct Animator {
     pub current_frame: usize,
     pub timer: Timer,
     pub is_loop: bool,
+    pub emit_graphics_wait: bool,
     pub frames: Vec<AnimationFrame>,
 }
 
@@ -75,25 +78,27 @@ impl AnimationIndices {
 fn animation_system(
     time: Res<Time>,
     mut query: Query<(
+        Entity,
         &mut Animator,
         &mut Handle<TextureAtlas>,
         &mut TextureAtlasSprite,
     )>,
     mut ev_wait: EventWriter<GraphicsWaitEvent>,
+    mut ev_finished: EventWriter<AnimationFinished>,
 ) {
-    for (mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
-        if animator.is_finished() {
-            // TODO: trigger event when animation finished ?
-            continue;
-        }
-
-        if !animator.is_loop {
+    for (entity, mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
+        if animator.emit_graphics_wait {
             ev_wait.send(GraphicsWaitEvent);
         }
 
         animator.timer.tick(time.delta());
 
         if !animator.timer.finished() {
+            continue;
+        }
+
+        if animator.is_finished() {
+            ev_finished.send(AnimationFinished(entity));
             continue;
         }
 
