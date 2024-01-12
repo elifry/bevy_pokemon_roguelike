@@ -27,37 +27,46 @@ impl Plugin for PiecesPlugin {
             (
                 //pokemon_animation_state,
                 spawn_pokemon_renderer,
-                path_animator_update,
                 walk_animation,
                 melee_animation,
             )
                 .chain()
                 .run_if(in_state(GameState::Playing)),
         )
+        .add_systems(FixedUpdate, path_animator_update)
         .add_systems(Update, pokemon_animation_state);
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct PathAnimator {
+    pub from: Vec3,
+    pub t: f32,
     pub target: VecDeque<Vec3>,
     pub should_emit_graphics_wait: bool,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct PokemonAnimationState {
     pub state: AnimKey,
     pub orientation: Orientation,
+    pub next_states: Vec<AnimKey>,
 }
 
 fn pokemon_animation_state(
     mut commands: Commands,
-    query: Query<(Entity, &PokemonAnimationState, &Pokemon), Changed<PokemonAnimationState>>,
+    query_animation_state: Query<
+        (Entity, &PokemonAnimationState, &Pokemon),
+        Changed<PokemonAnimationState>,
+    >,
     anim_data_assets: Res<Assets<AnimData>>,
     assets: Res<PokemonAnimationAssets>,
 ) {
-    for (entity, animation_state, pokemon) in query.iter() {
-        info!("pokemon_animation_state {:?}", entity);
+    for (entity, animation_state, pokemon) in query_animation_state.iter() {
+        info!(
+            "pokemon_animation_state changed {:?} to {:?}",
+            entity, animation_state.state
+        );
 
         let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
@@ -92,6 +101,7 @@ fn spawn_pokemon_renderer(
             PokemonAnimationState {
                 state: AnimKey::Idle,
                 orientation: Orientation::South,
+                ..default()
             },
             SpriteSheetBundle {
                 texture_atlas,
@@ -143,13 +153,14 @@ fn get_animator(
 
 fn walk_animation(
     mut commands: Commands,
-    mut query_animation: Query<&mut PokemonAnimationState>,
+    mut query_animation: Query<(&mut PokemonAnimationState, &Transform)>,
     mut ev_action: EventReader<ActionExecutedEvent>,
+    mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
 ) {
     for ev in ev_action.read() {
         let action = ev.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
-            let Ok(mut animation) = query_animation.get_mut(action.entity) else {
+            let Ok((mut animation, transform)) = query_animation.get_mut(action.entity) else {
                 continue;
             };
 
@@ -160,10 +171,16 @@ fn walk_animation(
 
             let target = super::get_world_vec(action.to, PIECE_Z);
 
+            info!("Move from {:?} to {:?}", transform.translation, target);
+
             commands.entity(action.entity).insert((PathAnimator {
+                from: transform.translation,
                 target: VecDeque::from([target]),
                 should_emit_graphics_wait: false,
+                ..default()
             },));
+
+            ev_wait.send(super::GraphicsWaitEvent);
         }
     }
 }
@@ -205,34 +222,32 @@ fn melee_animation(
 fn path_animator_update(
     mut commands: Commands,
     mut query: Query<(Entity, &mut PathAnimator, &mut Transform), With<Pokemon>>,
-    mut query_animation: Query<(&mut PokemonAnimationState), With<Pokemon>>,
     time: Res<Time>,
     mut ev_wait: EventWriter<super::GraphicsWaitEvent>,
 ) {
-    for (entity, mut animator, mut transform) in query.iter_mut() {
-        if animator.target.is_empty() {
+    for (entity, mut path_animator, mut transform) in query.iter_mut() {
+        if path_animator.target.is_empty() {
             // this entity has completed it's animation
             commands.entity(entity).remove::<PathAnimator>();
-            if let Ok(mut animation) = query_animation.get_mut(entity) {
-                animation.state = AnimKey::Idle;
-            }
             continue;
         }
 
-        if animator.should_emit_graphics_wait {
+        if path_animator.should_emit_graphics_wait {
             ev_wait.send(super::GraphicsWaitEvent);
         }
 
-        let target = *animator.target.front().unwrap();
+        let target = *path_animator.target.front().unwrap();
         let d = (target - transform.translation).length();
+
         if d > POSITION_TOLERANCE {
-            transform.translation = transform
-                .translation
-                .lerp(target, PIECE_SPEED * time.delta_seconds());
+            path_animator.t += PIECE_SPEED * time.delta_seconds();
+            transform.translation = path_animator.from.lerp(target, path_animator.t);
         } else {
             // the entity is at the desired path position
             transform.translation = target;
-            animator.target.pop_front();
+            if let Some(previous) = path_animator.target.pop_front() {
+                path_animator.from = previous;
+            }
         }
     }
 }

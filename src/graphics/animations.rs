@@ -37,7 +37,7 @@ pub struct Animator {
 
 impl Animator {
     pub fn is_finished(&self) -> bool {
-        !self.is_loop && self.current_frame == self.frames.len() - 1
+        !self.is_loop && self.current_frame > self.frames.len() - 1
     }
 }
 
@@ -75,15 +75,15 @@ impl AnimationIndices {
 fn animation_system(
     time: Res<Time>,
     mut query: Query<(
-        Entity,
         &mut Animator,
         &mut Handle<TextureAtlas>,
         &mut TextureAtlasSprite,
     )>,
     mut ev_wait: EventWriter<GraphicsWaitEvent>,
 ) {
-    for (entity, mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
+    for (mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
         if animator.is_finished() {
+            // TODO: trigger event when animation finished ?
             continue;
         }
 
@@ -97,14 +97,6 @@ fn animation_system(
             continue;
         }
 
-        animator.current_frame = if animator.current_frame + 1 < animator.frames.len() {
-            animator.current_frame + 1
-        } else if animator.is_loop {
-            0
-        } else {
-            animator.current_frame
-        };
-
         let Some(frame) = animator.frames.get(animator.current_frame).cloned() else {
             warn!("animation frame not found");
             continue;
@@ -115,5 +107,14 @@ fn animation_system(
 
         *atlas = animator.texture_atlas.clone();
         sprite.index = frame.atlas_index;
+
+        // Next frame
+        animator.current_frame = if animator.current_frame + 1 < animator.frames.len() {
+            animator.current_frame + 1
+        } else if animator.is_loop {
+            0
+        } else {
+            animator.current_frame + 1 // voluntary surpassing number of animation to trigger is_finished next frame
+        };
     }
 }

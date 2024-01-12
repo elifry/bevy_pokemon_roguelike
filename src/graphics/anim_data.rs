@@ -90,7 +90,7 @@ pub struct AnimsRaw {
     pub anim: Vec<Anim>,
 }
 
-#[derive(Debug, IntoStaticStr, Display, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Debug, IntoStaticStr, Default, Display, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum AnimKey {
     Walk,
     Attack,
@@ -99,6 +99,7 @@ pub enum AnimKey {
     Strike,
     Sleep,
     Hurt,
+    #[default]
     Idle,
     Swing,
     Double,

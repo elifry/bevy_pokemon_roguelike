@@ -38,8 +38,9 @@ pub enum PieceKind {
     Npc,
 }
 
-#[derive(Debug, EnumIter, Display)]
+#[derive(Debug, Default, EnumIter, Display)]
 pub enum Orientation {
+    #[default]
     South,
     SouthEst,
     Est,
