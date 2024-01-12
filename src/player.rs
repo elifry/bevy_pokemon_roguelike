@@ -17,7 +17,7 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
-            .add_systems(OnEnter(GameState::Playing), spawn_player)
+            .add_systems(OnEnter(GameState::Initializing), spawn_player)
             .add_systems(Update, take_action.run_if(in_state(TurnState::PlayerTurn)));
     }
 }

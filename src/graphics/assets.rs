@@ -20,6 +20,7 @@ impl Plugin for AssetsPlugin {
             .init_resource::<PokemonAnimationAssets>()
             .add_systems(OnEnter(GameState::Loading), load_assets)
             .add_systems(OnEnter(GameState::AssetsLoaded), process_assets)
+            .add_systems(OnEnter(GameState::Initializing), set_playing)
             .add_systems(
                 Update,
                 check_assets_loading.run_if(in_state(GameState::Loading)),
@@ -56,6 +57,10 @@ pub struct PokemonAnimation {
     pub walk: Handle<TextureAtlas>,
     pub attack: Handle<TextureAtlas>,
     pub anim_data: Handle<AnimData>,
+}
+
+fn set_playing(mut next_state: ResMut<NextState<GameState>>) {
+    next_state.set(GameState::Playing);
 }
 
 fn load_assets(
@@ -186,7 +191,7 @@ fn process_assets(
     }
 
     info!("Assets processed");
-    next_state.set(GameState::Playing);
+    next_state.set(GameState::Initializing);
 }
 
 fn get_texture_atlas_by_anim_key(
