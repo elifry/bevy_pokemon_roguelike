@@ -36,6 +36,7 @@ impl Action for WalkAction {
             .iter(world)
             .any(|p| p.0 == self.to)
         {
+            warn!("There is already an entity on {:?}", self.to);
             return Err(());
         };
 

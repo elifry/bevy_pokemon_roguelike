@@ -84,7 +84,7 @@ fn take_action(
             }
             GameControl::Skip => Box::new(SkipAction),
         };
-        info!("Player send action event");
+
         ev_action.send(PlayerActionEvent(vec![action]));
     }
 }

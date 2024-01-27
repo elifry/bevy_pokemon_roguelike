@@ -51,6 +51,7 @@ enum GamePlayingSet {
     Input,
     TurnLogics,
     Action,
+    LateLogics,
     Animation,
 }
 
@@ -59,6 +60,7 @@ enum TurnState {
     #[default]
     Input,
     Logics,
+    ProcessAction,
 }
 
 pub struct GamePlugin;
@@ -72,8 +74,9 @@ impl Plugin for GamePlugin {
                 (
                     GamePlayingSet::Input.run_if(in_state(TurnState::Input)),
                     GamePlayingSet::TurnLogics.run_if(in_state(TurnState::Logics)),
-                    GamePlayingSet::Action,
+                    GamePlayingSet::Action.run_if(in_state(TurnState::ProcessAction)),
                     GamePlayingSet::Animation,
+                    GamePlayingSet::LateLogics.run_if(in_state(TurnState::ProcessAction)),
                 )
                     .chain()
                     .run_if(in_state(GameState::Playing)),

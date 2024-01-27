@@ -3,7 +3,7 @@ use bevy::{prelude::*, sprite::Anchor};
 use crate::{
     actions::{
         melee_hit_action::MeleeHitAction, skip_action::SkipAction, walk_action::WalkAction,
-        RunningAction,
+        ProcessingActionEvent, RunningAction, SingleRunningAction,
     },
     map::CurrentMap,
     vector2_int::Vector2Int,
@@ -60,8 +60,10 @@ pub struct AnimationHolder(pub Animation);
 fn add_action_animation(
     mut query: Query<(Entity, &mut PokemonAnimationState, &RunningAction), Added<RunningAction>>,
     mut commands: Commands,
+    mut ev_processing_action: EventWriter<ProcessingActionEvent>,
 ) {
     for (entity, mut animation_state, running_action) in query.iter_mut() {
+        ev_processing_action.send(ProcessingActionEvent);
         let action = running_action.0.as_any();
         if let Some(action) = action.downcast_ref::<WalkAction>() {
             animation_state.0 = AnimKey::Walk;
@@ -86,6 +88,7 @@ fn add_action_animation(
 
         if let Some(_action) = action.downcast_ref::<SkipAction>() {
             commands.entity(entity).remove::<RunningAction>();
+            commands.entity(entity).remove::<SingleRunningAction>();
         }
     }
 }
@@ -98,18 +101,20 @@ pub fn attack_animation(
         &mut PokemonAnimationState,
         &Animator,
     )>,
+    mut ev_processing_action: EventWriter<ProcessingActionEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
-        match animation.as_mut() {
-            AnimationHolder(Animation::Attack) => {
-                if animator.is_finished() {
-                    // TODO: maybe used event there
-                    animation_state.0 = AnimKey::Idle;
-                    commands.entity(entity).remove::<AnimationHolder>();
-                    commands.entity(entity).remove::<RunningAction>();
-                }
-            }
-            _ => {}
+        let AnimationHolder(Animation::Attack) = animation.as_mut() else {
+            continue;
+        };
+        ev_processing_action.send(ProcessingActionEvent);
+
+        if animator.is_finished() {
+            // TODO: maybe used event there
+            animation_state.0 = AnimKey::Idle;
+            commands.entity(entity).remove::<AnimationHolder>();
+            commands.entity(entity).remove::<RunningAction>();
+            commands.entity(entity).remove::<SingleRunningAction>();
         }
     }
 }
@@ -124,37 +129,40 @@ pub fn move_animation(
     )>,
     map: Res<CurrentMap>,
     time: Res<Time>,
+    mut ev_processing_action: EventWriter<ProcessingActionEvent>,
 ) {
     for (mut animation, mut animation_state, mut transform, animator) in query.iter_mut() {
-        match animation.as_mut() {
-            AnimationHolder(Animation::Move(move_animation)) => {
-                let target = get_world_position(&move_animation.to, 1.);
-                let from = get_world_position(&move_animation.from, 1.);
-                let d = (target - transform.translation).length();
+        let AnimationHolder(Animation::Move(move_animation)) = animation.as_mut() else {
+            continue;
+        };
 
-                if d > POSITION_TOLERANCE {
-                    move_animation.t =
-                        (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
-                    transform.translation = from.lerp(target, move_animation.t);
-                    continue;
-                }
+        ev_processing_action.send(ProcessingActionEvent);
+        let target = get_world_position(&move_animation.to, 1.);
+        let from = get_world_position(&move_animation.from, 1.);
+        let d = (target - transform.translation).length();
 
-                // the entity is at the desired path position
-                transform.translation = target;
-
-                if !animator.is_finished() {
-                    continue;
-                }
-
-                animation_state.0 = AnimKey::Idle;
-                commands
-                    .entity(move_animation.entity)
-                    .remove::<AnimationHolder>();
-                commands
-                    .entity(move_animation.entity)
-                    .remove::<RunningAction>();
-            }
-            _ => {}
+        if d > POSITION_TOLERANCE {
+            move_animation.t = (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
+            transform.translation = from.lerp(target, move_animation.t);
+            continue;
         }
+
+        // the entity is at the desired path position
+        transform.translation = target;
+
+        if !animator.is_finished() {
+            continue;
+        }
+
+        animation_state.0 = AnimKey::Idle;
+        commands
+            .entity(move_animation.entity)
+            .remove::<AnimationHolder>();
+        commands
+            .entity(move_animation.entity)
+            .remove::<RunningAction>();
+        commands
+            .entity(move_animation.entity)
+            .remove::<SingleRunningAction>();
     }
 }

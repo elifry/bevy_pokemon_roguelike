@@ -1,9 +1,13 @@
 use std::collections::VecDeque;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::bevy_egui::systems::process_input_system;
 
 use crate::{
-    actions::{ActionQueue, NextActions, QueuedAction, RunningAction},
+    actions::{
+        process_action_queue, ActionQueue, NextActions, ProcessingActionEvent, QueuedAction,
+        RunningAction,
+    },
     pieces::{Actor, PieceDeathEvent},
     player::{Player, PlayerActionEvent},
     GamePlayingSet, GameState, TurnState,
@@ -16,7 +20,7 @@ impl Plugin for TurnPlugin {
         app.init_resource::<TurnOrder>()
             .add_systems(
                 Update,
-                (add_actor_to_queue, turn_system, apply_deferred)
+                (add_actor_to_queue, turn_system)
                     .chain()
                     .in_set(GamePlayingSet::TurnLogics),
             )
@@ -28,8 +32,7 @@ impl Plugin for TurnPlugin {
                 Update,
                 (check_player_turn)
                     .chain()
-                    .after(GamePlayingSet::Animation)
-                    .run_if(in_state(TurnState::Logics)),
+                    .in_set(GamePlayingSet::LateLogics), //.run_if(in_state(TurnState::ProcessAction)),
             )
             .add_systems(Update, handle_actor_death);
     }
@@ -44,14 +47,13 @@ fn handle_player_action_event(mut next_state: ResMut<NextState<TurnState>>) {
 }
 
 fn check_player_turn(
-    query_running_actions: Query<&RunningAction>,
+    mut ev_wait: EventReader<ProcessingActionEvent>,
     mut next_state: ResMut<NextState<TurnState>>,
 ) {
-    if query_running_actions.get_single().is_ok() {
-        return;
+    if ev_wait.read().len() == 0 {
+        info!("turn input state");
+        next_state.set(TurnState::Input);
     }
-    info!("turn input state");
-    next_state.set(TurnState::Input);
 }
 
 pub fn turn_system(
@@ -61,6 +63,7 @@ pub fn turn_system(
     query_running_actions: Query<&RunningAction>,
     mut action_queue: ResMut<ActionQueue>,
     mut event_player_action: EventReader<PlayerActionEvent>,
+    mut next_state: ResMut<NextState<TurnState>>,
 ) {
     if query_running_actions.get_single().is_ok() {
         return;
@@ -98,9 +101,10 @@ pub fn turn_system(
             performable_actions: actions,
         });
     }
+
     event_player_action.clear();
 
-    // TODO: Clean Action Queue after the end of the animation
+    next_state.set(TurnState::ProcessAction);
 }
 
 fn handle_actor_death(

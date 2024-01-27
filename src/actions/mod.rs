@@ -17,9 +17,11 @@ impl Plugin for ActionsPlugin {
         app.add_event::<ActionExecutedEvent>()
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
+            .add_event::<ProcessingActionEvent>()
             .init_resource::<ActionQueue>()
             .add_systems(
                 Update,
+                // Apply deferred between each action
                 (process_action_queue, apply_deferred).in_set(GamePlayingSet::Action),
             );
     }
@@ -47,8 +49,14 @@ pub struct ActionQueue(pub VecDeque<QueuedAction>);
 #[derive(Component)]
 pub struct RunningAction(pub Box<dyn Action>);
 
+#[derive(Component)]
+pub struct SingleRunningAction;
+
 #[derive(Component, Default, Clone)]
 pub struct NextActions(pub Vec<Box<dyn Action>>);
+
+#[derive(Event)]
+pub struct ProcessingActionEvent;
 
 #[derive(Event)]
 pub struct ActionExecutedEvent(pub Box<dyn Action>);
@@ -59,71 +67,74 @@ pub struct ActionProcessedEvent;
 #[derive(Event)]
 pub struct ProcessActionFailed;
 
-fn process_action_queue(world: &mut World) {
-    // Early return if there are running actions
+pub fn process_action_queue(world: &mut World) {
+    // Early return if there are running actions with single execution
     if world
-        .query_filtered::<Entity, With<RunningAction>>()
+        .query_filtered::<Entity, (With<RunningAction>, With<SingleRunningAction>)>()
         .get_single(world)
         .is_ok()
     {
+        info!("Single execution");
         return;
     }
 
-    'queue_action_loop: loop {
-        // Get the first action of the queue
-        let queued_action = {
-            let action_queue = world.get_resource_mut::<ActionQueue>();
-            if let Some(mut queue) = action_queue {
-                if queue.0.is_empty() {
-                    // If the ActionQueue is empty, break the loop
-                    break;
-                }
-                queue.0.pop_front()
-            } else {
-                // If there's no ActionQueue, break the loop
-                break;
+    // Get the first action of the queue
+    let queued_action = {
+        let action_queue = world.get_resource_mut::<ActionQueue>();
+        if let Some(mut queue) = action_queue {
+            if queue.0.is_empty() {
+                // If the ActionQueue is empty, return
+                return;
             }
-        };
+            queue.0.pop_front()
+        } else {
+            // If there's no ActionQueue, return
+            return;
+        }
+    };
 
-        let Some(queued_action) = queued_action else {
-            // If there is no more action in the queue
-            break;
-        };
+    let Some(queued_action) = queued_action else {
+        // If there is no more action in the queue
+        return;
+    };
 
-        for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
-            match action.execute(world) {
-                Ok(result_actions) => {
-                    // Action well executed (insert the `RunningAction`)
+    info!("process_action_queue");
+    world.send_event(ProcessingActionEvent);
+
+    for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
+        match action.execute(world) {
+            Ok(result_actions) => {
+                // Action well executed (insert the `RunningAction`)
+                world
+                    .entity_mut(queued_action.entity)
+                    .insert(RunningAction(action.clone()));
+
+                let single_running = action.as_any().downcast_ref::<WalkAction>().is_none();
+                if single_running {
+                    // Avoid processing multiple action at the same time
                     world
                         .entity_mut(queued_action.entity)
-                        .insert(RunningAction(action.clone()));
+                        .insert(SingleRunningAction);
+                }
 
-                    if !result_actions.is_empty() {
-                        let mut action_queue = world.get_resource_mut::<ActionQueue>().unwrap();
-                        action_queue.0.push_front(QueuedAction {
-                            entity: queued_action.entity,
-                            performable_actions: result_actions,
-                        });
-                    }
+                if !result_actions.is_empty() {
+                    let mut action_queue = world.get_resource_mut::<ActionQueue>().unwrap();
+                    action_queue.0.push_front(QueuedAction {
+                        entity: queued_action.entity,
+                        performable_actions: result_actions,
+                    });
+                }
 
-                    let parallel_execution = action.as_any().downcast_ref::<WalkAction>().is_some();
-
-                    if !parallel_execution {
-                        // If no parallel execution, break out of the outer loop
-                        break 'queue_action_loop;
-                    }
-
+                break;
+            }
+            Err(_) => {
+                warn!("Action not valid");
+                if action_index == queued_action.performable_actions.len() - 1 {
+                    // Last performable action is also invalid
+                    warn!("No more performable action");
                     break;
                 }
-                Err(_) => {
-                    warn!("Action not valid");
-                    if action_index == queued_action.performable_actions.len() - 1 {
-                        // Last performable action is also invalid
-                        warn!("No more performable action");
-                        break;
-                    }
-                }
-            };
-        }
+            }
+        };
     }
 }
