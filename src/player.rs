@@ -53,7 +53,6 @@ fn take_action(
     mut ev_action: EventWriter<PlayerActionEvent>,
 ) {
     let Ok((entity, mut actor, position)) = player_query.get_single_mut() else {
-        ev_game_control.clear();
         return;
     };
 

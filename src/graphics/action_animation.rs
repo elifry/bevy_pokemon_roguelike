@@ -86,10 +86,9 @@ fn add_action_animation(
             continue;
         }
 
-        if let Some(_action) = action.downcast_ref::<SkipAction>() {
-            commands.entity(entity).remove::<RunningAction>();
-            commands.entity(entity).remove::<SingleRunningAction>();
-        }
+        // If there is no animation attached to the actin
+        commands.entity(entity).remove::<RunningAction>();
+        commands.entity(entity).remove::<SingleRunningAction>();
     }
 }
 
@@ -136,12 +135,12 @@ pub fn move_animation(
             continue;
         };
 
-        ev_processing_action.send(ProcessingActionEvent);
         let target = get_world_position(&move_animation.to, 1.);
         let from = get_world_position(&move_animation.from, 1.);
         let d = (target - transform.translation).length();
 
         if d > POSITION_TOLERANCE {
+            ev_processing_action.send(ProcessingActionEvent);
             move_animation.t = (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
             transform.translation = from.lerp(target, move_animation.t);
             continue;

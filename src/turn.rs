@@ -32,7 +32,7 @@ impl Plugin for TurnPlugin {
                 Update,
                 (check_player_turn)
                     .chain()
-                    .in_set(GamePlayingSet::LateLogics), //.run_if(in_state(TurnState::ProcessAction)),
+                    .in_set(GamePlayingSet::LateLogics),
             )
             .add_systems(Update, handle_actor_death);
     }
@@ -42,7 +42,6 @@ impl Plugin for TurnPlugin {
 pub struct TurnOrder(pub VecDeque<Entity>);
 
 fn handle_player_action_event(mut next_state: ResMut<NextState<TurnState>>) {
-    info!("Player took action");
     next_state.set(TurnState::Logics);
 }
 
@@ -51,7 +50,7 @@ fn check_player_turn(
     mut next_state: ResMut<NextState<TurnState>>,
 ) {
     if ev_wait.read().len() == 0 {
-        info!("turn input state");
+        info!("Waiting for next input...");
         next_state.set(TurnState::Input);
     }
 }

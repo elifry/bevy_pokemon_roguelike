@@ -1,4 +1,4 @@
-use crate::{GamePlayingSet, GameState};
+use crate::{actions::melee_hit_action::MeleeHitAction, GamePlayingSet, GameState};
 use bevy::prelude::*;
 use dyn_clone::DynClone;
 use std::{any::Any, collections::VecDeque, fmt::Debug};
@@ -74,13 +74,13 @@ pub fn process_action_queue(world: &mut World) {
         .get_single(world)
         .is_ok()
     {
-        info!("Single execution");
         return;
     }
 
     // Get the first action of the queue
     let queued_action = {
         let action_queue = world.get_resource_mut::<ActionQueue>();
+
         if let Some(mut queue) = action_queue {
             if queue.0.is_empty() {
                 // If the ActionQueue is empty, return
@@ -98,18 +98,18 @@ pub fn process_action_queue(world: &mut World) {
         return;
     };
 
-    info!("process_action_queue");
     world.send_event(ProcessingActionEvent);
 
     for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
         match action.execute(world) {
             Ok(result_actions) => {
                 // Action well executed (insert the `RunningAction`)
+                info!("action executed {:?}", action);
                 world
                     .entity_mut(queued_action.entity)
                     .insert(RunningAction(action.clone()));
 
-                let single_running = action.as_any().downcast_ref::<WalkAction>().is_none();
+                let single_running = action.as_any().downcast_ref::<MeleeHitAction>().is_some();
                 if single_running {
                     // Avoid processing multiple action at the same time
                     world
