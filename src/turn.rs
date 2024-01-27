@@ -6,7 +6,7 @@ use crate::{
     actions::{ActionQueue, NextActions, QueuedAction},
     pieces::{Actor, PieceDeathEvent},
     player::{Player, PlayerActionEvent},
-    GameState,
+    GamePlayingSet, GameState,
 };
 
 pub struct TurnPlugin;
@@ -18,7 +18,7 @@ impl Plugin for TurnPlugin {
                 Update,
                 (add_actor_to_queue, turn_system)
                     .chain()
-                    .run_if(in_state(GameState::Playing)),
+                    .in_set(GamePlayingSet::TurnLogics),
             )
             .add_systems(Update, handle_actor_death);
     }

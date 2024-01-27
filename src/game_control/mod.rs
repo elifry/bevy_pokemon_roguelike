@@ -1,15 +1,13 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, player::Player, vector2_int::Vector2Int, GameState};
+use crate::{map::Position, player::Player, vector2_int::Vector2Int, GamePlayingSet, GameState};
 
 pub struct GameControlPlugin;
 
 impl Plugin for GameControlPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<GameControlEvent>().add_systems(
-            Update,
-            player_input_controls.run_if(in_state(GameState::Playing)),
-        );
+        app.add_event::<GameControlEvent>()
+            .add_systems(Update, player_input_controls.in_set(GamePlayingSet::Input));
     }
 }
 
@@ -37,14 +35,15 @@ fn player_input_controls(
         return;
     };
 
-    if keyboard_input.just_pressed(KeyCode::Space) {
+    if keyboard_input.pressed(KeyCode::Space) {
         ev_game_control.send(GameControlEvent(GameControl::Skip));
     }
 
     for (key, dir) in DIR_KEY_MAPPING {
-        if !keyboard_input.just_pressed(key) {
+        if !keyboard_input.pressed(key) {
             continue;
         }
+        info!("send game control event");
         ev_game_control.send(GameControlEvent(GameControl::Target(position.0 + dir)));
     }
 }

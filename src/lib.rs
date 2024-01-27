@@ -46,23 +46,43 @@ enum GameState {
     Menu,
 }
 
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+enum GamePlayingSet {
+    Input,
+    TurnLogics,
+    Action,
+    Animation,
+}
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<GameState>().add_plugins((
-            // LoadingPlugin, // custom assets loading system can't use for now
-            MenuPlugin,
-            MapPlugin,
-            PiecesPlugin,
-            GraphicsPlugin,
-            CameraPlugin,
-            PlayerPlugin,
-            AIPlugin,
-            GameControlPlugin,
-            ActionsPlugin,
-            TurnPlugin,
-        ));
+        app.add_state::<GameState>()
+            .configure_sets(
+                Update,
+                (
+                    GamePlayingSet::Input,
+                    GamePlayingSet::TurnLogics,
+                    GamePlayingSet::Action,
+                    GamePlayingSet::Animation,
+                )
+                    .chain()
+                    .run_if(in_state(GameState::Playing)),
+            )
+            .add_plugins((
+                // LoadingPlugin, // custom assets loading system can't use for now
+                MenuPlugin,
+                MapPlugin,
+                PiecesPlugin,
+                GraphicsPlugin,
+                CameraPlugin,
+                PlayerPlugin,
+                AIPlugin,
+                GameControlPlugin,
+                ActionsPlugin,
+                TurnPlugin,
+            ));
 
         #[cfg(debug_assertions)]
         {

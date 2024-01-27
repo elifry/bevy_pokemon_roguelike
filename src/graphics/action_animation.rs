@@ -7,7 +7,7 @@ use crate::{
     },
     map::CurrentMap,
     vector2_int::Vector2Int,
-    GameState,
+    GamePlayingSet, GameState,
 };
 
 use super::{
@@ -23,7 +23,7 @@ impl Plugin for ActionAnimationPlugin {
             Update,
             (add_action_animation, move_animation, attack_animation)
                 .chain()
-                .run_if(in_state(GameState::Playing)),
+                .in_set(GamePlayingSet::Animation),
         );
     }
 }

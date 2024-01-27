@@ -1,4 +1,4 @@
-use crate::GameState;
+use crate::{GamePlayingSet, GameState};
 use bevy::prelude::*;
 use dyn_clone::DynClone;
 use std::{any::Any, collections::VecDeque, fmt::Debug};
@@ -18,10 +18,7 @@ impl Plugin for ActionsPlugin {
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
             .init_resource::<ActionQueue>()
-            .add_systems(
-                Update,
-                process_action_queue.run_if(in_state(GameState::Playing)),
-            );
+            .add_systems(Update, process_action_queue.in_set(GamePlayingSet::Action));
     }
 }
 
@@ -74,11 +71,21 @@ fn process_action_queue(world: &mut World) {
 
     // we clone the action_queue because we're gonna modify the original action_queue
     'queue_action_loop: for queued_action in cloned_action_queue.0.iter() {
-        for action in queued_action.performable_actions.iter() {
+        for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
             // TODO: add the result actions to the queue
             let Ok(_result_actions) = action.execute(world) else {
                 // not valid action
                 warn!("Action not valid");
+                if action_index == queued_action.performable_actions.len() - 1 {
+                    // last performable action is also invalid
+                    // we remove it from the list
+                    world
+                        .get_resource_mut::<ActionQueue>()
+                        .unwrap()
+                        .0
+                        .pop_front();
+                }
+
                 continue;
             };
 

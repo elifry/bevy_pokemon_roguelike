@@ -3,13 +3,13 @@ use bevy::prelude::*;
 use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
-use crate::actions::Action;
+use crate::actions::{Action, RunningAction};
 use crate::game_control::{GameControl, GameControlEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::{Pokemon, Pokemons};
 use crate::vector2_int::Vector2Int;
-use crate::GameState;
+use crate::{GamePlayingSet, GameState};
 
 pub struct PlayerPlugin;
 
@@ -17,7 +17,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
             .add_systems(OnEnter(GameState::Initializing), spawn_player)
-            .add_systems(Update, take_action.run_if(in_state(GameState::Playing)));
+            .add_systems(Update, take_action.after(GamePlayingSet::Input));
     }
 }
 
@@ -45,15 +45,19 @@ fn spawn_player(mut commands: Commands) {
 
 fn take_action(
     mut ev_game_control: EventReader<GameControlEvent>,
-    mut player_query: Query<(Entity, &mut Actor, &Position), With<Player>>,
+    mut player_query: Query<
+        (Entity, &mut Actor, &Position),
+        (With<Player>, Without<RunningAction>),
+    >,
     target_query: Query<(Entity, &Position), With<Health>>,
     mut ev_action: EventWriter<PlayerActionEvent>,
 ) {
-    for ev in ev_game_control.read() {
-        let Ok((entity, mut actor, position)) = player_query.get_single_mut() else {
-            return;
-        };
+    let Ok((entity, mut actor, position)) = player_query.get_single_mut() else {
+        ev_game_control.clear();
+        return;
+    };
 
+    for ev in ev_game_control.read() {
         let action = match ev.0 {
             GameControl::Target(target) => {
                 // check if there a target when the player move
@@ -80,7 +84,7 @@ fn take_action(
             }
             GameControl::Skip => Box::new(SkipAction),
         };
-
+        info!("Player send action event");
         ev_action.send(PlayerActionEvent(vec![action]));
     }
 }
