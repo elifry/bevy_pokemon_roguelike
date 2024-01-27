@@ -54,16 +54,24 @@ enum GamePlayingSet {
     Animation,
 }
 
+#[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
+enum TurnState {
+    #[default]
+    Input,
+    Logics,
+}
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<GameState>()
+            .add_state::<TurnState>()
             .configure_sets(
                 Update,
                 (
-                    GamePlayingSet::Input,
-                    GamePlayingSet::TurnLogics,
+                    GamePlayingSet::Input.run_if(in_state(TurnState::Input)),
+                    GamePlayingSet::TurnLogics.run_if(in_state(TurnState::Logics)),
                     GamePlayingSet::Action,
                     GamePlayingSet::Animation,
                 )

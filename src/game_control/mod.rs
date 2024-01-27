@@ -43,7 +43,6 @@ fn player_input_controls(
         if !keyboard_input.pressed(key) {
             continue;
         }
-        info!("send game control event");
         ev_game_control.send(GameControlEvent(GameControl::Target(position.0 + dir)));
     }
 }

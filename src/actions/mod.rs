@@ -18,7 +18,10 @@ impl Plugin for ActionsPlugin {
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
             .init_resource::<ActionQueue>()
-            .add_systems(Update, process_action_queue.in_set(GamePlayingSet::Action));
+            .add_systems(
+                Update,
+                (process_action_queue, apply_deferred).in_set(GamePlayingSet::Action),
+            );
     }
 }
 
@@ -57,55 +60,70 @@ pub struct ActionProcessedEvent;
 pub struct ProcessActionFailed;
 
 fn process_action_queue(world: &mut World) {
-    let mut query_running_actions = world.query_filtered::<Entity, With<RunningAction>>();
-    if query_running_actions.get_single(world).is_ok() {
-        // there is running actions, we do not want to process futhermore
+    // Early return if there are running actions
+    if world
+        .query_filtered::<Entity, With<RunningAction>>()
+        .get_single(world)
+        .is_ok()
+    {
         return;
     }
 
-    let cloned_action_queue = world.get_resource::<ActionQueue>().unwrap().clone();
-
-    if cloned_action_queue.0.is_empty() {
-        return;
-    }
-
-    // we clone the action_queue because we're gonna modify the original action_queue
-    'queue_action_loop: for queued_action in cloned_action_queue.0.iter() {
-        for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
-            // TODO: add the result actions to the queue
-            let Ok(_result_actions) = action.execute(world) else {
-                // not valid action
-                warn!("Action not valid");
-                if action_index == queued_action.performable_actions.len() - 1 {
-                    // last performable action is also invalid
-                    // we remove it from the list
-                    world
-                        .get_resource_mut::<ActionQueue>()
-                        .unwrap()
-                        .0
-                        .pop_front();
+    'queue_action_loop: loop {
+        // Get the first action of the queue
+        let queued_action = {
+            let action_queue = world.get_resource_mut::<ActionQueue>();
+            if let Some(mut queue) = action_queue {
+                if queue.0.is_empty() {
+                    // If the ActionQueue is empty, break the loop
+                    break;
                 }
-
-                continue;
-            };
-
-            let parallel_execution = action.as_any().downcast_ref::<WalkAction>().is_some();
-
-            world
-                .entity_mut(queued_action.entity)
-                .insert(RunningAction(action.clone()));
-
-            // pop the executed action
-            world
-                .get_resource_mut::<ActionQueue>()
-                .unwrap()
-                .0
-                .pop_front();
-
-            if parallel_execution {
+                queue.0.pop_front()
+            } else {
+                // If there's no ActionQueue, break the loop
                 break;
             }
-            break 'queue_action_loop;
+        };
+
+        let Some(queued_action) = queued_action else {
+            // If there is no more action in the queue
+            break;
+        };
+
+        for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
+            match action.execute(world) {
+                Ok(result_actions) => {
+                    // Action well executed (insert the `RunningAction`)
+                    world
+                        .entity_mut(queued_action.entity)
+                        .insert(RunningAction(action.clone()));
+
+                    if !result_actions.is_empty() {
+                        let mut action_queue = world.get_resource_mut::<ActionQueue>().unwrap();
+                        action_queue.0.push_front(QueuedAction {
+                            entity: queued_action.entity,
+                            performable_actions: result_actions,
+                        });
+                    }
+
+                    let parallel_execution = action.as_any().downcast_ref::<WalkAction>().is_some();
+
+                    if !parallel_execution {
+                        // If no parallel execution, break out of the outer loop
+                        break 'queue_action_loop;
+                    }
+
+                    break;
+                }
+                Err(_) => {
+                    warn!("Action not valid");
+                    if action_index == queued_action.performable_actions.len() - 1 {
+                        // Last performable action is also invalid
+                        warn!("No more performable action");
+                        break;
+                    }
+                }
+            };
         }
     }
 }

@@ -3,10 +3,10 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{ActionQueue, NextActions, QueuedAction},
+    actions::{ActionQueue, NextActions, QueuedAction, RunningAction},
     pieces::{Actor, PieceDeathEvent},
     player::{Player, PlayerActionEvent},
-    GamePlayingSet, GameState,
+    GamePlayingSet, GameState, TurnState,
 };
 
 pub struct TurnPlugin;
@@ -16,9 +16,20 @@ impl Plugin for TurnPlugin {
         app.init_resource::<TurnOrder>()
             .add_systems(
                 Update,
-                (add_actor_to_queue, turn_system)
+                (add_actor_to_queue, turn_system, apply_deferred)
                     .chain()
                     .in_set(GamePlayingSet::TurnLogics),
+            )
+            .add_systems(
+                Update,
+                handle_player_action_event.run_if(on_event::<PlayerActionEvent>()),
+            )
+            .add_systems(
+                Update,
+                (check_player_turn)
+                    .chain()
+                    .after(GamePlayingSet::Animation)
+                    .run_if(in_state(TurnState::Logics)),
             )
             .add_systems(Update, handle_actor_death);
     }
@@ -27,16 +38,38 @@ impl Plugin for TurnPlugin {
 #[derive(Default, Resource)]
 pub struct TurnOrder(pub VecDeque<Entity>);
 
+fn handle_player_action_event(mut next_state: ResMut<NextState<TurnState>>) {
+    info!("Player took action");
+    next_state.set(TurnState::Logics);
+}
+
+fn check_player_turn(
+    query_running_actions: Query<&RunningAction>,
+    mut next_state: ResMut<NextState<TurnState>>,
+) {
+    if query_running_actions.get_single().is_ok() {
+        return;
+    }
+    info!("turn input state");
+    next_state.set(TurnState::Input);
+}
+
 pub fn turn_system(
     turn_order: ResMut<TurnOrder>,
     query_player: Query<Entity, With<Player>>,
     query_next_actions: Query<&NextActions>,
+    query_running_actions: Query<&RunningAction>,
     mut action_queue: ResMut<ActionQueue>,
     mut event_player_action: EventReader<PlayerActionEvent>,
 ) {
+    if query_running_actions.get_single().is_ok() {
+        return;
+    }
+
     let Some(player_action) = event_player_action.read().next() else {
         return;
     };
+    info!("Execute turn order");
 
     action_queue.0.clear();
     for actor_turn in turn_order.0.iter() {
@@ -65,6 +98,7 @@ pub fn turn_system(
             performable_actions: actions,
         });
     }
+    event_player_action.clear();
 
     // TODO: Clean Action Queue after the end of the animation
 }

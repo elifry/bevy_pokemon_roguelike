@@ -9,7 +9,7 @@ use crate::{
     pieces::{Actor, Occupier},
     player::Player,
     vector2_int::{utils::find_path, Vector2Int, ORTHO_DIRECTIONS},
-    GameState,
+    GameState, TurnState,
 };
 
 use self::npc::NPCBundle;
@@ -21,10 +21,13 @@ pub struct AIPlugin;
 
 impl Plugin for AIPlugin {
     fn build(&self, app: &mut App) {
-        app.configure_sets(Update, (AISet::Planning, AISet::Late).chain())
-            .add_systems(Update, plan_walk.in_set(AISet::Planning))
-            .add_systems(Update, npc_action.in_set(AISet::Late))
-            .add_systems(OnEnter(GameState::Playing), spawn_npcs);
+        app.configure_sets(
+            OnEnter(TurnState::Input),
+            (AISet::Planning, AISet::Late).chain(),
+        )
+        .add_systems(Update, plan_walk.in_set(AISet::Planning))
+        .add_systems(Update, npc_action.in_set(AISet::Late))
+        .add_systems(OnEnter(GameState::Playing), spawn_npcs);
     }
 }
 
@@ -47,8 +50,8 @@ struct PossibleAction {
 }
 
 fn spawn_npcs(mut commands: Commands) {
-    // spawn_test_npc(&mut commands, Vector2Int::new(5, 5));
-    // spawn_test_npc(&mut commands, Vector2Int::new(3, 5));
+    spawn_test_npc(&mut commands, Vector2Int::new(5, 5));
+    spawn_test_npc(&mut commands, Vector2Int::new(3, 5));
 }
 
 fn spawn_test_npc(commands: &mut Commands, position: Vector2Int) {
