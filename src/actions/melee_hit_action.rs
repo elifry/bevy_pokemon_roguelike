@@ -1,9 +1,14 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Health, vector2_int::Vector2Int};
+use crate::{
+    map::Position,
+    pieces::{FacingOrientation, Health, Orientation},
+    vector2_int::Vector2Int,
+};
 
 use super::{damage_action::DamageAction, Action};
 
+#[derive(Debug, Clone)]
 pub struct MeleeHitAction {
     pub attacker: Entity,
     pub target: Vector2Int,
@@ -31,6 +36,15 @@ impl Action for MeleeHitAction {
             .iter()
             .map(|e| Box::new(DamageAction(e.0, self.damage)) as Box<dyn Action>)
             .collect::<Vec<_>>();
+
+        let grid_position = world.get::<Position>(self.attacker).ok_or(())?;
+        let direction = self.target - grid_position.0;
+
+        let mut facing_orientation = world
+            .get_mut::<FacingOrientation>(self.attacker)
+            .ok_or(())?;
+
+        facing_orientation.0 = Orientation::from_vector(direction);
 
         Ok(result)
     }

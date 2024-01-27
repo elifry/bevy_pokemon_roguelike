@@ -4,6 +4,7 @@ use crate::pieces::{Health, PieceDeathEvent};
 
 use super::Action;
 
+#[derive(Debug, Clone)]
 pub struct DamageAction(pub Entity, pub u32);
 
 impl Action for DamageAction {

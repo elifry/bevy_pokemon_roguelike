@@ -3,12 +3,11 @@ use bevy::prelude::*;
 use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
-use crate::actions::{Action, TickEvent};
+use crate::actions::Action;
 use crate::game_control::{GameControl, GameControlEvent};
 use crate::map::Position;
-use crate::pieces::{Actor, Health, Occupier, Orientation, Piece, PieceKind};
+use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::{Pokemon, Pokemons};
-use crate::turn::{CurrentActor, TurnState};
 use crate::vector2_int::Vector2Int;
 use crate::GameState;
 
@@ -18,19 +17,20 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
             .add_systems(OnEnter(GameState::Initializing), spawn_player)
-            .add_systems(Update, take_action.run_if(in_state(TurnState::PlayerTurn)));
+            .add_systems(Update, take_action.run_if(in_state(GameState::Playing)));
     }
 }
 
 #[derive(Component)]
 pub struct Player;
 
-#[derive(Event)]
-pub struct PlayerActionEvent;
+#[derive(Event, Debug, Default)]
+pub struct PlayerActionEvent(pub Vec<Box<dyn Action>>);
 
 fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
+        FacingOrientation(Orientation::South),
         Pokemon(Pokemons::Charmander),
         Player,
         Occupier,
@@ -47,22 +47,12 @@ fn take_action(
     mut ev_game_control: EventReader<GameControlEvent>,
     mut player_query: Query<(Entity, &mut Actor, &Position), With<Player>>,
     target_query: Query<(Entity, &Position), With<Health>>,
-    current_actor: Res<CurrentActor>,
-    mut ev_tick: EventWriter<TickEvent>,
     mut ev_action: EventWriter<PlayerActionEvent>,
 ) {
     for ev in ev_game_control.read() {
         let Ok((entity, mut actor, position)) = player_query.get_single_mut() else {
             return;
         };
-
-        let Some(current_actor) = current_actor.0 else {
-            return;
-        };
-
-        if current_actor != entity {
-            return;
-        }
 
         let action = match ev.0 {
             GameControl::Target(target) => {
@@ -91,10 +81,6 @@ fn take_action(
             GameControl::Skip => Box::new(SkipAction),
         };
 
-        actor.0 = vec![action];
-
-        ev_tick.send(TickEvent);
-
-        ev_action.send(PlayerActionEvent);
+        ev_action.send(PlayerActionEvent(vec![action]));
     }
 }

@@ -27,7 +27,7 @@ fn spawn_tile_renderer(
         let mut sprite = TextureAtlasSprite::new(13);
         sprite.custom_size = Some(Vec2::splat(TILE_SIZE));
         //sprite.color = Color::OLIVE;
-        let v = super::get_world_position(position, TILE_Z);
+        let v = super::get_world_position(&position.0, TILE_Z);
         commands.entity(entity).insert(SpriteSheetBundle {
             sprite,
             texture_atlas: assets.forest_path.clone(),

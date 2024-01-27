@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::Action;
 
+#[derive(Debug, Clone)]
 pub struct SkipAction;
 
 impl Action for SkipAction {

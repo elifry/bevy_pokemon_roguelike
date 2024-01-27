@@ -1,9 +1,9 @@
+use crate::GameState;
 use bevy::prelude::*;
-use std::any::Any;
+use dyn_clone::DynClone;
+use std::{any::Any, collections::VecDeque, fmt::Debug};
 
-use crate::{pieces::Actor, player::Player, turn::CurrentActor, GameState};
-
-
+use self::walk_action::WalkAction;
 
 pub mod damage_action;
 pub mod melee_hit_action;
@@ -14,21 +14,19 @@ pub struct ActionsPlugin;
 
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<TickEvent>()
-            .init_resource::<PendingActions>()
-            .add_event::<ActionExecutedEvent>()
+        app.add_event::<ActionExecutedEvent>()
             .add_event::<ActionProcessedEvent>()
             .add_event::<ProcessActionFailed>()
+            .init_resource::<ActionQueue>()
             .add_systems(
                 Update,
-                process_action_queue
-                    .run_if(on_event::<TickEvent>())
-                    .run_if(in_state(GameState::Playing)),
+                process_action_queue.run_if(in_state(GameState::Playing)),
             );
     }
 }
 
-pub trait Action: Send + Sync {
+dyn_clone::clone_trait_object!(Action);
+pub trait Action: Send + Sync + DynClone + Debug {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()>;
     fn as_any(&self) -> &dyn Any;
 }
@@ -36,14 +34,24 @@ pub trait Action: Send + Sync {
 // Execution Order of action
 // ActionExecutedEvent -> ActionProcessedEvent / ProcessActionFailed
 
-#[derive(Default, Resource)]
-pub struct PendingActions(pub Vec<Box<dyn Action>>);
+#[derive(Debug, Clone)]
+pub struct QueuedAction {
+    pub entity: Entity,
+    pub performable_actions: Vec<Box<dyn Action>>,
+}
+
+#[derive(Resource, Default, Clone)]
+pub struct ActionQueue(pub VecDeque<QueuedAction>);
+
+/// Current executed action attached to an entity
+#[derive(Component)]
+pub struct RunningAction(pub Box<dyn Action>);
+
+#[derive(Component, Default, Clone)]
+pub struct NextActions(pub Vec<Box<dyn Action>>);
 
 #[derive(Event)]
 pub struct ActionExecutedEvent(pub Box<dyn Action>);
-
-#[derive(Event)]
-pub struct TickEvent;
 
 #[derive(Event)]
 pub struct ActionProcessedEvent;
@@ -52,67 +60,45 @@ pub struct ActionProcessedEvent;
 pub struct ProcessActionFailed;
 
 fn process_action_queue(world: &mut World) {
-    if process_pending_actions(world) {
+    let mut query_running_actions = world.query_filtered::<Entity, With<RunningAction>>();
+    if query_running_actions.get_single(world).is_ok() {
+        // there is running actions, we do not want to process futhermore
         return;
     }
 
-    let current_actor = world.get_resource::<CurrentActor>().unwrap();
+    let cloned_action_queue = world.get_resource::<ActionQueue>().unwrap().clone();
 
-    let Some(entity) = current_actor.0 else {
+    if cloned_action_queue.0.is_empty() {
         return;
-    };
+    }
 
-    let mut actor_query = world.query::<&mut Actor>();
+    // we clone the action_queue because we're gonna modify the original action_queue
+    'queue_action_loop: for queued_action in cloned_action_queue.0.iter() {
+        for action in queued_action.performable_actions.iter() {
+            // TODO: add the result actions to the queue
+            let Ok(_result_actions) = action.execute(world) else {
+                // not valid action
+                warn!("Action not valid");
+                continue;
+            };
 
-    let Ok(mut actor) = actor_query.get_mut(world, entity) else {
-        // otherwise the actor has been despawned
-        world.send_event(ActionProcessedEvent);
-        return;
-    };
+            let parallel_execution = action.as_any().downcast_ref::<WalkAction>().is_some();
 
-    info!("process_action_queue for {:?}", entity);
+            world
+                .entity_mut(queued_action.entity)
+                .insert(RunningAction(action.clone()));
 
-    let possible_actions = actor.0.drain(..).collect::<Vec<_>>();
+            // pop the executed action
+            world
+                .get_resource_mut::<ActionQueue>()
+                .unwrap()
+                .0
+                .pop_front();
 
-    let mut success = false;
-    for action in possible_actions {
-        success = success || execute_action(action, world);
-        if success {
-            break;
+            if parallel_execution {
+                break;
+            }
+            break 'queue_action_loop;
         }
     }
-
-    if !success && world.get::<Player>(entity).is_some() {
-        info!("Invalid player action");
-        world.send_event(ProcessActionFailed);
-        return;
-    }
-
-    world.send_event(ActionProcessedEvent);
-}
-
-fn process_pending_actions(world: &mut World) -> bool {
-    // returns true if at least one pending action has been processed
-    // take action objects without holding the mutable reference to the world
-    let pending = match world.get_resource_mut::<PendingActions>() {
-        Some(mut res) => res.0.drain(..).collect::<Vec<_>>(),
-        _ => return false,
-    };
-    let mut success = false;
-    for action in pending {
-        success = success || execute_action(action, world);
-    }
-    success
-}
-
-fn execute_action(action: Box<dyn Action>, world: &mut World) -> bool {
-    if let Ok(next_actions) = action.execute(world) {
-        if let Some(mut pending_actions) = world.get_resource_mut::<PendingActions>() {
-            pending_actions.0.extend(next_actions);
-        }
-        info!("action executed");
-        world.send_event(ActionExecutedEvent(action));
-        return true;
-    }
-    false
 }

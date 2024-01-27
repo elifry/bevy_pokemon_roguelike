@@ -83,14 +83,9 @@ fn animation_system(
         &mut Handle<TextureAtlas>,
         &mut TextureAtlasSprite,
     )>,
-    mut ev_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_finished: EventWriter<AnimationFinished>,
 ) {
     for (entity, mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
-        if animator.emit_graphics_wait {
-            ev_wait.send(GraphicsWaitEvent);
-        }
-
         animator.timer.tick(time.delta());
 
         if !animator.timer.finished() {

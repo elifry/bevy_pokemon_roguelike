@@ -2,12 +2,13 @@ use bevy::prelude::*;
 
 use crate::{
     map::{CurrentMap, Position},
-    pieces::Occupier,
+    pieces::{FacingOrientation, Occupier, Orientation},
     vector2_int::Vector2Int,
 };
 
 use super::Action;
 
+#[derive(Debug, Clone)]
 pub struct WalkAction {
     pub entity: Entity,
     pub to: Vector2Int,
@@ -41,6 +42,10 @@ impl Action for WalkAction {
         // get the position of the entity
         let mut position = world.get_mut::<Position>(self.entity).ok_or(())?;
         position.0 = self.to;
+
+        let mut facing_orientation = world.get_mut::<FacingOrientation>(self.entity).ok_or(())?;
+        let direction = self.to - self.from;
+        facing_orientation.0 = Orientation::from_vector(direction);
 
         Ok(Vec::new())
     }
