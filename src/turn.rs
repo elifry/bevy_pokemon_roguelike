@@ -35,10 +35,6 @@ pub fn turn_system(
     mut event_player_action: EventReader<PlayerActionEvent>,
     mut ev_processing_action: EventReader<ProcessingActionEvent>,
 ) {
-    let Some(player_action) = event_player_action.read().next() else {
-        return;
-    };
-
     if ev_processing_action.read().len() > 0 {
         return;
     }
@@ -46,6 +42,10 @@ pub fn turn_system(
     if !action_queue.0.is_empty() {
         return;
     }
+
+    let Some(player_action) = event_player_action.read().next() else {
+        return;
+    };
 
     info!("--------------- Turn ---------------");
     info!("------------------------------------");
