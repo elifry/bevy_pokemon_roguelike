@@ -6,7 +6,6 @@ use bevy::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
-use game_control::GameControlPlugin;
 use graphics::GraphicsPlugin;
 
 use map::MapPlugin;
@@ -18,7 +17,6 @@ use turn::TurnPlugin;
 mod actions;
 mod ai;
 mod camera;
-mod game_control;
 mod graphics;
 mod loading;
 mod map;
@@ -49,6 +47,7 @@ enum GameState {
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 enum GamePlayingSet {
     Inputs,
+    Controls,
     AI,
     TurnLogics,
     Actions,
@@ -65,6 +64,7 @@ impl Plugin for GamePlugin {
                 Update,
                 (
                     GamePlayingSet::Inputs,
+                    GamePlayingSet::Controls,
                     GamePlayingSet::AI.run_if(on_event::<PlayerActionEvent>()),
                     GamePlayingSet::TurnLogics,
                     GamePlayingSet::Actions,
@@ -83,7 +83,6 @@ impl Plugin for GamePlugin {
                 CameraPlugin,
                 PlayerPlugin,
                 AIPlugin,
-                GameControlPlugin,
                 ActionsPlugin,
                 TurnPlugin,
             ));

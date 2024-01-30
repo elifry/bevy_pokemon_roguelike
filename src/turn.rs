@@ -40,14 +40,16 @@ pub fn turn_system(
     };
 
     if ev_processing_action.read().len() > 0 {
-        // ev_processing_action.clear();
-        // event_player_action.clear();
         return;
     }
+
+    if !action_queue.0.is_empty() {
+        return;
+    }
+
     info!("--------------- Turn ---------------");
     info!("------------------------------------");
 
-    action_queue.0.clear();
     for actor_turn in turn_order.0.iter() {
         let is_player = query_player.get(*actor_turn).is_ok();
 

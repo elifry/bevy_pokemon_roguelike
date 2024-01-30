@@ -24,6 +24,7 @@ bevy_asset_loader = { version = "0.19.1", features = [
 ] }
 dyn-clone = "1.0.16"
 itertools = "0.12.0"
+leafwing-input-manager = "0.11.2"
 quick-xml = { version = "0.31.0", features = ["serialize"] }
 rand = "0.8.5"
 serde = "1.0.195"
