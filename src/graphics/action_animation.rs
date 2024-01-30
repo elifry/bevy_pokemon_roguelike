@@ -3,7 +3,7 @@ use bevy::{prelude::*, sprite::Anchor};
 use crate::{
     actions::{
         melee_hit_action::MeleeHitAction, skip_action::SkipAction, walk_action::WalkAction,
-        ProcessingActionEvent, RunningAction, SingleRunningAction,
+        ProcessingActionEvent, RunningAction,
     },
     map::CurrentMap,
     vector2_int::Vector2Int,
@@ -113,7 +113,6 @@ pub fn attack_animation(
             // TODO: maybe used event there
             animation_state.0 = AnimKey::Idle;
             commands.entity(entity).remove::<AnimationHolder>();
-            commands.entity(entity).remove::<RunningAction>();
         }
     }
 }

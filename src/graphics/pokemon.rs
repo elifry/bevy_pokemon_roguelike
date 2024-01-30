@@ -143,7 +143,7 @@ fn get_pokemon_animator(
         .iter()
         .enumerate()
         .map(|(index, duration)| AnimationFrame {
-            duration: Duration::from_millis((duration.value * 22).try_into().unwrap()),
+            duration: Duration::from_millis((duration.value * 19).try_into().unwrap()),
             atlas_index: animation_indices.first + index,
         })
         .collect::<Vec<_>>();

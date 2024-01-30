@@ -47,9 +47,6 @@ pub struct ActionQueue(pub VecDeque<QueuedAction>);
 #[derive(Component)]
 pub struct RunningAction(pub Box<dyn Action>);
 
-#[derive(Component)]
-pub struct SingleRunningAction;
-
 #[derive(Component, Default, Clone)]
 pub struct NextActions(pub Vec<Box<dyn Action>>);
 

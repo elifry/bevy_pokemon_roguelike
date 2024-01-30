@@ -7,7 +7,7 @@ use leafwing_input_manager::{Actionlike, InputManagerBundle};
 use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
-use crate::actions::{Action, ProcessingActionEvent, RunningAction};
+use crate::actions::{Action, ProcessingActionEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::{Pokemon, Pokemons};
