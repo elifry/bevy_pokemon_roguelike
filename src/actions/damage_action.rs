@@ -13,14 +13,14 @@ impl Action for DamageAction {
             return Err(());
         };
         health.value = health.value.saturating_sub(self.1);
-        if health.value == 0 {
-            // the unit is killed
-            // world.send_event(PieceDeathEvent { entity: self.0 });
-            // world.despawn(self.0);
-        }
         Ok(Vec::new())
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
+    }
+
+    fn is_parallel_execution(&self) -> bool {
+        false
     }
 }

@@ -9,7 +9,7 @@ use crate::{
     pieces::{Actor, Occupier},
     player::Player,
     vector2_int::{utils::find_path, Vector2Int, ORTHO_DIRECTIONS},
-    GameState, TurnState,
+    GamePlayingSet, GameState,
 };
 
 use self::npc::NPCBundle;
@@ -22,11 +22,16 @@ pub struct AIPlugin;
 impl Plugin for AIPlugin {
     fn build(&self, app: &mut App) {
         app.configure_sets(
-            OnEnter(TurnState::Input),
-            (AISet::Planning, AISet::Late).chain(),
+            Update,
+            (AISet::Planning, AISet::Late)
+                .chain()
+                .in_set(GamePlayingSet::AI),
         )
         .add_systems(Update, plan_walk.in_set(AISet::Planning))
-        .add_systems(Update, npc_action.in_set(AISet::Late))
+        .add_systems(
+            Update,
+            (npc_action, apply_deferred).chain().in_set(AISet::Late),
+        )
         .add_systems(OnEnter(GameState::Playing), spawn_npcs);
     }
 }

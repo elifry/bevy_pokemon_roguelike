@@ -1,9 +1,7 @@
-use crate::{actions::melee_hit_action::MeleeHitAction, GamePlayingSet, GameState};
+use crate::{graphics::action_animation::AnimationPlayingEvent, pieces::Health, GamePlayingSet};
 use bevy::prelude::*;
 use dyn_clone::DynClone;
 use std::{any::Any, collections::VecDeque, fmt::Debug};
-
-use self::walk_action::WalkAction;
 
 pub mod damage_action;
 pub mod melee_hit_action;
@@ -21,8 +19,7 @@ impl Plugin for ActionsPlugin {
             .init_resource::<ActionQueue>()
             .add_systems(
                 Update,
-                // Apply deferred between each action
-                (process_action_queue, apply_deferred).in_set(GamePlayingSet::Action),
+                (process_action_queue).in_set(GamePlayingSet::Actions),
             );
     }
 }
@@ -31,6 +28,7 @@ dyn_clone::clone_trait_object!(Action);
 pub trait Action: Send + Sync + DynClone + Debug {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()>;
     fn as_any(&self) -> &dyn Any;
+    fn is_parallel_execution(&self) -> bool;
 }
 
 // Execution Order of action
@@ -55,86 +53,102 @@ pub struct SingleRunningAction;
 #[derive(Component, Default, Clone)]
 pub struct NextActions(pub Vec<Box<dyn Action>>);
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct ProcessingActionEvent;
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct ActionExecutedEvent(pub Box<dyn Action>);
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct ActionProcessedEvent;
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct ProcessActionFailed;
 
 pub fn process_action_queue(world: &mut World) {
-    // Early return if there are running actions with single execution
-    if world
-        .query_filtered::<Entity, (With<RunningAction>, With<SingleRunningAction>)>()
-        .get_single(world)
-        .is_ok()
+    let mut ev_animation_playing = world
+        .get_resource_mut::<Events<AnimationPlayingEvent>>()
+        .unwrap();
+
+    if ev_animation_playing
+        .get_reader()
+        .read(&ev_animation_playing)
+        .len()
+        > 0
     {
+        // Weird issue, the events doesn't get clear without thats
+        ev_animation_playing.clear();
+        world.send_event(ProcessingActionEvent);
         return;
     }
 
-    // Get the first action of the queue
-    let queued_action = {
-        let action_queue = world.get_resource_mut::<ActionQueue>();
+    'queue_action_loop: loop {
+        // Get the first action of the queue
+        let queued_action = {
+            let action_queue = world.get_resource_mut::<ActionQueue>();
 
-        if let Some(mut queue) = action_queue {
-            if queue.0.is_empty() {
-                // If the ActionQueue is empty, return
-                return;
-            }
-            queue.0.pop_front()
-        } else {
-            // If there's no ActionQueue, return
-            return;
-        }
-    };
-
-    let Some(queued_action) = queued_action else {
-        // If there is no more action in the queue
-        return;
-    };
-
-    world.send_event(ProcessingActionEvent);
-
-    for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
-        match action.execute(world) {
-            Ok(result_actions) => {
-                // Action well executed (insert the `RunningAction`)
-                info!("action executed {:?}", action);
-                world
-                    .entity_mut(queued_action.entity)
-                    .insert(RunningAction(action.clone()));
-
-                let single_running = action.as_any().downcast_ref::<MeleeHitAction>().is_some();
-                if single_running {
-                    // Avoid processing multiple action at the same time
-                    world
-                        .entity_mut(queued_action.entity)
-                        .insert(SingleRunningAction);
-                }
-
-                if !result_actions.is_empty() {
-                    let mut action_queue = world.get_resource_mut::<ActionQueue>().unwrap();
-                    action_queue.0.push_front(QueuedAction {
-                        entity: queued_action.entity,
-                        performable_actions: result_actions,
-                    });
-                }
-
-                break;
-            }
-            Err(_) => {
-                warn!("Action not valid");
-                if action_index == queued_action.performable_actions.len() - 1 {
-                    // Last performable action is also invalid
-                    warn!("No more performable action");
+            if let Some(mut queue) = action_queue {
+                if queue.0.is_empty() {
+                    // If the ActionQueue is empty, return
                     break;
                 }
+                queue.0.pop_front()
+            } else {
+                // If there's no ActionQueue, return
+                break;
             }
         };
+
+        let Some(queued_action) = queued_action else {
+            // If there is no more action in the queue
+            break;
+        };
+
+        world.send_event(ProcessingActionEvent);
+
+        if let Ok(health) = world.query::<&Health>().get(world, queued_action.entity) {
+            if health.value == 0 {
+                info!("{:?} is dead ", queued_action.entity);
+                break;
+            }
+        }
+
+        for (action_index, action) in queued_action.performable_actions.iter().enumerate() {
+            match action.execute(world) {
+                Ok(result_actions) => {
+                    // Action well executed (insert the `RunningAction`)
+                    info!("action executed {:?}", action);
+                    world
+                        .entity_mut(queued_action.entity)
+                        .insert(RunningAction(action.clone()));
+
+                    if !result_actions.is_empty() {
+                        let mut action_queue = world.get_resource_mut::<ActionQueue>().unwrap();
+                        action_queue.0.push_front(QueuedAction {
+                            entity: queued_action.entity,
+                            performable_actions: result_actions,
+                        });
+                    }
+
+                    if action.is_parallel_execution() {
+                        // go to the next queue action
+                        break;
+                    }
+
+                    // Avoid processing multiple action at the same time
+                    break 'queue_action_loop;
+                }
+                Err(_) => {
+                    warn!("Action not valid");
+                    if action_index == queued_action.performable_actions.len() - 1 {
+                        // Last performable action is also invalid
+                        warn!("No more performable action");
+                        break;
+                    }
+                }
+            };
+        }
+
+        apply_deferred(world);
     }
 }

@@ -12,7 +12,7 @@ use graphics::GraphicsPlugin;
 use map::MapPlugin;
 use menu::MenuPlugin;
 use pieces::PiecesPlugin;
-use player::PlayerPlugin;
+use player::{PlayerActionEvent, PlayerPlugin};
 use turn::TurnPlugin;
 
 mod actions;
@@ -48,19 +48,12 @@ enum GameState {
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 enum GamePlayingSet {
-    Input,
+    Inputs,
+    AI,
     TurnLogics,
-    Action,
+    Actions,
     LateLogics,
-    Animation,
-}
-
-#[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
-enum TurnState {
-    #[default]
-    Input,
-    Logics,
-    ProcessAction,
+    Animations,
 }
 
 pub struct GamePlugin;
@@ -68,15 +61,15 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<GameState>()
-            .add_state::<TurnState>()
             .configure_sets(
                 Update,
                 (
-                    GamePlayingSet::Input.run_if(in_state(TurnState::Input)),
-                    GamePlayingSet::TurnLogics.run_if(in_state(TurnState::Logics)),
-                    GamePlayingSet::Action.run_if(in_state(TurnState::ProcessAction)),
-                    GamePlayingSet::Animation,
-                    GamePlayingSet::LateLogics.run_if(in_state(TurnState::ProcessAction)),
+                    GamePlayingSet::Inputs,
+                    GamePlayingSet::AI.run_if(on_event::<PlayerActionEvent>()),
+                    GamePlayingSet::TurnLogics,
+                    GamePlayingSet::Actions,
+                    GamePlayingSet::Animations,
+                    GamePlayingSet::LateLogics,
                 )
                     .chain()
                     .run_if(in_state(GameState::Playing)),

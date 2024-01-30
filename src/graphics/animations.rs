@@ -6,7 +6,6 @@ use crate::pieces::Orientation;
 use crate::GameState;
 
 use super::anim_data::AnimInfo;
-use super::GraphicsWaitEvent;
 
 pub struct AnimationsPlugin;
 

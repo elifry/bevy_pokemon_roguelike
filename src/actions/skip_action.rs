@@ -13,4 +13,8 @@ impl Action for SkipAction {
     fn as_any(&self) -> &dyn std::any::Any {
         self
     }
+
+    fn is_parallel_execution(&self) -> bool {
+        true
+    }
 }

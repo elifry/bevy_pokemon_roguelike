@@ -48,7 +48,12 @@ impl Action for MeleeHitAction {
 
         Ok(result)
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
+    }
+
+    fn is_parallel_execution(&self) -> bool {
+        false
     }
 }

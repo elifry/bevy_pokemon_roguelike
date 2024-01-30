@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, player::Player, vector2_int::Vector2Int, GamePlayingSet, GameState};
+use crate::{map::Position, player::Player, vector2_int::Vector2Int, GamePlayingSet};
 
 pub struct GameControlPlugin;
 
 impl Plugin for GameControlPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GameControlEvent>()
-            .add_systems(Update, player_input_controls.in_set(GamePlayingSet::Input));
+            .add_systems(Update, player_input_controls.in_set(GamePlayingSet::Inputs));
     }
 }
 

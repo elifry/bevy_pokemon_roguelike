@@ -50,7 +50,12 @@ impl Action for WalkAction {
 
         Ok(Vec::new())
     }
+
     fn as_any(&self) -> &dyn std::any::Any {
         self
+    }
+
+    fn is_parallel_execution(&self) -> bool {
+        true
     }
 }

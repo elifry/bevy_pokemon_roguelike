@@ -7,9 +7,9 @@ use self::{
     animations::AnimationsPlugin, assets::AssetsPlugin, pokemon::PokemonPlugin, tiles::TilesPlugin,
 };
 
-mod action_animation;
+pub mod action_animation;
 pub mod anim_data;
-mod animations;
+pub mod animations;
 pub mod assets;
 mod pokemon;
 mod tiles;

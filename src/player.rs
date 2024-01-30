@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
-use crate::actions::{Action, RunningAction};
+use crate::actions::{Action, ProcessingActionEvent, RunningAction};
 use crate::game_control::{GameControl, GameControlEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
@@ -17,7 +17,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
             .add_systems(OnEnter(GameState::Initializing), spawn_player)
-            .add_systems(Update, take_action.after(GamePlayingSet::Input));
+            .add_systems(Update, take_action.in_set(GamePlayingSet::Inputs));
     }
 }
 
@@ -45,14 +45,16 @@ fn spawn_player(mut commands: Commands) {
 
 fn take_action(
     mut ev_game_control: EventReader<GameControlEvent>,
-    mut player_query: Query<
-        (Entity, &mut Actor, &Position),
-        (With<Player>, Without<RunningAction>),
-    >,
+    mut player_query: Query<(Entity, &Position), (With<Player>, Without<RunningAction>)>,
+    mut ev_processing_action: EventReader<ProcessingActionEvent>,
     target_query: Query<(Entity, &Position), With<Health>>,
     mut ev_action: EventWriter<PlayerActionEvent>,
 ) {
-    let Ok((entity, mut actor, position)) = player_query.get_single_mut() else {
+    if ev_processing_action.read().len() > 0 {
+        return;
+    }
+
+    let Ok((entity, position)) = player_query.get_single() else {
         return;
     };
 
