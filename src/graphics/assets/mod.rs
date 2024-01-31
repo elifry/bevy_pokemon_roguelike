@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;
 
-use crate::effects::Effect;
+use crate::effects::EffectID;
 use crate::GameState;
 
 pub mod effect_assets;

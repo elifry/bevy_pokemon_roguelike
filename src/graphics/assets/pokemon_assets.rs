@@ -6,7 +6,7 @@ use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;
 
 use crate::graphics::anim_data::{AnimData, AnimKey};
-use crate::pokemons::Pokemons;
+use crate::pokemons::PokemonID;
 use crate::GameState;
 
 pub struct PokemonAssetsPlugin;
@@ -20,7 +20,7 @@ impl Plugin for PokemonAssetsPlugin {
 }
 
 #[derive(Resource, Debug, Default)]
-pub struct PokemonAnimationAssets(pub HashMap<Pokemons, PokemonAnimation>);
+pub struct PokemonAnimationAssets(pub HashMap<PokemonID, PokemonAnimation>);
 
 #[derive(Default, Resource)]
 pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
@@ -46,7 +46,7 @@ fn process_pokemon_assets(
             continue;
         };
 
-        let pokemon = Pokemons::from_str(pokemon).unwrap();
+        let pokemon = PokemonID::from_str(pokemon).unwrap();
 
         let mut hashmap_files: HashMap<&str, &UntypedHandle> = folder
             .handles

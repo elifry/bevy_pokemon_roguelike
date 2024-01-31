@@ -2,11 +2,11 @@ use bevy::ecs::component::Component;
 use strum::{Display, EnumString};
 
 #[derive(Component)]
-pub struct Pokemon(pub Pokemons);
+pub struct Pokemon(pub PokemonID);
 
 #[derive(Debug, Hash, PartialEq, Eq, EnumString, Display)]
 #[strum(ascii_case_insensitive)]
-pub enum Pokemons {
+pub enum PokemonID {
     Charmander,
     Rattata,
 }

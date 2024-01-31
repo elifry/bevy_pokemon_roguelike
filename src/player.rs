@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::sprite::Anchor;
 use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
@@ -9,9 +10,12 @@ use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ActionQueueProcessedEvent};
+use crate::effects::EffectID;
+use crate::graphics::assets::EffectAssets;
+use crate::graphics::{get_world_position, PIECE_Z};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
-use crate::pokemons::{Pokemon, Pokemons};
+use crate::pokemons::{Pokemon, PokemonID};
 use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
@@ -28,7 +32,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
             .add_plugins(InputManagerPlugin::<PlayerAction>::default())
-            .add_systems(OnEnter(GameState::Initializing), spawn_player)
+            .add_systems(OnEnter(GameState::Initializing), (spawn_player, spawn_test))
             .add_systems(Update, take_action.in_set(GamePlayingSet::Controls));
     }
 }
@@ -48,11 +52,40 @@ pub enum PlayerAction {
     Skip,
 }
 
+fn spawn_test(mut commands: Commands, assets: Res<EffectAssets>) {
+    let texture_atlas = assets
+        .0
+        .get(&EffectID::_0110)
+        .unwrap()
+        .textures
+        .get("002")
+        .unwrap()
+        .clone();
+
+    let sprite = TextureAtlasSprite {
+        index: 5,
+        anchor: Anchor::Center,
+        ..default()
+    };
+
+    let v = get_world_position(&Vector2Int::new(3, 3), PIECE_Z);
+
+    commands.spawn((
+        Name::new("Test"),
+        SpriteSheetBundle {
+            texture_atlas,
+            sprite,
+            transform: Transform::from_translation(v),
+            ..default()
+        },
+    ));
+}
+
 fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
-        Pokemon(Pokemons::Charmander),
+        Pokemon(PokemonID::Charmander),
         Player,
         Occupier,
         Health { value: 10 },

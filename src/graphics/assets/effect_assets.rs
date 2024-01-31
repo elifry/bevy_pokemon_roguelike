@@ -7,9 +7,9 @@ use bevy::utils::hashbrown::HashMap;
 use bevy_asset_loader::prelude::*;
 use itertools::Itertools;
 
-use crate::effects::Effect;
+use crate::effects::EffectID;
 use crate::graphics::anim_data::{AnimData, AnimKey};
-use crate::pokemons::Pokemons;
+use crate::pokemons::PokemonID;
 use crate::utils::get_path_from_handle;
 use crate::GameState;
 
@@ -27,7 +27,7 @@ impl Plugin for EffectAssetsPlugin {
 pub struct EffectAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 
 #[derive(Resource, Debug, Default)]
-pub struct EffectAssets(pub HashMap<Effect, EffectAsset>);
+pub struct EffectAssets(pub HashMap<EffectID, EffectAsset>);
 
 #[derive(Debug, Clone)]
 pub struct EffectAsset {
@@ -51,7 +51,7 @@ fn process_effect_assets(
             }
         };
 
-        let effect = match Effect::from_str(&effect.to_string()) {
+        let effect = match EffectID::from_str(&effect.to_string()) {
             Ok(effect) => effect,
             Err(_) => {
                 error!("Invalid effect: {}", effect);

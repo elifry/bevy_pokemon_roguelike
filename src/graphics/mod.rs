@@ -40,7 +40,7 @@ impl Plugin for GraphicsPlugin {
 #[derive(Event)]
 pub struct GraphicsWaitEvent;
 
-fn get_world_position(position: &Vector2Int, z: f32) -> Vec3 {
+pub fn get_world_position(position: &Vector2Int, z: f32) -> Vec3 {
     Vec3::new(
         TILE_SIZE * position.x as f32,
         TILE_SIZE * position.y as f32,
