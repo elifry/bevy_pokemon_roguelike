@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    map::{CurrentMap, Position},
+    map::{GameMap, Position},
     pieces::{FacingOrientation, Occupier, Orientation},
     vector2_int::Vector2Int,
 };
@@ -24,7 +24,7 @@ pub struct MovingEvent {
 impl Action for WalkAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
         // retrieve the board
-        let board = world.get_resource::<CurrentMap>().ok_or(())?;
+        let board = world.get_resource::<GameMap>().ok_or(())?;
 
         // check if the targeted position is on the board
         if !board.tiles.contains_key(&self.to) {

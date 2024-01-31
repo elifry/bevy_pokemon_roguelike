@@ -5,7 +5,7 @@ use crate::{
         damage_action::DamageAction, melee_hit_action::MeleeHitAction, skip_action::SkipAction,
         walk_action::WalkAction, ProcessingActionEvent, RunningAction,
     },
-    map::CurrentMap,
+    map::GameMap,
     vector2_int::Vector2Int,
     GamePlayingSet, GameState,
 };

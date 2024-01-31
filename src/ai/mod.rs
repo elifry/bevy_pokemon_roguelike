@@ -5,7 +5,7 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     actions::{walk_action::WalkAction, Action, NextActions},
-    map::{CurrentMap, Position},
+    map::{GameMap, Position},
     pieces::{Actor, Occupier},
     player::Player,
     vector2_int::{utils::find_path, Vector2Int, ORTHO_DIRECTIONS},
@@ -84,7 +84,7 @@ fn plan_walk(
     mut query: Query<(Entity, &Position, &mut PossibleActions), With<AI>>,
     player_query: Query<&Position, With<Player>>,
     occupier_query: Query<&Position, With<Occupier>>,
-    map: Res<CurrentMap>,
+    map: Res<GameMap>,
 ) {
     let Ok(player_position) = player_query.get_single() else {
         return;
