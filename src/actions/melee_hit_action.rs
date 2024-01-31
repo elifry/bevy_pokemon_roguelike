@@ -1,10 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    map::Position,
-    pieces::{Health},
-    vector2_int::Vector2Int,
-};
+use crate::{map::Position, pieces::Health, vector2_int::Vector2Int};
 
 use super::{damage_action::DamageAction, orient_entity, Action};
 
@@ -17,8 +13,7 @@ pub struct MeleeHitAction {
 
 impl Action for MeleeHitAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
-        let attacker_position = world.get::<Position>(self.attacker).ok_or(())?;
-        if attacker_position.0.manhattan(self.target) > 1 {
+        if !self.can_execute(world) {
             return Err(());
         };
 
@@ -54,5 +49,26 @@ impl Action for MeleeHitAction {
 
     fn is_parallel_execution(&self) -> bool {
         false
+    }
+
+    fn can_execute(&self, world: &mut World) -> bool {
+        let Some(attacker_position) = world.get::<Position>(self.attacker) else {
+            return false;
+        };
+        if attacker_position.0.manhattan(self.target) > 1 {
+            return false;
+        };
+
+        let target_entities = world
+            .query_filtered::<(Entity, &Position), With<Health>>()
+            .iter(world)
+            .filter(|(_, p)| p.0 == self.target)
+            .collect::<Vec<_>>();
+
+        if target_entities.is_empty() {
+            return false;
+        };
+
+        true
     }
 }

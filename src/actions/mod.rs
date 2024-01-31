@@ -11,6 +11,7 @@ use std::{any::Any, fmt::Debug};
 pub use self::action_queue::*;
 mod action_queue;
 pub mod damage_action;
+mod destroy_wall_action;
 pub mod melee_hit_action;
 pub mod skip_action;
 pub mod walk_action;
@@ -33,6 +34,7 @@ impl Plugin for ActionsPlugin {
 dyn_clone::clone_trait_object!(Action);
 pub trait Action: Send + Sync + DynClone + Debug {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()>;
+    fn can_execute(&self, world: &mut World) -> bool;
     fn as_any(&self) -> &dyn Any;
     fn is_parallel_execution(&self) -> bool;
 }

@@ -59,7 +59,7 @@ fn spawn_player(mut commands: Commands) {
         Piece {
             kind: PieceKind::Player,
         },
-        Position(Vector2Int::new(1, 0)),
+        Position(Vector2Int::new(4, 4)),
         InputManagerBundle::<PlayerAction> {
             action_state: ActionState::default(),
             input_map: InputMap::new([

@@ -17,4 +17,8 @@ impl Action for SkipAction {
     fn is_parallel_execution(&self) -> bool {
         true
     }
+
+    fn can_execute(&self, _world: &mut World) -> bool {
+        true
+    }
 }

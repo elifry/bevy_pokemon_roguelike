@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    map::{GameMap, Position},
-    pieces::{Occupier},
+    map::{GameMap, Position, TileType},
+    pieces::Occupier,
     vector2_int::Vector2Int,
 };
 
@@ -23,20 +23,7 @@ pub struct MovingEvent {
 
 impl Action for WalkAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
-        // retrieve the board
-        let board = world.get_resource::<GameMap>().ok_or(())?;
-
-        // check if the targeted position is on the board
-        if !board.tiles.contains_key(&self.to) {
-            return Err(());
-        };
-
-        if world
-            .query_filtered::<&Position, With<Occupier>>()
-            .iter(world)
-            .any(|p| p.0 == self.to)
-        {
-            warn!("There is already an entity on {:?}", self.to);
+        if !self.can_execute(world) {
             return Err(());
         };
 
@@ -54,6 +41,31 @@ impl Action for WalkAction {
     }
 
     fn is_parallel_execution(&self) -> bool {
+        true
+    }
+
+    fn can_execute(&self, world: &mut World) -> bool {
+        let Some(board) = world.get_resource::<GameMap>() else {
+            return false;
+        };
+
+        // check if the targeted position is on the board
+        let Some(tile) = board.tiles.get(&self.to) else {
+            return false;
+        };
+
+        if *tile != TileType::Ground {
+            return false;
+        }
+
+        if world
+            .query_filtered::<&Position, With<Occupier>>()
+            .iter(world)
+            .any(|p| p.0 == self.to)
+        {
+            return false;
+        };
+
         true
     }
 }

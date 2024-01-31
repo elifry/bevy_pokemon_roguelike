@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    map::Position,
-    pieces::{Health},
-};
+use crate::{map::Position, pieces::Health};
 
 use super::{orient_entity, Action};
 
@@ -16,6 +13,10 @@ pub struct DamageAction {
 
 impl Action for DamageAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
+        if !self.can_execute(world) {
+            return Err(());
+        };
+
         let Some(mut health) = world.get_mut::<Health>(self.target) else {
             return Err(());
         };
@@ -35,5 +36,9 @@ impl Action for DamageAction {
 
     fn is_parallel_execution(&self) -> bool {
         false
+    }
+
+    fn can_execute(&self, world: &mut World) -> bool {
+        return world.get::<Health>(self.target).is_some();
     }
 }
