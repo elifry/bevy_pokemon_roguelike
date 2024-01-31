@@ -6,6 +6,7 @@ use bevy::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
+use effects::EffectsPlugin;
 use graphics::GraphicsPlugin;
 
 use map::MapPlugin;
@@ -87,6 +88,7 @@ impl Plugin for GamePlugin {
                 AIPlugin,
                 ActionsPlugin,
                 TurnPlugin,
+                EffectsPlugin,
             ));
 
         #[cfg(debug_assertions)]

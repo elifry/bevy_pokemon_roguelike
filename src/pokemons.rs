@@ -1,7 +1,7 @@
 use bevy::ecs::component::Component;
 use strum::{Display, EnumString};
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Pokemon(pub PokemonID);
 
 #[derive(Debug, Hash, PartialEq, Eq, EnumString, Display)]
