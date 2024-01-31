@@ -3,20 +3,19 @@ use std::{collections::VecDeque, time::Duration};
 use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
-    actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
     constants::GAME_SPEED,
     graphics::animations::Animator,
     map::Position,
-    pieces::{FacingOrientation, Orientation, Piece},
+    pieces::{FacingOrientation, Orientation},
     pokemons::Pokemon,
-    GamePlayingSet, GameState,
+    GameState,
 };
 
 use super::{
     anim_data::{AnimData, AnimKey},
-    animations::{AnimationFinished, AnimationFrame, AnimationIndices},
+    animations::{AnimationFrame, AnimationIndices},
     assets::PokemonAnimationAssets,
-    PIECE_Z, POSITION_TOLERANCE,
+    PIECE_Z,
 };
 
 pub struct PokemonPlugin;
@@ -48,7 +47,6 @@ pub fn update_animator(
             &FacingOrientation,
             &PokemonAnimationState,
             &Pokemon,
-            &mut TextureAtlasSprite,
             &mut Handle<TextureAtlas>,
         ),
         Or<(Changed<FacingOrientation>, Changed<PokemonAnimationState>)>,
@@ -57,7 +55,7 @@ pub fn update_animator(
     assets: Res<PokemonAnimationAssets>,
     mut commands: Commands,
 ) {
-    for (entity, facing_orientation, animation_state, pokemon, mut sprite, mut texture_atlas) in
+    for (entity, facing_orientation, animation_state, pokemon, mut texture_atlas) in
         query.iter_mut()
     {
         let pokemon_asset = assets.0.get(&pokemon.0).unwrap();

@@ -3,7 +3,7 @@ use bevy_inspector_egui::InspectorOptions;
 use std::time::Duration;
 
 use crate::pieces::Orientation;
-use crate::{GamePlayingSet, GameState};
+use crate::GamePlayingSet;
 
 use super::anim_data::AnimInfo;
 
@@ -87,15 +87,10 @@ impl AnimationIndices {
 
 fn animation_system(
     time: Res<Time>,
-    mut query: Query<(
-        Entity,
-        &mut Animator,
-        &mut Handle<TextureAtlas>,
-        &mut TextureAtlasSprite,
-    )>,
+    mut query: Query<(Entity, &mut Animator, &mut TextureAtlasSprite)>,
     mut ev_finished: EventWriter<AnimationFinished>,
 ) {
-    for (entity, mut animator, mut atlas, mut sprite) in &mut query.iter_mut() {
+    for (entity, mut animator, mut sprite) in &mut query.iter_mut() {
         animator.timer.tick(time.delta());
 
         if !animator.timer.finished() {

@@ -1,12 +1,12 @@
 mod npc;
 
-use bevy::{ecs::entity, prelude::*};
+use bevy::{prelude::*};
 use rand::{thread_rng, Rng};
 
 use crate::{
     actions::{walk_action::WalkAction, Action, NextActions},
     map::{GameMap, Position},
-    pieces::{Actor, Occupier},
+    pieces::{Occupier},
     player::Player,
     vector2_int::{utils::find_path, Vector2Int, ORTHO_DIRECTIONS},
     GamePlayingSet, GameState,

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use strum::{Display, EnumIter};
 
-use crate::{actions::Action, vector2_int::Vector2Int};
+use crate::{vector2_int::Vector2Int};
 
 pub struct PiecesPlugin;
 
@@ -71,7 +71,7 @@ impl Orientation {
             Vector2Int { x: -1, y: 1 } => Orientation::NorthWest,
             Vector2Int { x: -1, y: 0 } => Orientation::West,
             Vector2Int { x: -1, y: -1 } => Orientation::SouthWest,
-            Vector2Int { x, y } => {
+            Vector2Int { x: _, y: _ } => {
                 warn!("unable to get orientation from {:?}", direction);
                 Orientation::South
             }

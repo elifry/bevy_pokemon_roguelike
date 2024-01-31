@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
-    pieces::{Health, PieceDeathEvent},
+    pieces::{Health},
 };
 
 use super::{orient_entity, Action};

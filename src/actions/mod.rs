@@ -1,13 +1,12 @@
 use crate::{
-    graphics::action_animation::{ActionAnimationFinishedEvent, ActionAnimationPlayingEvent},
     map::Position,
-    pieces::{FacingOrientation, Health, Orientation},
+    pieces::{FacingOrientation, Orientation},
     vector2_int::Vector2Int,
     GamePlayingSet,
 };
 use bevy::prelude::*;
 use dyn_clone::DynClone;
-use std::{any::Any, collections::VecDeque, fmt::Debug};
+use std::{any::Any, fmt::Debug};
 
 pub use self::action_queue::*;
 mod action_queue;

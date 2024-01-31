@@ -33,8 +33,8 @@ pub fn update_tile_render(
             let sprite_index = get_tile_map_index(&position.0, &tile.0, &map);
             let mut sprite = TextureAtlasSprite::new(sprite_index);
             sprite.custom_size = Some(Vec2::splat(TILE_SIZE));
-            //sprite.color = Color::OLIVE;
             let v = super::get_world_position(&position.0, TILE_Z);
+
             commands.entity(entity).insert(SpriteSheetBundle {
                 sprite,
                 texture_atlas: assets.amp_plains.clone(),

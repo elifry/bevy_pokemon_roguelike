@@ -1,13 +1,12 @@
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::prelude::*;
 
 use crate::{
     actions::{
-        damage_action::DamageAction, melee_hit_action::MeleeHitAction, skip_action::SkipAction,
-        walk_action::WalkAction, ProcessingActionEvent, RunningAction,
+        damage_action::DamageAction, melee_hit_action::MeleeHitAction, walk_action::WalkAction,
+        RunningAction,
     },
-    map::GameMap,
     vector2_int::Vector2Int,
-    GamePlayingSet, GameState,
+    GamePlayingSet,
 };
 
 use super::{
@@ -144,7 +143,6 @@ fn add_action_animation(
 }
 
 pub fn hurt_animation(
-    mut commands: Commands,
     mut query: Query<(
         Entity,
         &mut AnimationHolder,

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
-    pieces::{FacingOrientation, Health, Orientation},
+    pieces::{Health},
     vector2_int::Vector2Int,
 };
 
