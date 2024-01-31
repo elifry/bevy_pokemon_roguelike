@@ -14,7 +14,7 @@ use crate::{
 use super::{
     anim_data::{AnimData, AnimKey},
     animations::{AnimationFrame, AnimationIndices},
-    assets::PokemonAnimationAssets,
+    assets::{PokemonAnimation, PokemonAnimationAssets},
     PIECE_Z,
 };
 
@@ -105,7 +105,7 @@ fn spawn_pokemon_renderer(
 
 fn get_pokemon_animator(
     anim_data_assets: &Res<'_, Assets<AnimData>>,
-    pokemon_animation: &super::assets::PokemonAnimation,
+    pokemon_animation: &PokemonAnimation,
     anim_key: &AnimKey,
     orientation: &Orientation,
 ) -> Animator {
