@@ -17,6 +17,7 @@ use turn::TurnPlugin;
 mod actions;
 mod ai;
 mod camera;
+mod constants;
 mod graphics;
 mod loading;
 mod map;
@@ -50,9 +51,9 @@ enum GamePlayingSet {
     Controls,
     AI,
     TurnLogics,
+    Animations,
     Actions,
     LateLogics,
-    Animations,
 }
 
 pub struct GamePlugin;

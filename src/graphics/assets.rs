@@ -53,9 +53,7 @@ pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 
 #[derive(Debug, Clone)]
 pub struct PokemonAnimation {
-    pub idle: Handle<TextureAtlas>,
-    pub walk: Handle<TextureAtlas>,
-    pub attack: Handle<TextureAtlas>,
+    pub textures: HashMap<AnimKey, Handle<TextureAtlas>>,
     pub anim_data: Handle<AnimData>,
 }
 
@@ -157,31 +155,22 @@ fn process_assets(
 
         let anim_data = anim_data_assets.get(&anim_data_handle).unwrap();
 
-        let idle_texture_handle = get_texture_atlas_by_anim_key(
-            AnimKey::Idle,
-            anim_data,
-            &mut hashmap_files,
-            &mut texture_atlasses,
-        );
+        let anim_to_load = vec![AnimKey::Idle, AnimKey::Walk, AnimKey::Attack, AnimKey::Hurt];
 
-        let walk_texture_handle = get_texture_atlas_by_anim_key(
-            AnimKey::Walk,
-            anim_data,
-            &mut hashmap_files,
-            &mut texture_atlasses,
-        );
+        let mut anim_textures: HashMap<AnimKey, Handle<TextureAtlas>> = HashMap::new();
 
-        let attack_texture_handle = get_texture_atlas_by_anim_key(
-            AnimKey::Attack,
-            anim_data,
-            &mut hashmap_files,
-            &mut texture_atlasses,
-        );
+        for anim_key in anim_to_load {
+            let texture = get_texture_atlas_by_anim_key(
+                anim_key,
+                anim_data,
+                &mut hashmap_files,
+                &mut texture_atlasses,
+            );
+            anim_textures.insert(anim_key, texture);
+        }
 
         let pokemon_animation = PokemonAnimation {
-            idle: idle_texture_handle,
-            walk: walk_texture_handle,
-            attack: attack_texture_handle,
+            textures: anim_textures,
             anim_data: anim_data_handle,
         };
 

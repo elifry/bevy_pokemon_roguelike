@@ -11,7 +11,10 @@ use crate::{
 };
 
 use super::{
-    anim_data::AnimKey, animations::Animator, get_world_position, pokemon::PokemonAnimationState,
+    anim_data::AnimKey,
+    animations::Animator,
+    get_world_position,
+    pokemon::{update_animator, PokemonAnimationState},
     POSITION_TOLERANCE, WALK_SPEED,
 };
 
@@ -33,7 +36,8 @@ impl Plugin for ActionAnimationPlugin {
             )
             .add_systems(
                 Update,
-                add_action_animation.in_set(ActionAnimationSet::Prepare),
+                (add_action_animation, update_animator, apply_deferred)
+                    .in_set(ActionAnimationSet::Prepare),
             )
             .add_systems(
                 Update,

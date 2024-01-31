@@ -3,7 +3,7 @@ use bevy_inspector_egui::InspectorOptions;
 use std::time::Duration;
 
 use crate::pieces::Orientation;
-use crate::GameState;
+use crate::{GamePlayingSet, GameState};
 
 use super::anim_data::AnimInfo;
 
@@ -11,10 +11,8 @@ pub struct AnimationsPlugin;
 
 impl Plugin for AnimationsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AnimationFinished>().add_systems(
-            Update,
-            animation_system.run_if(in_state(GameState::Playing)),
-        );
+        app.add_event::<AnimationFinished>()
+            .add_systems(Update, animation_system.in_set(GamePlayingSet::LateLogics));
     }
 }
 
@@ -119,7 +117,6 @@ fn animation_system(
         animator.timer.set_duration(frame.duration);
         animator.timer.reset();
 
-        *atlas = animator.texture_atlas.clone();
         sprite.index = frame.atlas_index;
 
         // Next frame

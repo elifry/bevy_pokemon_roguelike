@@ -4,11 +4,12 @@ use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
     actions::{melee_hit_action::MeleeHitAction, walk_action::WalkAction, ActionExecutedEvent},
+    constants::GAME_SPEED,
     graphics::animations::Animator,
     map::Position,
     pieces::{FacingOrientation, Orientation, Piece},
     pokemons::Pokemon,
-    GameState,
+    GamePlayingSet, GameState,
 };
 
 use super::{
@@ -24,9 +25,7 @@ impl Plugin for PokemonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_pokemon_renderer, update_animator)
-                .chain()
-                .run_if(in_state(GameState::Playing)),
+            (spawn_pokemon_renderer).run_if(in_state(GameState::Playing)),
         );
     }
 }
@@ -42,7 +41,7 @@ pub struct PathAnimator {
 #[derive(Component, Default)]
 pub struct PokemonAnimationState(pub AnimKey);
 
-fn update_animator(
+pub fn update_animator(
     mut query: Query<
         (
             Entity,
@@ -78,6 +77,7 @@ fn spawn_pokemon_renderer(
     assets: Res<PokemonAnimationAssets>,
     query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
 ) {
+    let default_state = AnimKey::Idle;
     for (entity, position, pokemon) in query.iter() {
         let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
 
@@ -87,10 +87,14 @@ fn spawn_pokemon_renderer(
             anchor: Anchor::Center,
             ..default()
         };
-        let texture_atlas = pokemon_animation.idle.clone();
+        let texture_atlas = pokemon_animation
+            .textures
+            .get(&default_state)
+            .unwrap()
+            .clone();
 
         commands.entity(entity).insert((
-            PokemonAnimationState(AnimKey::Idle),
+            PokemonAnimationState(default_state),
             SpriteSheetBundle {
                 texture_atlas,
                 sprite,
@@ -110,12 +114,7 @@ fn get_pokemon_animator(
     let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
     let anim_info = anim_data.get(*anim_key);
 
-    let (texture_atlas, is_loop) = match anim_key {
-        AnimKey::Walk => (pokemon_animation.walk.to_owned(), false),
-        AnimKey::Attack => (pokemon_animation.attack.to_owned(), false),
-        AnimKey::Idle => (pokemon_animation.idle.to_owned(), true),
-        _ => panic!("Not implemented"),
-    };
+    let is_loop = matches!(anim_key, AnimKey::Idle);
 
     let animation_indices = AnimationIndices::from_animation(orientation, &anim_info);
 
@@ -126,10 +125,14 @@ fn get_pokemon_animator(
         .iter()
         .enumerate()
         .map(|(index, duration)| AnimationFrame {
-            duration: Duration::from_millis((duration.value * 22).try_into().unwrap()),
+            duration: Duration::from_millis(
+                ((duration.value * 22) as f32 / GAME_SPEED).floor() as u64
+            ),
             atlas_index: animation_indices.first + index,
         })
         .collect::<Vec<_>>();
 
-    Animator::new(texture_atlas.clone(), frames, is_loop)
+    let texture_atlas = pokemon_animation.textures.get(anim_key).unwrap().clone();
+
+    Animator::new(texture_atlas, frames, is_loop)
 }
