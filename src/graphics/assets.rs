@@ -18,6 +18,7 @@ impl Plugin for AssetsPlugin {
         app.init_collection::<TileAssets>()
             .insert_resource(PokemonAssetsFolder(default()))
             .init_resource::<PokemonAnimationAssets>()
+            .init_resource::<EffectAssetsFolder>()
             .add_systems(OnEnter(GameState::Loading), load_assets)
             .add_systems(OnEnter(GameState::AssetsLoaded), process_assets)
             .add_systems(OnEnter(GameState::Initializing), set_playing)
@@ -69,6 +70,9 @@ pub struct PokemonAnimation {
     pub anim_data: Handle<AnimData>,
 }
 
+#[derive(Default, Resource)]
+pub struct EffectAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
+
 fn set_playing(mut next_state: ResMut<NextState<GameState>>) {
     next_state.set(GameState::Playing);
 }
@@ -76,15 +80,26 @@ fn set_playing(mut next_state: ResMut<NextState<GameState>>) {
 fn load_assets(
     asset_server: Res<AssetServer>,
     mut pokemon_assets_folder: ResMut<PokemonAssetsFolder>,
+    mut effect_assets_folder: ResMut<EffectAssetsFolder>,
 ) {
     println!("asset loading...");
-    let pokemon_to_load_list = vec!["charmander", "rattata"];
 
+    // Pokemons
+    let pokemon_to_load_list = vec!["charmander", "rattata"];
     for pokemon_to_load in pokemon_to_load_list {
         let pokemon_folder = asset_server.load_folder(format!("pokemons/{pokemon_to_load}"));
         pokemon_assets_folder
             .0
             .insert(pokemon_to_load.to_string(), pokemon_folder);
+    }
+
+    // Effects
+    let effect_to_load_list = vec!["110"];
+    for effect_to_load in effect_to_load_list {
+        let effect_folder = asset_server.load_folder(format!("effects/{effect_to_load}"));
+        effect_assets_folder
+            .0
+            .insert(effect_to_load.to_string(), effect_folder);
     }
 }
 
@@ -126,12 +141,13 @@ fn check_assets_loading(
 }
 
 fn process_assets(
-    pokemon_assets: Res<PokemonAssetsFolder>,
+    pokemon_assets: ResMut<PokemonAssetsFolder>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     anim_data_assets: Res<Assets<AnimData>>,
     mut pokemon_animation_assets: ResMut<PokemonAnimationAssets>,
     mut texture_atlasses: ResMut<Assets<TextureAtlas>>,
     mut next_state: ResMut<NextState<GameState>>,
+    mut commands: Commands,
 ) {
     for (pokemon, handle_folder) in pokemon_assets.0.iter() {
         let Some::<&LoadedFolder>(folder) = loaded_folder_assets.get(handle_folder) else {
@@ -167,7 +183,13 @@ fn process_assets(
 
         let anim_data = anim_data_assets.get(&anim_data_handle).unwrap();
 
-        let anim_to_load = vec![AnimKey::Idle, AnimKey::Walk, AnimKey::Attack, AnimKey::Hurt];
+        let anim_to_load = vec![
+            AnimKey::Idle,
+            AnimKey::Walk,
+            AnimKey::Attack,
+            AnimKey::Hurt,
+            AnimKey::Swing,
+        ];
 
         let mut anim_textures: HashMap<AnimKey, Handle<TextureAtlas>> = HashMap::new();
 
@@ -190,6 +212,9 @@ fn process_assets(
             .0
             .insert(pokemon, pokemon_animation);
     }
+
+    // Clean up unused resources
+    commands.remove_resource::<PokemonAssetsFolder>();
 
     info!("Assets processed");
     next_state.set(GameState::Initializing);
