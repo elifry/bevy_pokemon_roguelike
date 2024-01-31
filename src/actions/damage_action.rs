@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Health};
+use crate::{
+    map::Position,
+    pieces::{Health, PieceDeathEvent},
+};
 
 use super::{orient_entity, Action};
 
@@ -22,6 +25,12 @@ impl Action for DamageAction {
         };
 
         health.value = health.value.saturating_sub(self.value);
+
+        if health.is_dead() {
+            world.send_event(PieceDeathEvent {
+                entity: self.target,
+            });
+        }
 
         let attacker_position = world.get::<Position>(self.attacker).ok_or(())?;
 
