@@ -108,6 +108,7 @@ fn process_pokemon_assets(
     commands.remove_resource::<PokemonAssetsFolder>();
 
     info!("Assets processed");
+    // TODO: also check for the effect assets
     next_state.set(GameState::Initializing);
 }
 
