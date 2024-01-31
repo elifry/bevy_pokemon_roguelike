@@ -26,6 +26,7 @@ mod pieces;
 mod player;
 mod pokemons;
 mod turn;
+pub mod utils;
 mod vector2_int;
 
 // This example game uses States to separate logic

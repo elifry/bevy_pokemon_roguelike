@@ -10,6 +10,7 @@ use itertools::Itertools;
 use crate::effects::Effect;
 use crate::graphics::anim_data::{AnimData, AnimKey};
 use crate::pokemons::Pokemons;
+use crate::utils::get_path_from_handle;
 use crate::GameState;
 
 pub struct EffectAssetsPlugin;
@@ -42,58 +43,56 @@ fn process_effect_assets(
     mut commands: Commands,
 ) {
     for (effect, handle_folder) in effect_assets_folder.0.iter() {
-        let Some(folder) = loaded_folder_assets.get(handle_folder) else {
-            error!("Could'nt load the folder for effect {}", effect);
-            continue;
+        let folder = match loaded_folder_assets.get(handle_folder) {
+            Some(folder) => folder,
+            None => {
+                error!("Couldn't load the folder for effect {}", effect);
+                continue;
+            }
         };
 
-        let effect = Effect::from_str(&effect.to_string()).unwrap();
+        let effect = match Effect::from_str(&effect.to_string()) {
+            Ok(effect) => effect,
+            Err(_) => {
+                error!("Invalid effect: {}", effect);
+                continue;
+            }
+        };
 
-        let parent_path_str = format!("effects/{}", effect.clone());
+        let parent_path_str = format!("effects/{}", effect);
         let parent = Path::new(&parent_path_str);
 
-        // Set every effect image in the map by its sub type
         let mut effects_by_sub_type: HashMap<String, Vec<Handle<Image>>> = HashMap::new();
         for handle in folder.handles.iter() {
-            if handle
-                .path()
-                .unwrap()
-                .path()
-                .ancestors()
-                .any(|ancestor| ancestor == parent)
-            {
-                let sub_type = handle
-                    .path()
-                    .unwrap()
-                    .path()
-                    .parent()
-                    .unwrap()
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_owned();
+            let Some(path) = get_path_from_handle(handle) else {
+                continue;
+            };
+            if path.ancestors().all(|ancestor| ancestor != parent) {
+                continue;
+            }
 
-                if sub_type == "pieces" {
-                    continue;
-                }
+            let Some(sub_type) = path
+                .parent()
+                .and_then(|p| p.file_name())
+                .and_then(|n| n.to_str())
+            else {
+                continue;
+            };
 
-                let entry = effects_by_sub_type.entry(sub_type).or_insert(vec![]);
-                entry.push(handle.to_owned().typed::<Image>());
+            if sub_type != "pieces" {
+                effects_by_sub_type
+                    .entry(sub_type.to_owned())
+                    .or_insert_with(Vec::new)
+                    .push(handle.to_owned().typed::<Image>());
             }
         }
 
-        // Sort images by its file name
+        // Sorting and atlas building remains largely the same, with error handling improved
         for images in effects_by_sub_type.values_mut() {
             images.sort_by_key(|image| {
-                image
-                    .path()
-                    .unwrap()
-                    .path()
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
+                get_path_from_handle(&image.clone().untyped())
+                    .and_then(|path| path.file_name()?.to_str())
+                    .unwrap_or_default()
                     .to_owned()
             });
         }
@@ -124,8 +123,7 @@ fn process_effect_assets(
                 textures: effect_texture_atlases,
             },
         );
-
-        // // Clean up unused resources
-        commands.remove_resource::<EffectAssetsFolder>();
     }
+    // // Clean up unused resources
+    commands.remove_resource::<EffectAssetsFolder>();
 }
