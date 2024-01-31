@@ -25,6 +25,12 @@ pub struct Health {
     pub value: u32,
 }
 
+impl Health {
+    pub fn is_dead(&self) -> bool {
+        self.value == 0
+    }
+}
+
 #[derive(Component, Default)]
 pub struct Actor;
 

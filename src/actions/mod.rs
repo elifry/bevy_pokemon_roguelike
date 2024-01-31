@@ -72,7 +72,6 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
 
     let mut processed = false;
     for _ in animation_finished_reader.read(&ev_animation_finished) {
-        info!("tracking queue {:?}", tracking_queue_animation);
         if *tracking_queue_animation > 0 {
             *tracking_queue_animation = tracking_queue_animation.saturating_sub(1);
 
@@ -80,13 +79,9 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
                 processed = true;
             }
         }
+        info!("tracking queue {:?}", tracking_queue_animation);
     }
     ev_animation_finished.clear();
-
-    if processed && world.resource::<ActionQueue>().0.is_empty() {
-        info!("Action queue processed");
-        world.send_event(ActionQueueProcessedEvent);
-    }
 
     if *tracking_queue_animation > 0 {
         return;
@@ -111,9 +106,9 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
         world.send_event(ProcessingActionEvent);
 
         if let Ok(health) = world.query::<&Health>().get(world, queued_action.entity) {
-            if health.value == 0 {
+            if health.is_dead() {
                 info!("{:?} is dead ", queued_action.entity);
-                break;
+                continue;
             }
         }
 
@@ -155,5 +150,17 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
         }
 
         apply_deferred(world);
+    }
+
+    if processed {
+        if world.resource::<ActionQueue>().0.is_empty() {
+            info!("Action queue processed");
+            world.send_event(ActionQueueProcessedEvent);
+        } else {
+            info!(
+                "Action couldnt processed {:?}",
+                world.resource::<ActionQueue>().0.len()
+            );
+        }
     }
 }
