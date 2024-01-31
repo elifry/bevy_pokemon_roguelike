@@ -2,8 +2,8 @@ use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
     actions::{
-        melee_hit_action::MeleeHitAction, skip_action::SkipAction, walk_action::WalkAction,
-        ProcessingActionEvent, RunningAction,
+        damage_action::DamageAction, melee_hit_action::MeleeHitAction, skip_action::SkipAction,
+        walk_action::WalkAction, ProcessingActionEvent, RunningAction,
     },
     map::CurrentMap,
     vector2_int::Vector2Int,
@@ -21,18 +21,40 @@ impl Plugin for ActionAnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ActionAnimationPlayingEvent>()
             .add_event::<ActionAnimationFinishedEvent>()
-            .add_systems(
+            .configure_sets(
                 Update,
                 (
-                    add_action_animation,
-                    move_animation,
-                    attack_animation,
-                    clean_up_animation,
+                    ActionAnimationSet::Prepare,
+                    ActionAnimationSet::PlayAnimations,
+                    ActionAnimationSet::Flush,
                 )
                     .chain()
                     .in_set(GamePlayingSet::Animations),
+            )
+            .add_systems(
+                Update,
+                add_action_animation.in_set(ActionAnimationSet::Prepare),
+            )
+            .add_systems(
+                Update,
+                (move_animation, attack_animation, hurt_animation)
+                    .chain()
+                    .in_set(ActionAnimationSet::PlayAnimations),
+            )
+            .add_systems(
+                Update,
+                (clean_up_animation,)
+                    .chain()
+                    .in_set(ActionAnimationSet::Flush),
             );
     }
+}
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+enum ActionAnimationSet {
+    Prepare,
+    PlayAnimations,
+    Flush,
 }
 
 #[derive(Event, Debug)]
@@ -42,9 +64,10 @@ pub struct ActionAnimationPlayingEvent;
 pub struct ActionAnimationFinishedEvent(pub Entity);
 
 #[derive(Clone)]
-pub enum Animation {
+pub enum ActionAnimation {
     Move(MoveAnimation),
     Attack,
+    Hurt,
     Skip,
 }
 
@@ -68,7 +91,7 @@ impl MoveAnimation {
 }
 
 #[derive(Component)]
-pub struct AnimationHolder(pub Animation);
+pub struct AnimationHolder(pub ActionAnimation);
 
 fn clean_up_animation(
     mut ev_animation_finished: EventReader<ActionAnimationFinishedEvent>,
@@ -96,20 +119,51 @@ fn add_action_animation(
         let action = running_action.0.as_any();
 
         if let Some(action) = action.downcast_ref::<WalkAction>() {
-            let move_animation = AnimationHolder(Animation::Move(MoveAnimation::new(
+            let move_animation = AnimationHolder(ActionAnimation::Move(MoveAnimation::new(
                 action.entity,
                 action.from,
                 action.to,
             )));
             commands.entity(entity).insert(move_animation);
         } else if let Some(_action) = action.downcast_ref::<MeleeHitAction>() {
-            let attack_animation: AnimationHolder = AnimationHolder(Animation::Attack);
+            let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
             commands.entity(entity).insert(attack_animation);
+        } else if let Some(action) = action.downcast_ref::<DamageAction>() {
+            let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Hurt);
+            commands.entity(action.target).insert(attack_animation);
         } else {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
         }
 
         commands.entity(entity).remove::<RunningAction>();
+    }
+}
+
+pub fn hurt_animation(
+    mut commands: Commands,
+    mut query: Query<(
+        Entity,
+        &mut AnimationHolder,
+        &mut PokemonAnimationState,
+        &Animator,
+    )>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+) {
+    for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
+        let AnimationHolder(ActionAnimation::Hurt) = animation.as_mut() else {
+            continue;
+        };
+
+        if animation_state.0 != AnimKey::Hurt {
+            animation_state.0 = AnimKey::Hurt;
+        }
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+
+        if animator.is_finished() {
+            ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
+        }
     }
 }
 
@@ -124,7 +178,7 @@ pub fn attack_animation(
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
-        let AnimationHolder(Animation::Attack) = animation.as_mut() else {
+        let AnimationHolder(ActionAnimation::Attack) = animation.as_mut() else {
             continue;
         };
 
@@ -152,7 +206,7 @@ pub fn move_animation(
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
     for (mut animation, mut animation_state, mut transform, animator) in query.iter_mut() {
-        let AnimationHolder(Animation::Move(move_animation)) = animation.as_mut() else {
+        let AnimationHolder(ActionAnimation::Move(move_animation)) = animation.as_mut() else {
             continue;
         };
 
