@@ -26,22 +26,23 @@ impl Plugin for EffectAssetsPlugin {
 pub struct EffectAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 
 #[derive(Resource, Debug, Default)]
-pub struct EffectAssets(pub HashMap<Effect, EffectAssets>);
+pub struct EffectAssets(pub HashMap<Effect, EffectAsset>);
 
 #[derive(Debug, Clone)]
 pub struct EffectAsset {
-    pub textures: HashMap<&'static str, Handle<TextureAtlas>>,
+    pub textures: HashMap<String, Handle<TextureAtlas>>,
 }
 
 fn process_effect_assets(
-    effect_assets_folder: ResMut<EffectAssetsFolder>,
+    effect_assets_folder: Res<EffectAssetsFolder>,
+    mut effect_assets: ResMut<EffectAssets>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     mut texture_atlasses: ResMut<Assets<TextureAtlas>>,
     mut textures: ResMut<Assets<Image>>,
     mut commands: Commands,
 ) {
     for (effect, handle_folder) in effect_assets_folder.0.iter() {
-        let Some::<&LoadedFolder>(folder) = loaded_folder_assets.get(handle_folder) else {
+        let Some(folder) = loaded_folder_assets.get(handle_folder) else {
             error!("Could'nt load the folder for effect {}", effect);
             continue;
         };
@@ -52,25 +53,33 @@ fn process_effect_assets(
         let parent = Path::new(&parent_path_str);
 
         // Set every effect image in the map by its sub type
-        let mut effects_by_sub_type: HashMap<&str, Vec<Handle<Image>>> = HashMap::new();
+        let mut effects_by_sub_type: HashMap<String, Vec<Handle<Image>>> = HashMap::new();
         for handle in folder.handles.iter() {
-            if let Some(path_buf) = handle.path() {
-                let path = path_buf.path();
-                if path.ancestors().any(|ancestor| ancestor == parent)
-                    && path
-                        .parent()
-                        .map_or(false, |p| p.file_name().unwrap_or_default() != "pieces")
-                {
-                    if let Some(sub_type) = path
-                        .parent()
-                        .and_then(|p| p.file_name())
-                        .and_then(|n| n.to_str())
-                    {
-                        let entry = effects_by_sub_type.entry(sub_type).or_insert_with(Vec::new);
+            if handle
+                .path()
+                .unwrap()
+                .path()
+                .ancestors()
+                .any(|ancestor| ancestor == parent)
+            {
+                let sub_type = handle
+                    .path()
+                    .unwrap()
+                    .path()
+                    .parent()
+                    .unwrap()
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_owned();
 
-                        entry.push(handle.to_owned().typed::<Image>());
-                    }
+                if sub_type == "pieces" {
+                    continue;
                 }
+
+                let entry = effects_by_sub_type.entry(sub_type).or_insert(vec![]);
+                entry.push(handle.to_owned().typed::<Image>());
             }
         }
 
@@ -89,7 +98,7 @@ fn process_effect_assets(
             });
         }
 
-        let mut effect_texture_atlases: HashMap<&str, Handle<TextureAtlas>> = HashMap::new();
+        let mut effect_texture_atlases: HashMap<String, Handle<TextureAtlas>> = HashMap::new();
 
         for (sub_type, images) in effects_by_sub_type.into_iter() {
             let mut builder = TextureAtlasBuilder::default();
@@ -109,7 +118,14 @@ fn process_effect_assets(
             effect_texture_atlases.insert(sub_type, atlas_handle);
         }
 
-        // Clean up unused resources
+        effect_assets.0.insert(
+            effect,
+            EffectAsset {
+                textures: effect_texture_atlases,
+            },
+        );
+
+        // // Clean up unused resources
         commands.remove_resource::<EffectAssetsFolder>();
     }
 }
