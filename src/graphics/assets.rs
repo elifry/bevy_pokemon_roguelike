@@ -20,7 +20,7 @@ impl Plugin for AssetsPlugin {
             .init_resource::<PokemonAnimationAssets>()
             .init_resource::<EffectAssetsFolder>()
             .add_systems(OnEnter(GameState::Loading), load_assets)
-            .add_systems(OnEnter(GameState::AssetsLoaded), process_assets)
+            .add_systems(OnEnter(GameState::AssetsLoaded), process_pokemon_assets)
             .add_systems(OnEnter(GameState::Initializing), set_playing)
             .add_systems(
                 Update,
@@ -94,7 +94,7 @@ fn load_assets(
     }
 
     // Effects
-    let effect_to_load_list = vec!["110"];
+    let effect_to_load_list = vec!["0110"];
     for effect_to_load in effect_to_load_list {
         let effect_folder = asset_server.load_folder(format!("effects/{effect_to_load}"));
         effect_assets_folder
@@ -140,7 +140,7 @@ fn check_assets_loading(
     next_state.set(GameState::AssetsLoaded);
 }
 
-fn process_assets(
+fn process_pokemon_assets(
     pokemon_assets: ResMut<PokemonAssetsFolder>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     anim_data_assets: Res<Assets<AnimData>>,

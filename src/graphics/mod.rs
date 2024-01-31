@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{vector2_int::Vector2Int};
+use crate::vector2_int::Vector2Int;
 
 use self::{
     action_animation::ActionAnimationPlugin, anim_data::AnimDataPlugin,

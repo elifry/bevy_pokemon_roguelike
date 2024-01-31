@@ -18,6 +18,7 @@ mod actions;
 mod ai;
 mod camera;
 mod constants;
+mod effects;
 mod graphics;
 mod map;
 mod menu;
