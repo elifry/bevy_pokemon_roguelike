@@ -79,10 +79,10 @@ pub enum TileType {
     Environment, // Water / Lava
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Tile(pub TileType);
 
-fn spawn_map(mut commands: Commands, current_map: Res<GameMap>) {
+fn spawn_map(mut commands: Commands, mut current_map: ResMut<GameMap>) {
     let tilemap = commands
         .spawn((Tilemap, Name::new("Tilemap"), SpatialBundle { ..default() }))
         .id();
@@ -96,5 +96,6 @@ fn spawn_map(mut commands: Commands, current_map: Res<GameMap>) {
             ))
             .id();
         commands.entity(tilemap).add_child(tile);
+        current_map.associate_entity_to_tile(tile, &position);
     }
 }

@@ -28,18 +28,22 @@ impl Action for DestroyWallAction {
         let Some(target_tile) = map.tiles_lookup.get(&self.target).cloned() else {
             return Err(());
         };
-        world.entity_mut(target_tile).insert(Tile(TileType::Ground));
+
+        if let Ok(mut tile) = world.query::<&mut Tile>().get_mut(world, target_tile) {
+            tile.0 = TileType::Ground;
+        }
 
         orient_entity(world, self.instigator, self.target);
 
-        let position = world.get_mut::<Position>(self.instigator).ok_or(())?;
-        let walk_action = Box::new(WalkAction {
-            entity: self.instigator,
-            to: self.target,
-            from: position.0,
-        }) as Box<dyn Action>;
+        // let position = world.get_mut::<Position>(self.instigator).ok_or(())?;
+        // let walk_action = Box::new(WalkAction {
+        //     entity: self.instigator,
+        //     to: self.target,
+        //     from: position.0,
+        // }) as Box<dyn Action>;
 
-        Ok(vec![walk_action])
+        // Ok(vec![walk_action])
+        Ok(vec![])
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

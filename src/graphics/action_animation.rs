@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{
-        damage_action::DamageAction, melee_hit_action::MeleeHitAction, walk_action::WalkAction,
-        RunningAction,
+        damage_action::DamageAction, destroy_wall_action::DestroyWallAction,
+        melee_hit_action::MeleeHitAction, walk_action::WalkAction, RunningAction,
     },
     vector2_int::Vector2Int,
     GamePlayingSet,
@@ -134,6 +134,9 @@ fn add_action_animation(
         } else if let Some(action) = action.downcast_ref::<DamageAction>() {
             let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Hurt);
             commands.entity(action.target).insert(attack_animation);
+        } else if let Some(_action) = action.downcast_ref::<DestroyWallAction>() {
+            let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
+            commands.entity(entity).insert(attack_animation);
         } else {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
         }

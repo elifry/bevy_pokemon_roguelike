@@ -4,6 +4,7 @@ use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
 use leafwing_input_manager::{Actionlike, InputManagerBundle};
 
+use crate::actions::destroy_wall_action::DestroyWallAction;
 use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::walk_action::WalkAction;
@@ -80,7 +81,6 @@ fn spawn_player(mut commands: Commands) {
 fn take_action(
     player_query: Query<(Entity, &ActionState<PlayerAction>, &Position), With<Player>>,
     mut ev_action_queue_processed: EventReader<ActionQueueProcessedEvent>,
-    target_query: Query<(Entity, &Position), With<Health>>,
     mut ev_action: EventWriter<PlayerActionEvent>,
     mut is_taking_action: Local<bool>,
 ) {
@@ -104,29 +104,30 @@ fn take_action(
         }
         let target = position.0 + dir;
 
-        // check if there a target when the player move
-        let target_entities = target_query
-            .iter()
-            .filter(|(_, p)| p.0 == target)
-            .collect::<Vec<_>>();
+        let walk_action = Box::new(WalkAction {
+            entity,
+            from: position.0,
+            to: target,
+        }) as Box<dyn Action>;
 
-        let action: Box<dyn Action> = if !target_entities.is_empty() {
-            Box::new(MeleeHitAction {
-                attacker: entity,
-                target,
-                damage: 1,
-            })
-        } else {
-            Box::new(WalkAction {
-                entity,
-                from: position.0,
-                to: target,
-            })
-        };
+        let attack_action = Box::new(MeleeHitAction {
+            attacker: entity,
+            damage: 1,
+            target,
+        }) as Box<dyn Action>;
+
+        let destroy_wall = Box::new(DestroyWallAction {
+            instigator: entity,
+            target,
+        }) as Box<dyn Action>;
 
         info!("Send player action event");
         *is_taking_action = true;
-        ev_action.send(PlayerActionEvent(vec![action]));
+        ev_action.send(PlayerActionEvent(vec![
+            walk_action,
+            attack_action,
+            destroy_wall,
+        ]));
         return;
     }
 
