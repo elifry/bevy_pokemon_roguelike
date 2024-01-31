@@ -6,7 +6,7 @@ use crate::{
     vector2_int::Vector2Int,
 };
 
-use super::Action;
+use super::{orient_entity, Action};
 
 #[derive(Debug, Clone)]
 pub struct WalkAction {
@@ -40,13 +40,11 @@ impl Action for WalkAction {
             return Err(());
         };
 
+        orient_entity(world, self.entity, self.to);
+
         // get the position of the entity
         let mut position = world.get_mut::<Position>(self.entity).ok_or(())?;
         position.0 = self.to;
-
-        let mut facing_orientation = world.get_mut::<FacingOrientation>(self.entity).ok_or(())?;
-        let direction = self.to - self.from;
-        facing_orientation.0 = Orientation::from_vector(direction);
 
         Ok(Vec::new())
     }

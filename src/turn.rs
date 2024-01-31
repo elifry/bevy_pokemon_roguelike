@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{ActionQueue, NextActions, ProcessingActionEvent, QueuedAction, RunningAction},
+    actions::{ActionQueue, NextActions, QueuedAction},
     pieces::{Actor, PieceDeathEvent},
     player::{Player, PlayerActionEvent},
     GamePlayingSet,

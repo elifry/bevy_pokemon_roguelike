@@ -41,7 +41,7 @@ pub struct TileAssets {
         offset_x = 1.,
         offset_y = 1.
     ))]
-    #[asset(path = "images/tiles/forest_path_tiles.png")]
+    #[asset(path = "tiles/forest_path_tiles.png")]
     pub forest_path: Handle<TextureAtlas>,
 }
 
@@ -71,7 +71,7 @@ fn load_assets(
     let pokemon_to_load_list = vec!["charmander", "rattata"];
 
     for pokemon_to_load in pokemon_to_load_list {
-        let pokemon_folder = asset_server.load_folder(format!("images/pokemons/{pokemon_to_load}"));
+        let pokemon_folder = asset_server.load_folder(format!("pokemons/{pokemon_to_load}"));
         pokemon_assets_folder
             .0
             .insert(pokemon_to_load.to_string(), pokemon_folder);

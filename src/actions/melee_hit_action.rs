@@ -6,7 +6,7 @@ use crate::{
     vector2_int::Vector2Int,
 };
 
-use super::{damage_action::DamageAction, Action};
+use super::{damage_action::DamageAction, orient_entity, Action};
 
 #[derive(Debug, Clone)]
 pub struct MeleeHitAction {
@@ -34,17 +34,16 @@ impl Action for MeleeHitAction {
 
         let result = target_entities
             .iter()
-            .map(|e| Box::new(DamageAction(e.0, self.damage)) as Box<dyn Action>)
+            .map(|target| {
+                Box::new(DamageAction {
+                    attacker: self.attacker,
+                    target: target.0,
+                    value: self.damage,
+                }) as Box<dyn Action>
+            })
             .collect::<Vec<_>>();
 
-        let grid_position = world.get::<Position>(self.attacker).ok_or(())?;
-        let direction = self.target - grid_position.0;
-
-        let mut facing_orientation = world
-            .get_mut::<FacingOrientation>(self.attacker)
-            .ok_or(())?;
-
-        facing_orientation.0 = Orientation::from_vector(direction);
+        orient_entity(world, self.attacker, self.target);
 
         Ok(result)
     }

@@ -1,18 +1,31 @@
 use bevy::prelude::*;
 
-use crate::pieces::{Health, PieceDeathEvent};
+use crate::{
+    map::Position,
+    pieces::{Health, PieceDeathEvent},
+};
 
-use super::Action;
+use super::{orient_entity, Action};
 
 #[derive(Debug, Clone)]
-pub struct DamageAction(pub Entity, pub u32);
+pub struct DamageAction {
+    pub attacker: Entity,
+    pub target: Entity,
+    pub value: u32,
+}
 
 impl Action for DamageAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
-        let Some(mut health) = world.get_mut::<Health>(self.0) else {
+        let Some(mut health) = world.get_mut::<Health>(self.target) else {
             return Err(());
         };
-        health.value = health.value.saturating_sub(self.1);
+
+        health.value = health.value.saturating_sub(self.value);
+
+        let attacker_position = world.get::<Position>(self.attacker).ok_or(())?;
+
+        orient_entity(world, self.target, attacker_position.0);
+
         Ok(Vec::new())
     }
 
