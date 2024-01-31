@@ -50,6 +50,7 @@ fn update_animator(
             &PokemonAnimationState,
             &Pokemon,
             &mut TextureAtlasSprite,
+            &mut Handle<TextureAtlas>,
         ),
         Or<(Changed<FacingOrientation>, Changed<PokemonAnimationState>)>,
     >,
@@ -57,7 +58,9 @@ fn update_animator(
     assets: Res<PokemonAnimationAssets>,
     mut commands: Commands,
 ) {
-    for (entity, facing_orientation, animation_state, pokemon, mut sprite) in query.iter_mut() {
+    for (entity, facing_orientation, animation_state, pokemon, mut sprite, mut texture_atlas) in
+        query.iter_mut()
+    {
         let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
         let animator = get_pokemon_animator(
             &anim_data_assets,
@@ -65,7 +68,7 @@ fn update_animator(
             &animation_state.0,
             &facing_orientation.0,
         );
-        // TODO: Update the texture there
+        *texture_atlas = animator.texture_atlas.clone();
         commands.entity(entity).insert(animator);
     }
 }
@@ -107,10 +110,10 @@ fn get_pokemon_animator(
     let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
     let anim_info = anim_data.get(*anim_key);
 
-    let (texture_atlas, is_loop, emit_graphics_wait) = match anim_key {
-        AnimKey::Walk => (pokemon_animation.walk.to_owned(), false, false),
-        AnimKey::Attack => (pokemon_animation.attack.to_owned(), false, true),
-        AnimKey::Idle => (pokemon_animation.idle.to_owned(), true, false),
+    let (texture_atlas, is_loop) = match anim_key {
+        AnimKey::Walk => (pokemon_animation.walk.to_owned(), false),
+        AnimKey::Attack => (pokemon_animation.attack.to_owned(), false),
+        AnimKey::Idle => (pokemon_animation.idle.to_owned(), true),
         _ => panic!("Not implemented"),
     };
 
@@ -128,11 +131,5 @@ fn get_pokemon_animator(
         })
         .collect::<Vec<_>>();
 
-    Animator {
-        texture_atlas: texture_atlas.clone(),
-        frames,
-        is_loop,
-        emit_graphics_wait,
-        ..default()
-    }
+    Animator::new(texture_atlas.clone(), frames, is_loop)
 }

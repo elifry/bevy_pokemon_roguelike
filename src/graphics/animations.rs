@@ -33,13 +33,26 @@ pub struct Animator {
     pub current_frame: usize,
     pub timer: Timer,
     pub is_loop: bool,
-    pub emit_graphics_wait: bool,
     pub frames: Vec<AnimationFrame>,
+    is_finished: bool,
 }
 
 impl Animator {
+    pub fn new(
+        texture_atlas: Handle<TextureAtlas>,
+        frames: Vec<AnimationFrame>,
+        is_loop: bool,
+    ) -> Self {
+        Self {
+            texture_atlas,
+            frames,
+            is_loop,
+            ..default()
+        }
+    }
+
     pub fn is_finished(&self) -> bool {
-        !self.is_loop && self.current_frame > self.frames.len() - 1
+        self.is_finished
     }
 }
 
@@ -91,8 +104,10 @@ fn animation_system(
             continue;
         }
 
-        if animator.is_finished() {
+        if !animator.is_loop && animator.current_frame > animator.frames.len() - 1 {
+            // is finished
             ev_finished.send(AnimationFinished(entity));
+            animator.is_finished = true;
             continue;
         }
 
