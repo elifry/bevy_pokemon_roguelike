@@ -12,6 +12,7 @@ pub mod anim_data;
 pub mod animations;
 pub mod assets;
 mod pokemon;
+pub mod tile_sprite_index;
 mod tiles;
 
 pub const TILE_Z: f32 = 0.;
