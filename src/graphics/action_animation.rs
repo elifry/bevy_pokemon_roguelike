@@ -23,7 +23,12 @@ impl Plugin for ActionAnimationPlugin {
             .add_event::<ActionAnimationFinishedEvent>()
             .add_systems(
                 Update,
-                (add_action_animation, move_animation, attack_animation)
+                (
+                    add_action_animation,
+                    move_animation,
+                    attack_animation,
+                    clean_up_animation,
+                )
                     .chain()
                     .in_set(GamePlayingSet::Animations),
             );
@@ -34,7 +39,7 @@ impl Plugin for ActionAnimationPlugin {
 pub struct ActionAnimationPlayingEvent;
 
 #[derive(Event, Debug)]
-pub struct ActionAnimationFinishedEvent;
+pub struct ActionAnimationFinishedEvent(pub Entity);
 
 #[derive(Clone)]
 pub enum Animation {
@@ -65,6 +70,20 @@ impl MoveAnimation {
 #[derive(Component)]
 pub struct AnimationHolder(pub Animation);
 
+fn clean_up_animation(
+    mut ev_animation_finished: EventReader<ActionAnimationFinishedEvent>,
+    mut query_animation_state: Query<&mut PokemonAnimationState>,
+    mut commands: Commands,
+) {
+    for ev in ev_animation_finished.read() {
+        commands.entity(ev.0).remove::<AnimationHolder>();
+        let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
+            continue;
+        };
+        animation_state.0 = AnimKey::Idle;
+    }
+}
+
 fn add_action_animation(
     mut query: Query<(Entity, &RunningAction), Added<RunningAction>>,
     mut commands: Commands,
@@ -87,7 +106,7 @@ fn add_action_animation(
             let attack_animation: AnimationHolder = AnimationHolder(Animation::Attack);
             commands.entity(entity).insert(attack_animation);
         } else {
-            ev_animation_finished.send(ActionAnimationFinishedEvent);
+            ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
         }
 
         commands.entity(entity).remove::<RunningAction>();
@@ -95,7 +114,6 @@ fn add_action_animation(
 }
 
 pub fn attack_animation(
-    mut commands: Commands,
     mut query: Query<(
         Entity,
         &mut AnimationHolder,
@@ -117,16 +135,12 @@ pub fn attack_animation(
         ev_animation_playing.send(ActionAnimationPlayingEvent);
 
         if animator.is_finished() {
-            // TODO: maybe used event there
-            ev_animation_finished.send(ActionAnimationFinishedEvent);
-            animation_state.0 = AnimKey::Idle;
-            commands.entity(entity).remove::<AnimationHolder>();
+            ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
         }
     }
 }
 
 pub fn move_animation(
-    mut commands: Commands,
     mut query: Query<(
         &mut AnimationHolder,
         &mut PokemonAnimationState,
@@ -163,11 +177,6 @@ pub fn move_animation(
         if !animator.is_finished() {
             continue;
         }
-
-        animation_state.0 = AnimKey::Idle;
-        ev_animation_finished.send(ActionAnimationFinishedEvent);
-        commands
-            .entity(move_animation.entity)
-            .remove::<AnimationHolder>();
+        ev_animation_finished.send(ActionAnimationFinishedEvent(move_animation.entity));
     }
 }

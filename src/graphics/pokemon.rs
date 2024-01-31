@@ -24,12 +24,7 @@ impl Plugin for PokemonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                //pokemon_animation_state,
-                spawn_pokemon_renderer,
-                // fallback_idle_animation,
-                update_animator,
-            )
+            (spawn_pokemon_renderer, update_animator)
                 .chain()
                 .run_if(in_state(GameState::Playing)),
         );
@@ -46,21 +41,6 @@ pub struct PathAnimator {
 
 #[derive(Component, Default)]
 pub struct PokemonAnimationState(pub AnimKey);
-
-fn fallback_idle_animation(
-    mut ev_animation_finished: EventReader<AnimationFinished>,
-    mut query_animation_state: Query<&mut PokemonAnimationState>,
-) {
-    for ev in ev_animation_finished.read() {
-        let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
-            continue;
-        };
-
-        if animation_state.0 != AnimKey::Idle {
-            animation_state.0 = AnimKey::Idle;
-        }
-    }
-}
 
 fn update_animator(
     mut query: Query<
