@@ -19,7 +19,6 @@ mod ai;
 mod camera;
 mod constants;
 mod graphics;
-mod loading;
 mod map;
 mod menu;
 mod pieces;
