@@ -30,7 +30,7 @@ fn spawn_tile_renderer(
         let v = super::get_world_position(&position.0, TILE_Z);
         commands.entity(entity).insert(SpriteSheetBundle {
             sprite,
-            texture_atlas: assets.forest_path.clone(),
+            texture_atlas: assets.amp_plains.clone(),
             transform: Transform::from_translation(v),
             ..Default::default()
         });

@@ -30,7 +30,6 @@ impl Plugin for AssetsPlugin {
 
 #[derive(AssetCollection, Resource)]
 pub struct TileAssets {
-    // #[asset(key = "tiles.forest_path")]
     #[asset(texture_atlas(
         tile_size_x = 24.,
         tile_size_y = 24.,
@@ -43,6 +42,19 @@ pub struct TileAssets {
     ))]
     #[asset(path = "tiles/forest_path_tiles.png")]
     pub forest_path: Handle<TextureAtlas>,
+
+    #[asset(texture_atlas(
+        tile_size_x = 24.,
+        tile_size_y = 24.,
+        columns = 21,
+        rows = 24,
+        padding_x = 1.,
+        padding_y = 1.,
+        offset_x = 1.,
+        offset_y = 1.
+    ))]
+    #[asset(path = "tiles/amp_plains_tiles.png")]
+    pub amp_plains: Handle<TextureAtlas>,
 }
 
 #[derive(Resource, Debug, Default)]
