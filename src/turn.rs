@@ -3,8 +3,9 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{ActionQueue, NextActions, QueuedAction},
-    pieces::{Actor, PieceDeathEvent},
+    actions::{ActionQueue, NextActions, ProcessingActionEvent, QueuedAction},
+    graphics::action_animation::{ActionAnimationPlayingEvent, AnimationHolder},
+    pieces::{Actor, Health, PieceDeathEvent},
     player::{Player, PlayerActionEvent},
     GamePlayingSet,
 };
@@ -20,7 +21,10 @@ impl Plugin for TurnPlugin {
                     .chain()
                     .in_set(GamePlayingSet::TurnLogics),
             )
-            .add_systems(Update, handle_actor_death);
+            .add_systems(
+                Update,
+                handle_actor_death.in_set(GamePlayingSet::LateLogics),
+            );
     }
 }
 
@@ -71,38 +75,25 @@ pub fn turn_system(
 
 fn handle_actor_death(
     mut actor_queue: ResMut<TurnOrder>,
-    mut ev_piece_death: EventReader<PieceDeathEvent>,
+    query_health: Query<(Entity, &Health), Without<AnimationHolder>>,
+    mut commands: Commands,
+    mut ev_processing_action: EventReader<ProcessingActionEvent>,
 ) {
-    for ev in ev_piece_death.read() {
-        let death_actor_index = actor_queue
-            .0
-            .iter()
-            .position(|entity| *entity == ev.entity)
-            .unwrap();
+    if ev_processing_action.read().len() > 0 {
+        return;
+    }
 
-        info!("Removed {:?} from the actor queue", ev.entity);
+    for (entity, health) in query_health.iter() {
+        if !health.is_dead() {
+            continue;
+        }
+        let death_actor_index = actor_queue.0.iter().position(|e| *e == entity).unwrap();
+
+        info!("Removed {:?} from the actor queue", entity);
 
         actor_queue.0.remove(death_actor_index);
 
-        // let Some(current_actor) = res_current_actor.0 else {
-        //     return;
-        // };
-
-        // let is_next_actor = next_actor_query.get(ev.entity).is_ok();
-
-        // info!("is next actor {}", is_next_actor);
-
-        // if current_actor != ev.entity && !is_next_actor {
-        //     info!("not next actor or current actor");
-        //     return;
-        // }
-
-        // info!("emit next actor");
-
-        // let next_actor_index = (death_actor_index + 1) % actor_queue.0.len();
-        // let next_actor = actor_queue.0[next_actor_index];
-
-        // commands.entity(next_actor).insert(NextActor);
+        commands.entity(entity).despawn();
     }
 }
 
