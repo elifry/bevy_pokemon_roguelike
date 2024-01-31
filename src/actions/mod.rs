@@ -1,4 +1,8 @@
-use crate::{graphics::action_animation::AnimationPlayingEvent, pieces::Health, GamePlayingSet};
+use crate::{
+    graphics::action_animation::{ActionAnimationFinishedEvent, ActionAnimationPlayingEvent},
+    pieces::Health,
+    GamePlayingSet,
+};
 use bevy::prelude::*;
 use dyn_clone::DynClone;
 use std::{any::Any, collections::VecDeque, fmt::Debug};
@@ -13,7 +17,7 @@ pub struct ActionsPlugin;
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ActionExecutedEvent>()
-            .add_event::<ActionProcessedEvent>()
+            .add_event::<ActionQueueProcessedEvent>()
             .add_event::<ProcessActionFailed>()
             .add_event::<ProcessingActionEvent>()
             .init_resource::<ActionQueue>()
@@ -57,43 +61,46 @@ pub struct ProcessingActionEvent;
 pub struct ActionExecutedEvent(pub Box<dyn Action>);
 
 #[derive(Event, Debug)]
-pub struct ActionProcessedEvent;
+pub struct ActionQueueProcessedEvent;
 
 #[derive(Event, Debug)]
 pub struct ProcessActionFailed;
 
-pub fn process_action_queue(world: &mut World) {
-    let mut ev_animation_playing = world
-        .get_resource_mut::<Events<AnimationPlayingEvent>>()
-        .unwrap();
+pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Local<u32>) {
+    let mut ev_animation_finished = world.resource_mut::<Events<ActionAnimationFinishedEvent>>();
+    let mut animation_finished_reader = ev_animation_finished.get_reader();
 
-    if ev_animation_playing
-        .get_reader()
-        .read(&ev_animation_playing)
-        .len()
-        > 0
-    {
-        // Weird issue, the events doesn't get clear without thats
-        ev_animation_playing.clear();
-        world.send_event(ProcessingActionEvent);
+    let mut processed = false;
+    for _ in animation_finished_reader.read(&ev_animation_finished) {
+        info!("tracking queue {:?}", tracking_queue_animation);
+        if *tracking_queue_animation > 0 {
+            *tracking_queue_animation = tracking_queue_animation.saturating_sub(1);
+
+            if *tracking_queue_animation == 0 {
+                processed = true;
+            }
+        }
+    }
+    ev_animation_finished.clear();
+
+    if processed && world.resource::<ActionQueue>().0.is_empty() {
+        info!("Action queue processed");
+        world.send_event(ActionQueueProcessedEvent);
+    }
+
+    if *tracking_queue_animation > 0 {
         return;
     }
 
     'queue_action_loop: loop {
         // Get the first action of the queue
         let queued_action = {
-            let action_queue = world.get_resource_mut::<ActionQueue>();
-
-            if let Some(mut queue) = action_queue {
-                if queue.0.is_empty() {
-                    // If the ActionQueue is empty, return
-                    break;
-                }
-                queue.0.pop_front()
-            } else {
-                // If there's no ActionQueue, return
+            let mut action_queue = world.resource_mut::<ActionQueue>();
+            if action_queue.0.is_empty() {
+                // If the ActionQueue is empty, return
                 break;
             }
+            action_queue.0.pop_front()
         };
 
         let Some(queued_action) = queued_action else {
@@ -115,6 +122,7 @@ pub fn process_action_queue(world: &mut World) {
                 Ok(result_actions) => {
                     // Action well executed (insert the `RunningAction`)
                     info!("action executed {:?}", action);
+                    *tracking_queue_animation += 1;
                     world
                         .entity_mut(queued_action.entity)
                         .insert(RunningAction(action.clone()));

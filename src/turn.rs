@@ -33,16 +33,7 @@ pub fn turn_system(
     query_next_actions: Query<&NextActions>,
     mut action_queue: ResMut<ActionQueue>,
     mut event_player_action: EventReader<PlayerActionEvent>,
-    mut ev_processing_action: EventReader<ProcessingActionEvent>,
 ) {
-    if ev_processing_action.read().len() > 0 {
-        return;
-    }
-
-    if !action_queue.0.is_empty() {
-        return;
-    }
-
     let Some(player_action) = event_player_action.read().next() else {
         return;
     };
@@ -115,11 +106,7 @@ fn handle_actor_death(
     }
 }
 
-fn add_actor_to_queue(
-    query: Query<Entity, Added<Actor>>,
-    player_query: Query<&Player>,
-    mut turn_order: ResMut<TurnOrder>,
-) {
+fn add_actor_to_queue(query: Query<Entity, Added<Actor>>, mut turn_order: ResMut<TurnOrder>) {
     for entity in query.iter() {
         info!("Add {:?} to turn order", entity);
         turn_order.0.push_back(entity);

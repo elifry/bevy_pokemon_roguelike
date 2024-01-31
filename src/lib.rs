@@ -67,8 +67,8 @@ impl Plugin for GamePlugin {
                     GamePlayingSet::Controls,
                     GamePlayingSet::AI.run_if(on_event::<PlayerActionEvent>()),
                     GamePlayingSet::TurnLogics,
-                    GamePlayingSet::Actions,
                     GamePlayingSet::Animations,
+                    GamePlayingSet::Actions,
                     GamePlayingSet::LateLogics,
                 )
                     .chain()

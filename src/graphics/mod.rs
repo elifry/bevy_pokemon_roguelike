@@ -18,9 +18,8 @@ pub const TILE_Z: f32 = 0.;
 pub const TILE_SIZE: f32 = 24.;
 
 pub const PIECE_Z: f32 = 10.;
-// pub const PIECE_SIZE: f32 = 32.;
-pub const WALK_SPEED: f32 = 1.5;
-pub const POSITION_TOLERANCE: f32 = 0.1;
+pub const WALK_SPEED: f32 = 1.43;
+pub const POSITION_TOLERANCE: f32 = 0.6;
 
 pub struct GraphicsPlugin;
 
