@@ -4,6 +4,7 @@ use bevy::asset::{LoadState, LoadedFolder};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;
+use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
 
 use crate::graphics::anim_data::{AnimData, AnimKey};
 use crate::pokemons::PokemonID;
@@ -25,9 +26,17 @@ pub struct PokemonAnimationAssets(pub HashMap<PokemonID, PokemonAnimation>);
 #[derive(Default, Resource)]
 pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 
+#[derive(Debug, Hash, PartialEq, Eq, EnumString, EnumIter, Display, Copy, Clone)]
+#[strum()]
+pub enum AnimTextureType {
+    Anim,
+    Offsets,
+    Shadow,
+}
+
 #[derive(Debug, Clone)]
 pub struct PokemonAnimation {
-    pub textures: HashMap<AnimKey, Handle<TextureAtlas>>,
+    pub textures: HashMap<AnimKey, HashMap<AnimTextureType, Handle<TextureAtlas>>>,
     pub anim_data: Handle<AnimData>,
 }
 
@@ -82,16 +91,21 @@ fn process_pokemon_assets(
             AnimKey::Swing,
         ];
 
-        let mut anim_textures: HashMap<AnimKey, Handle<TextureAtlas>> = HashMap::new();
+        let mut anim_textures: HashMap<AnimKey, HashMap<AnimTextureType, Handle<TextureAtlas>>> =
+            HashMap::new();
 
         for anim_key in anim_to_load {
-            let texture = get_texture_atlas_by_anim_key(
-                anim_key,
-                anim_data,
-                &mut hashmap_files,
-                &mut texture_atlasses,
-            );
-            anim_textures.insert(anim_key, texture);
+            for texture_type in AnimTextureType::iter() {
+                let texture = get_texture_atlas_by_anim_key(
+                    anim_key,
+                    texture_type,
+                    anim_data,
+                    &mut hashmap_files,
+                    &mut texture_atlasses,
+                );
+                let entry = anim_textures.entry(anim_key).or_insert(default());
+                entry.insert(texture_type, texture);
+            }
         }
 
         let pokemon_animation = PokemonAnimation {
@@ -114,33 +128,34 @@ fn process_pokemon_assets(
 
 fn get_texture_atlas_by_anim_key(
     anim_key: AnimKey,
+    anim_texture_type: AnimTextureType,
     anim_data: &AnimData,
     hashmap_files: &mut HashMap<&str, &UntypedHandle>,
     texture_atlasses: &mut ResMut<'_, Assets<TextureAtlas>>,
 ) -> Handle<TextureAtlas> {
     let anim_key_str: &'static str = anim_key.into();
     let mut anim_file = anim_key_str.to_owned();
-    anim_file.push_str("-Anim.png");
+    anim_file.push_str(&format!("-{anim_texture_type}.png"));
 
     let anim_file = anim_file.as_str();
 
-    let Some(idle_anim_handle) = hashmap_files
+    let Some(image_handle) = hashmap_files
         .get_mut(anim_file)
         .map(|handle| handle.to_owned().typed::<Image>())
     else {
         panic!("Couldn't load the {anim_key} animation asset")
     };
 
-    let idle_anim_info = anim_data.get(anim_key);
+    let anim_info = anim_data.get(anim_key);
 
-    let idle_texture_atlas = TextureAtlas::from_grid(
-        idle_anim_handle,
-        idle_anim_info.tile_size(),
-        idle_anim_info.columns(),
-        idle_anim_info.rows(),
+    let texture_atlas = TextureAtlas::from_grid(
+        image_handle,
+        anim_info.tile_size(),
+        anim_info.columns(),
+        anim_info.rows(),
         None,
         None,
     );
 
-    texture_atlasses.add(idle_texture_atlas)
+    texture_atlasses.add(texture_atlas)
 }

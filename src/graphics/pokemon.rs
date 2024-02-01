@@ -14,7 +14,7 @@ use crate::{
 use super::{
     anim_data::{AnimData, AnimKey},
     animations::{AnimationFrame, AnimationIndices},
-    assets::{PokemonAnimation, PokemonAnimationAssets},
+    assets::{AnimTextureType, PokemonAnimation, PokemonAnimationAssets},
     PIECE_Z,
 };
 
@@ -59,12 +59,14 @@ pub fn update_animator(
         query.iter_mut()
     {
         let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
-        let animator = get_pokemon_animator(
+        let Some(animator) = get_pokemon_animator(
             &anim_data_assets,
             pokemon_asset,
             &animation_state.0,
             &facing_orientation.0,
-        );
+        ) else {
+            continue;
+        };
         *texture_atlas = animator.texture_atlas.clone();
         commands.entity(entity).insert(animator);
     }
@@ -85,16 +87,18 @@ fn spawn_pokemon_renderer(
             anchor: Anchor::Center,
             ..default()
         };
-        let texture_atlas = pokemon_animation
+        let Some(anim_texture_atlas) = pokemon_animation
             .textures
             .get(&default_state)
-            .unwrap()
-            .clone();
+            .and_then(|t| t.get(&AnimTextureType::Anim))
+        else {
+            continue;
+        };
 
         commands.entity(entity).insert((
             PokemonAnimationState(default_state),
             SpriteSheetBundle {
-                texture_atlas,
+                texture_atlas: anim_texture_atlas.clone(),
                 sprite,
                 transform: Transform::from_translation(v),
                 ..default()
@@ -108,7 +112,7 @@ fn get_pokemon_animator(
     pokemon_animation: &PokemonAnimation,
     anim_key: &AnimKey,
     orientation: &Orientation,
-) -> Animator {
+) -> Option<Animator> {
     let anim_data = anim_data_assets.get(&pokemon_animation.anim_data).unwrap();
     let anim_info = anim_data.get(*anim_key);
 
@@ -130,7 +134,13 @@ fn get_pokemon_animator(
         })
         .collect::<Vec<_>>();
 
-    let texture_atlas = pokemon_animation.textures.get(anim_key).unwrap().clone();
+    let Some(texture_atlas) = pokemon_animation
+        .textures
+        .get(anim_key)
+        .and_then(|t| t.get(&AnimTextureType::Anim))
+    else {
+        return None;
+    };
 
-    Animator::new(texture_atlas, frames, is_loop)
+    Some(Animator::new(texture_atlas.clone(), frames, is_loop))
 }
