@@ -2,15 +2,13 @@ pub mod offsets;
 mod pokemon_animator;
 mod shadow;
 
-use std::time::Duration;
 
-use bevy::{prelude::*, sprite::Anchor, utils::warn};
+
+use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
-    constants::GAME_SPEED,
-    graphics::animations::Animator,
     map::Position,
-    pieces::{FacingOrientation, Orientation},
+    pieces::{FacingOrientation},
     pokemons::Pokemon,
     GamePlayingSet, GameState,
 };
@@ -23,8 +21,7 @@ use self::{
 
 use super::{
     anim_data::{AnimData, AnimKey},
-    animations::{AnimationFrame, AnimationIndices},
-    assets::{AnimTextureType, PokemonAnimation, PokemonAnimationAssets},
+    assets::{AnimTextureType, PokemonAnimationAssets},
     POKEMON_Z, SHADOW_POKEMON_Z,
 };
 

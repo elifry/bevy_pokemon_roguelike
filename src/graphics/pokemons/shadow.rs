@@ -1,21 +1,16 @@
-use bevy::{prelude::*, sprite::Anchor, utils::warn};
+use bevy::{prelude::*};
 
 use crate::{
-    constants::GAME_SPEED,
     graphics::{
         anim_data::AnimData,
-        animations::Animator,
         assets::{AnimTextureType, PokemonAnimationAssets},
     },
-    map::Position,
-    pieces::{FacingOrientation, Orientation},
+    pieces::{FacingOrientation},
     pokemons::Pokemon,
-    GamePlayingSet, GameState,
 };
 
 use super::{
-    pokemon_animator::get_pokemon_animator, AnimatorUpdatedEvent, PokemonAnimationState, POKEMON_Z,
-    SHADOW_POKEMON_Z,
+    pokemon_animator::get_pokemon_animator, AnimatorUpdatedEvent, PokemonAnimationState,
 };
 
 #[derive(Component, Default)]

@@ -28,7 +28,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlayerActionEvent>()
             .add_plugins(InputManagerPlugin::<PlayerAction>::default())
-            .add_systems(OnEnter(GameState::Initializing), (spawn_player))
+            .add_systems(OnEnter(GameState::Initializing), spawn_player)
             .add_systems(Update, take_action.in_set(GamePlayingSet::Controls));
     }
 }

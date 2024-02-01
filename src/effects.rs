@@ -11,7 +11,7 @@ pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Initializing), (spawn_test));
+        app.add_systems(OnEnter(GameState::Initializing), spawn_test);
     }
 }
 

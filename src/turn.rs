@@ -4,8 +4,8 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{ActionQueue, NextActions, ProcessingActionEvent, QueuedAction},
-    graphics::action_animation::{ActionAnimationPlayingEvent, AnimationHolder},
-    pieces::{Actor, Health, PieceDeathEvent},
+    graphics::action_animation::{AnimationHolder},
+    pieces::{Actor, Health},
     player::{Player, PlayerActionEvent},
     GamePlayingSet,
 };

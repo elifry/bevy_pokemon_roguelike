@@ -1,21 +1,18 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, sprite::Anchor, utils::warn};
+use bevy::{prelude::*};
 
 use crate::{
     constants::GAME_SPEED,
     graphics::{
         anim_data::{AnimData, AnimKey},
         animations::{AnimationFrame, AnimationIndices, Animator},
-        assets::{AnimTextureType, PokemonAnimation, PokemonAnimationAssets},
+        assets::{AnimTextureType, PokemonAnimation},
     },
-    map::Position,
-    pieces::{FacingOrientation, Orientation},
-    pokemons::Pokemon,
-    GamePlayingSet, GameState,
+    pieces::{Orientation},
 };
 
-use super::{AnimatorUpdatedEvent, PokemonAnimationState, POKEMON_Z, SHADOW_POKEMON_Z};
+
 
 pub fn get_pokemon_animator(
     anim_data_assets: &Res<'_, Assets<AnimData>>,

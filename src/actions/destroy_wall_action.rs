@@ -6,7 +6,7 @@ use crate::{
     vector2_int::Vector2Int,
 };
 
-use super::{damage_action::DamageAction, orient_entity, walk_action::WalkAction, Action};
+use super::{orient_entity, Action};
 
 #[derive(Clone, Debug)]
 pub struct DestroyWallAction {

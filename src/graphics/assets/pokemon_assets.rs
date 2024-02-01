@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use bevy::asset::{LoadState, LoadedFolder};
+use bevy::asset::{LoadedFolder};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;

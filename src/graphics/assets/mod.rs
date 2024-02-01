@@ -1,11 +1,11 @@
-use std::str::FromStr;
 
-use bevy::asset::{LoadState, LoadedFolder};
+
+use bevy::asset::{LoadState};
 use bevy::prelude::*;
-use bevy::utils::HashMap;
+
 use bevy_asset_loader::prelude::*;
 
-use crate::effects::EffectID;
+
 use crate::GameState;
 
 pub mod effect_assets;
