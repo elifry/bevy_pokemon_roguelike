@@ -18,9 +18,10 @@ mod tiles;
 pub const TILE_Z: f32 = 0.;
 pub const TILE_SIZE: f32 = 24.;
 
-pub const PIECE_Z: f32 = 10.;
+pub const POKEMON_Z: f32 = 10.;
+pub const SHADOW_POKEMON_Z: f32 = -5.; // relative to `POKEMON_Z`
 pub const WALK_SPEED: f32 = 1.43;
-pub const POSITION_TOLERANCE: f32 = 0.6;
+pub const POSITION_TOLERANCE: f32 = 0.1;
 
 pub struct GraphicsPlugin;
 

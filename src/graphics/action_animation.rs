@@ -14,7 +14,7 @@ use super::{
     animations::Animator,
     get_world_position,
     pokemon::{update_animator, PokemonAnimationState},
-    POSITION_TOLERANCE, WALK_SPEED,
+    POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
 };
 
 pub struct ActionAnimationPlugin;
@@ -219,8 +219,8 @@ pub fn move_animation(
             animation_state.0 = AnimKey::Walk;
         }
 
-        let target = get_world_position(&move_animation.to, 1.);
-        let from = get_world_position(&move_animation.from, 1.);
+        let target = get_world_position(&move_animation.to, POKEMON_Z);
+        let from = get_world_position(&move_animation.from, POKEMON_Z);
         let d = (target - transform.translation).length();
 
         if d > POSITION_TOLERANCE {

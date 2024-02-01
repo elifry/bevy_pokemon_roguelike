@@ -2,7 +2,7 @@ use bevy::{prelude::*, sprite::Anchor};
 use strum::{Display, EnumString};
 
 use crate::{
-    graphics::{assets::EffectAssets, get_world_position, PIECE_Z},
+    graphics::{assets::EffectAssets, get_world_position, POKEMON_Z},
     vector2_int::Vector2Int,
     GameState,
 };
@@ -41,7 +41,7 @@ fn spawn_test(mut commands: Commands, assets: Res<EffectAssets>) {
         ..default()
     };
 
-    let v = get_world_position(&Vector2Int::new(3, 3), PIECE_Z);
+    let v = get_world_position(&Vector2Int::new(3, 3), POKEMON_Z);
 
     commands.spawn((
         Name::new("Test"),
