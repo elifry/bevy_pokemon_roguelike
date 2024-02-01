@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::{prelude::*, sprite::Anchor, utils::warn};
 
 use crate::{
     constants::GAME_SPEED,
@@ -8,7 +8,7 @@ use crate::{
     map::Position,
     pieces::{FacingOrientation, Orientation},
     pokemons::Pokemon,
-    GameState,
+    GamePlayingSet, GameState,
 };
 
 use super::{
@@ -22,22 +22,30 @@ pub struct PokemonPlugin;
 
 impl Plugin for PokemonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (spawn_pokemon_renderer,).run_if(in_state(GameState::Playing)),
-        )
-        .add_systems(
-            Update,
-            (
-                update_shadow_animator,
-                apply_deferred,
-                update_pokemon_shadow_renderer,
+        app.add_event::<AnimatorUpdatedEvent>()
+            .add_systems(
+                Update,
+                (spawn_pokemon_renderer,).run_if(in_state(GameState::Playing)),
             )
-                .chain()
-                .run_if(in_state(GameState::Playing)),
-        );
+            .add_systems(
+                Update,
+                (
+                    update_shadow_animator,
+                    apply_deferred,
+                    update_pokemon_shadow_renderer,
+                )
+                    .chain()
+                    .in_set(GamePlayingSet::LateLogics),
+            )
+            .add_systems(
+                Update,
+                update_offsets_animator.run_if(in_state(GameState::Playing)),
+            );
     }
 }
+
+#[derive(Event, Debug)]
+pub struct AnimatorUpdatedEvent(pub Entity);
 
 #[derive(Component, Default)]
 pub enum PokemonShadow {
@@ -45,6 +53,14 @@ pub enum PokemonShadow {
     #[default]
     Medium, // Red
     Big,   // Blue
+}
+
+#[derive(Component, Default)]
+pub struct PokemonOffsets {
+    body: Vec2,  // Green
+    head: Vec2,  // Black
+    right: Vec2, // Blue
+    left: Vec2,  // Red
 }
 
 #[derive(Component, Default)]
@@ -64,6 +80,7 @@ pub fn update_animator(
     >,
     anim_data_assets: Res<Assets<AnimData>>,
     assets: Res<PokemonAnimationAssets>,
+    mut ev_animator_updated: EventWriter<AnimatorUpdatedEvent>,
     mut commands: Commands,
 ) {
     for (entity, facing_orientation, animation_state, pokemon, mut texture_atlas) in
@@ -81,41 +98,93 @@ pub fn update_animator(
         };
         *texture_atlas = animator.texture_atlas.clone();
         commands.entity(entity).insert(animator);
+        ev_animator_updated.send(AnimatorUpdatedEvent(entity));
     }
 }
 
 #[allow(clippy::type_complexity)]
 fn update_shadow_animator(
-    mut query: Query<(Entity, &Parent, &mut Handle<TextureAtlas>), With<PokemonShadow>>,
-    query_parent: Query<
-        (&FacingOrientation, &PokemonAnimationState, &Pokemon),
-        Or<(Changed<FacingOrientation>, Changed<PokemonAnimationState>)>,
-    >,
+    mut query_child: Query<(Entity, &mut Handle<TextureAtlas>), With<PokemonShadow>>,
+    query_parent: Query<(
+        &FacingOrientation,
+        &PokemonAnimationState,
+        &Pokemon,
+        &Children,
+    )>,
     anim_data_assets: Res<Assets<AnimData>>,
     assets: Res<PokemonAnimationAssets>,
     mut commands: Commands,
+    mut ev_animator_updated: EventReader<AnimatorUpdatedEvent>,
 ) {
-    for (entity, parent, mut texture_atlas) in query.iter_mut() {
-        let Ok((facing_orientation, animation_state, pokemon)) = query_parent.get(parent.get())
+    for ev in ev_animator_updated.read() {
+        let Ok((facing_orientation, animation_state, pokemon, children)) = query_parent.get(ev.0)
         else {
             continue;
         };
-        let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
-        let Some(shadow_animator) = get_pokemon_animator(
-            &anim_data_assets,
-            pokemon_asset,
-            &animation_state.0,
-            &AnimTextureType::Shadow,
-            &facing_orientation.0,
-        ) else {
+
+        for child in children.iter() {
+            let Ok((entity, mut texture_atlas)) = query_child.get_mut(*child) else {
+                continue;
+            };
+
+            let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
+            let Some(shadow_animator) = get_pokemon_animator(
+                &anim_data_assets,
+                pokemon_asset,
+                &animation_state.0,
+                &AnimTextureType::Shadow,
+                &facing_orientation.0,
+            ) else {
+                continue;
+            };
+            *texture_atlas = shadow_animator.texture_atlas.clone();
+            // Resets PokemonShadow component to force change detection
+            // Maybe use an event there ?
+            commands
+                .entity(entity)
+                .insert((shadow_animator, PokemonShadow::default()));
+        }
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn update_offsets_animator(
+    mut query_child: Query<(Entity, &mut Handle<TextureAtlas>), With<PokemonOffsets>>,
+    query_parent: Query<(
+        &FacingOrientation,
+        &PokemonAnimationState,
+        &Pokemon,
+        &Children,
+    )>,
+    anim_data_assets: Res<Assets<AnimData>>,
+    assets: Res<PokemonAnimationAssets>,
+    mut commands: Commands,
+    mut ev_animator_updated: EventReader<AnimatorUpdatedEvent>,
+) {
+    for ev in ev_animator_updated.read() {
+        let Ok((facing_orientation, animation_state, pokemon, children)) = query_parent.get(ev.0)
+        else {
             continue;
         };
-        *texture_atlas = shadow_animator.texture_atlas.clone();
-        commands
-            .entity(entity)
-            .insert((shadow_animator, PokemonShadow::default()));
 
-        break;
+        for child in children.iter() {
+            let Ok((entity, mut texture_atlas)) = query_child.get_mut(*child) else {
+                continue;
+            };
+
+            let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
+            let Some(offsets_animator) = get_pokemon_animator(
+                &anim_data_assets,
+                pokemon_asset,
+                &animation_state.0,
+                &AnimTextureType::Offsets,
+                &facing_orientation.0,
+            ) else {
+                continue;
+            };
+            *texture_atlas = offsets_animator.texture_atlas.clone();
+            commands.entity(entity).insert(offsets_animator);
+        }
     }
 }
 
@@ -215,6 +284,7 @@ fn spawn_pokemon_renderer(
                 },
             ))
             .with_children(|parent| {
+                // Shadow
                 let Some(shadow_texture_atlas) = pokemon_animation
                     .textures
                     .get(&default_state)
@@ -223,7 +293,7 @@ fn spawn_pokemon_renderer(
                     return;
                 };
 
-                let sprite = TextureAtlasSprite {
+                let shadow_sprite = TextureAtlasSprite {
                     index: 0,
                     anchor: Anchor::Center,
                     ..default()
@@ -233,8 +303,36 @@ fn spawn_pokemon_renderer(
                     PokemonShadow::default(),
                     SpriteSheetBundle {
                         texture_atlas: shadow_texture_atlas.clone(),
-                        sprite,
+                        sprite: shadow_sprite,
                         transform: Transform::from_xyz(0., 0., SHADOW_POKEMON_Z),
+                        ..default()
+                    },
+                ));
+            })
+            .with_children(|parent| {
+                // Offsets
+                let Some(offsets_texture_atlas) = pokemon_animation
+                    .textures
+                    .get(&default_state)
+                    .and_then(|t| t.get(&AnimTextureType::Offsets))
+                else {
+                    warn!("unable to load offsets for {:?}", entity);
+                    return;
+                };
+
+                let offsets_sprite = TextureAtlasSprite {
+                    index: 0,
+                    anchor: Anchor::Center,
+                    ..default()
+                };
+
+                parent.spawn((
+                    PokemonOffsets::default(),
+                    SpriteSheetBundle {
+                        texture_atlas: offsets_texture_atlas.clone(),
+                        sprite: offsets_sprite,
+                        transform: Transform::from_xyz(0., 0., POKEMON_Z + 1.),
+                        // visibility: Visibility::Hidden,
                         ..default()
                     },
                 ));
