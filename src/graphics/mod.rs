@@ -4,14 +4,15 @@ use crate::vector2_int::Vector2Int;
 
 use self::{
     action_animation::ActionAnimationPlugin, anim_data::AnimDataPlugin,
-    animations::AnimationsPlugin, assets::AssetsPlugin, pokemon::PokemonPlugin, tiles::TilesPlugin,
+    animations::AnimationsPlugin, assets::AssetsPlugin, pokemons::PokemonPlugin,
+    tiles::TilesPlugin,
 };
 
 pub mod action_animation;
 pub mod anim_data;
 pub mod animations;
 pub mod assets;
-mod pokemon;
+mod pokemons;
 pub mod tile_sprite_index;
 mod tiles;
 

@@ -13,7 +13,7 @@ use super::{
     anim_data::AnimKey,
     animations::Animator,
     get_world_position,
-    pokemon::{update_animator, PokemonAnimationState},
+    pokemons::{update_animator, PokemonAnimationState},
     POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
 };
 
