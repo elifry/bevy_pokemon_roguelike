@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, time::Duration};
+use std::time::Duration;
 
 use bevy::{prelude::*, sprite::Anchor};
 
@@ -24,13 +24,28 @@ impl Plugin for PokemonPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_pokemon_renderer, update_shadow_animator).run_if(in_state(GameState::Playing)),
+            (spawn_pokemon_renderer,).run_if(in_state(GameState::Playing)),
+        )
+        .add_systems(
+            Update,
+            (
+                update_shadow_animator,
+                apply_deferred,
+                update_pokemon_shadow_renderer,
+            )
+                .chain()
+                .run_if(in_state(GameState::Playing)),
         );
     }
 }
 
 #[derive(Component, Default)]
-pub struct PokemonShadow;
+pub enum PokemonShadow {
+    Small, // Green
+    #[default]
+    Medium, // Red
+    Big,   // Blue
+}
 
 #[derive(Component, Default)]
 pub struct PokemonAnimationState(pub AnimKey);
@@ -69,6 +84,7 @@ pub fn update_animator(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_shadow_animator(
     mut query: Query<(Entity, &Parent, &mut Handle<TextureAtlas>), With<PokemonShadow>>,
     query_parent: Query<
@@ -95,9 +111,72 @@ fn update_shadow_animator(
             continue;
         };
         *texture_atlas = shadow_animator.texture_atlas.clone();
-        commands.entity(entity).insert(shadow_animator);
+        commands
+            .entity(entity)
+            .insert((shadow_animator, PokemonShadow::default()));
 
         break;
+    }
+}
+
+/// Update the shadow image according to the shadow size
+/// Ultimately this should be done with a shader material
+/// But waiting for the implementation of https://github.com/bevyengine/bevy/pull/10845
+pub fn update_pokemon_shadow_renderer(
+    mut commands: Commands,
+    mut atlases: ResMut<Assets<TextureAtlas>>,
+    mut images: ResMut<Assets<Image>>,
+    mut query: Query<(Entity, &Handle<TextureAtlas>, &PokemonShadow), Changed<PokemonShadow>>,
+) {
+    for (entity, texture_atlas_handle, shadow) in query.iter_mut() {
+        // get the image from the texture handle
+        if let Some(atlas) = atlases.get(texture_atlas_handle) {
+            let image_handle = atlas.texture.clone();
+            // get the image struct
+            if let Some(image) = images.get(&image_handle) {
+                // get raw image data
+                let mut data = image.data.clone();
+
+                // iterate over the image data
+                for pixel in data.chunks_exact_mut(4) {
+                    // set rgb parts of pixel based on palette
+
+                    // pixel[0] = red / pixel[1] = green / pixel[2] = blue
+                    // pixel[3] = alpha
+                    let is_visible = match shadow {
+                        PokemonShadow::Small => pixel[1] == 255,
+                        PokemonShadow::Medium => pixel[0] == 255 || pixel[1] == 255,
+                        PokemonShadow::Big => pixel[0] == 255 || pixel[1] == 255 || pixel[2] == 255,
+                    };
+
+                    if is_visible {
+                        pixel[0] = 80;
+                        pixel[1] = 80;
+                        pixel[2] = 80;
+                        pixel[3] = 180;
+                    } else {
+                        pixel[3] = 0;
+                    }
+                }
+
+                // create a new image from the modified data
+                let new_image = Image {
+                    data,
+                    ..image.clone()
+                };
+
+                // add the image to the assets, to get a handle
+                let new_image_handle = images.add(new_image);
+
+                // create a new texture atlas from the new texture
+                let mut new_texture_atlas = TextureAtlas::new_empty(new_image_handle, atlas.size);
+                new_texture_atlas.textures = atlas.textures.clone();
+                let new_atlas_handle = atlases.add(new_texture_atlas);
+
+                // replace the texture atlas handle on the entity
+                commands.entity(entity).insert(new_atlas_handle);
+            }
+        }
     }
 }
 
@@ -151,7 +230,7 @@ fn spawn_pokemon_renderer(
                 };
 
                 parent.spawn((
-                    PokemonShadow,
+                    PokemonShadow::default(),
                     SpriteSheetBundle {
                         texture_atlas: shadow_texture_atlas.clone(),
                         sprite,
