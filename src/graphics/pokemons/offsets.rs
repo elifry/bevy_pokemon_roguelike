@@ -45,7 +45,7 @@ pub fn update_offsets_animator(
                 continue;
             };
 
-            let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
+            let pokemon_asset = assets.0.get(pokemon).unwrap();
             let Some(offsets_animator) = get_pokemon_animator(
                 &anim_data_assets,
                 pokemon_asset,
@@ -127,7 +127,7 @@ pub fn debug_offsets(
         let Ok((animation_state, pokemon)) = query_parent.get(**parent) else {
             continue;
         };
-        let Some(pokemon_animation) = pokemon_animation_assets.0.get(&pokemon.0) else {
+        let Some(pokemon_animation) = pokemon_animation_assets.0.get(pokemon) else {
             continue;
         };
         let Some(anim_data) = anim_data_assets.get(&pokemon_animation.anim_data) else {

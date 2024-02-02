@@ -79,7 +79,7 @@ fn update_animator(
     for (entity, facing_orientation, animation_state, pokemon, mut texture_atlas) in
         query.iter_mut()
     {
-        let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
+        let pokemon_asset = assets.0.get(pokemon).unwrap();
         let Some(animator) = get_pokemon_animator(
             &anim_data_assets,
             pokemon_asset,
@@ -102,7 +102,7 @@ fn spawn_pokemon_renderer(
 ) {
     let default_state = AnimKey::Idle;
     for (entity, position, pokemon) in query.iter() {
-        let pokemon_animation = assets.0.get(&pokemon.0).unwrap();
+        let pokemon_animation = assets.0.get(pokemon).unwrap();
 
         let v = super::get_world_position(&position.0, POKEMON_Z);
         let sprite = TextureAtlasSprite {

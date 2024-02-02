@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
-use bevy::asset::{LoadedFolder};
+use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::*;
 use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
 
 use crate::graphics::anim_data::{AnimData, AnimKey};
-use crate::pokemons::PokemonID;
+use crate::pokemons::Pokemon;
 use crate::GameState;
 
 pub struct PokemonAssetsPlugin;
@@ -21,7 +21,7 @@ impl Plugin for PokemonAssetsPlugin {
 }
 
 #[derive(Resource, Debug, Default)]
-pub struct PokemonAnimationAssets(pub HashMap<PokemonID, PokemonAnimation>);
+pub struct PokemonAnimationAssets(pub HashMap<Pokemon, PokemonAnimation>);
 
 #[derive(Default, Resource)]
 pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
@@ -55,7 +55,7 @@ fn process_pokemon_assets(
             continue;
         };
 
-        let pokemon = PokemonID::from_str(pokemon).unwrap();
+        let pokemon = Pokemon::from_str(pokemon).unwrap();
 
         let mut hashmap_files: HashMap<&str, &UntypedHandle> = folder
             .handles

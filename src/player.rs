@@ -11,7 +11,7 @@ use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ActionQueueProcessedEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
-use crate::pokemons::{Pokemon, PokemonID};
+use crate::pokemons::Pokemon;
 use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
@@ -52,7 +52,7 @@ fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
-        Pokemon(PokemonID::Charmander),
+        Pokemon::Charmander,
         Player,
         Occupier,
         Health { value: 10 },

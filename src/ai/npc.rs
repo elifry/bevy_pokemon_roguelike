@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     map::Position,
     pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind},
-    pokemons::{Pokemon, PokemonID},
+    pokemons::Pokemon,
     vector2_int::Vector2Int,
 };
 
@@ -28,7 +28,7 @@ impl Default for NPCBundle {
         Self {
             actor: Actor::default(),
             name: Name::new("NPC"),
-            pokemon: Pokemon(PokemonID::Rattata),
+            pokemon: Pokemon::Rattata,
             health: Health { value: 1 },
             ai: AI,
             possible_actions: PossibleActions::default(),

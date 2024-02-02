@@ -44,7 +44,7 @@ pub fn update_shadow_animator(
                 continue;
             };
 
-            let pokemon_asset = assets.0.get(&pokemon.0).unwrap();
+            let pokemon_asset = assets.0.get(pokemon).unwrap();
             let Some(shadow_animator) = get_pokemon_animator(
                 &anim_data_assets,
                 pokemon_asset,
