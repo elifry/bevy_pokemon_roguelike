@@ -16,27 +16,27 @@ static PATTERNS: &[([[i8; 3]; 3], usize); 47] = &[
     ([[U, X, U], [O, O, O], [O, O, O]], 1),
     ([[U, X, U], [O, O, X], [O, O, U]], 2),
     // ROW 1
-    ([[U, O, O], [X, O, O], [U, O, O]], 0 + ROW * 1),
-    ([[O, O, O], [O, O, O], [O, O, O]], 1 + ROW * 1),
-    ([[O, O, U], [O, O, X], [O, O, U]], 2 + ROW * 1),
+    ([[U, O, O], [X, O, O], [U, O, O]], ROW),
+    ([[O, O, O], [O, O, O], [O, O, O]], 1 + ROW),
+    ([[O, O, U], [O, O, X], [O, O, U]], 2 + ROW),
     // ROW 2
-    ([[U, O, O], [X, O, O], [U, X, U]], 0 + ROW * 2),
+    ([[U, O, O], [X, O, O], [U, X, U]], ROW * 2),
     ([[O, O, O], [O, O, O], [U, X, U]], 1 + ROW * 2),
     ([[O, O, U], [O, O, X], [U, X, U]], 2 + ROW * 2),
     // ROW 3
-    ([[X, X, U], [X, O, O], [U, O, X]], 0 + ROW * 3),
+    ([[X, X, U], [X, O, O], [U, O, X]], ROW * 3),
     ([[U, X, U], [O, O, O], [U, X, U]], 1 + ROW * 3),
     ([[U, X, X], [O, O, X], [X, O, U]], 2 + ROW * 3),
     // ROW 4
-    ([[U, O, U], [X, O, X], [U, O, U]], 0 + ROW * 4),
+    ([[U, O, U], [X, O, X], [U, O, U]], ROW * 4),
     ([[U, X, U], [X, O, X], [U, X, U]], 1 + ROW * 4),
     // ROW 5
-    ([[U, O, X], [X, O, O], [X, X, U]], 0 + ROW * 5),
+    ([[U, O, X], [X, O, O], [X, X, U]], ROW * 5),
     ([[X, O, U], [O, O, X], [U, X, X]], 2 + ROW * 5),
     // ROW 6
     ([[X, X, X], [X, O, X], [U, O, U]], 1 + ROW * 6),
     // ROW 7
-    ([[X, X, U], [X, O, O], [X, X, U]], 0 + ROW * 7),
+    ([[X, X, U], [X, O, O], [X, X, U]], ROW * 7),
     ([[X, O, X], [O, O, O], [X, O, X]], 1 + ROW * 7),
     ([[U, X, X], [O, O, X], [U, X, X]], 2 + ROW * 7),
     // ROW 8
@@ -44,43 +44,43 @@ static PATTERNS: &[([[i8; 3]; 3], usize); 47] = &[
     // ROW 9
     ([[X, X, X], [O, O, O], [X, O, X]], 1 + ROW * 9),
     // ROW 10
-    ([[X, O, U], [X, O, O], [X, O, X]], 0 + ROW * 10),
+    ([[X, O, U], [X, O, O], [X, O, X]], ROW * 10),
     ([[U, O, X], [O, O, X], [X, O, X]], 2 + ROW * 10),
     // ROW 11
     ([[X, O, X], [O, O, O], [X, X, X]], 1 + ROW * 11),
     // ROW 12
     ([[O, O, O], [O, O, O], [X, O, X]], 1 + ROW * 12),
     // ROW 13
-    ([[O, O, X], [O, O, O], [O, O, X]], 0 + ROW * 13),
+    ([[O, O, X], [O, O, O], [O, O, X]], ROW * 13),
     ([[X, O, O], [O, O, O], [X, O, O]], 2 + ROW * 13),
     // ROW 14
     ([[X, O, X], [O, O, O], [O, O, O]], 1 + ROW * 14),
     // ROW 15
-    ([[O, O, O], [O, O, O], [O, O, X]], 0 + ROW * 15),
+    ([[O, O, O], [O, O, O], [O, O, X]], ROW * 15),
     ([[O, O, O], [O, O, O], [X, O, O]], 1 + ROW * 15),
     // ROW 16
-    ([[O, O, X], [O, O, O], [O, O, O]], 0 + ROW * 16),
+    ([[O, O, X], [O, O, O], [O, O, O]], ROW * 16),
     ([[X, O, O], [O, O, O], [O, O, O]], 1 + ROW * 16),
     // ROW 17
-    ([[U, O, O], [X, O, O], [U, O, X]], 0 + ROW * 17),
+    ([[U, O, O], [X, O, O], [U, O, X]], ROW * 17),
     ([[O, O, U], [O, O, X], [X, O, U]], 1 + ROW * 17),
     // ROW 18
-    ([[U, O, X], [X, O, O], [U, O, O]], 0 + ROW * 18),
+    ([[U, O, X], [X, O, O], [U, O, O]], ROW * 18),
     ([[X, O, U], [O, O, X], [O, O, U]], 1 + ROW * 18),
     // ROW 19
-    ([[U, X, X], [O, O, O], [O, O, X]], 0 + ROW * 19),
+    ([[U, X, X], [O, O, O], [O, O, X]], ROW * 19),
     ([[X, X, U], [O, O, O], [X, O, O]], 1 + ROW * 19),
     // ROW 20
-    ([[O, O, X], [O, O, O], [U, X, X]], 0 + ROW * 20),
+    ([[O, O, X], [O, O, O], [U, X, X]], ROW * 20),
     ([[X, O, O], [O, O, O], [X, X, U]], 1 + ROW * 20),
     // ROW 21
-    ([[X, O, X], [O, O, O], [X, O, O]], 0 + ROW * 21),
+    ([[X, O, X], [O, O, O], [X, O, O]], ROW * 21),
     ([[X, O, X], [O, O, O], [O, O, X]], 1 + ROW * 21),
     // ROW 22
-    ([[X, O, O], [O, O, O], [X, O, X]], 0 + ROW * 22),
+    ([[X, O, O], [O, O, O], [X, O, X]], ROW * 22),
     ([[O, O, X], [O, O, O], [X, O, X]], 1 + ROW * 22),
     // ROW 23
-    ([[X, O, O], [O, O, O], [O, O, X]], 0 + ROW * 23),
+    ([[X, O, O], [O, O, O], [O, O, X]], ROW * 23),
     ([[O, O, X], [O, O, O], [X, O, O]], 1 + ROW * 23),
 ];
 

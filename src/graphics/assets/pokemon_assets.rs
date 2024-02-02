@@ -44,7 +44,7 @@ fn process_pokemon_assets(
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     anim_data_assets: Res<Assets<AnimData>>,
     mut pokemon_animation_assets: ResMut<PokemonAnimationAssets>,
-    mut texture_atlasses: ResMut<Assets<TextureAtlas>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut next_state: ResMut<NextState<GameState>>,
     mut commands: Commands,
 ) {
@@ -100,7 +100,7 @@ fn process_pokemon_assets(
                     texture_type,
                     anim_data,
                     &mut hashmap_files,
-                    &mut texture_atlasses,
+                    &mut texture_atlases,
                 );
                 let entry = anim_textures.entry(anim_key).or_insert(default());
                 entry.insert(texture_type, texture);
@@ -130,7 +130,7 @@ fn get_texture_atlas_by_anim_key(
     anim_texture_type: AnimTextureType,
     anim_data: &AnimData,
     hashmap_files: &mut HashMap<&str, &UntypedHandle>,
-    texture_atlasses: &mut ResMut<'_, Assets<TextureAtlas>>,
+    texture_atlases: &mut ResMut<'_, Assets<TextureAtlas>>,
 ) -> Handle<TextureAtlas> {
     let anim_key_str: &'static str = anim_key.into();
     let mut anim_file = anim_key_str.to_owned();
@@ -156,5 +156,5 @@ fn get_texture_atlas_by_anim_key(
         None,
     );
 
-    texture_atlasses.add(texture_atlas)
+    texture_atlases.add(texture_atlas)
 }

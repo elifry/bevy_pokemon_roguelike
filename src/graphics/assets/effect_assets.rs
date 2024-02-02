@@ -35,7 +35,7 @@ fn process_effect_assets(
     effect_assets_folder: Res<EffectAssetsFolder>,
     mut effect_assets: ResMut<EffectAssets>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
-    mut texture_atlasses: ResMut<Assets<TextureAtlas>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut textures: ResMut<Assets<Image>>,
     mut commands: Commands,
 ) {
@@ -110,7 +110,7 @@ fn process_effect_assets(
             }
 
             let atlas = builder.finish(&mut textures).unwrap();
-            let atlas_handle = texture_atlasses.add(atlas);
+            let atlas_handle = texture_atlases.add(atlas);
             effect_texture_atlases.insert(sub_type, atlas_handle);
         }
 

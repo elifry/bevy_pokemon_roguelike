@@ -26,7 +26,7 @@ pub struct NPCBundle {
 impl Default for NPCBundle {
     fn default() -> Self {
         Self {
-            actor: Actor::default(),
+            actor: Actor,
             name: Name::new("NPC"),
             pokemon: Pokemon::Rattata,
             health: Health { value: 1 },

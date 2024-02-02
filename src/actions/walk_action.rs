@@ -15,12 +15,6 @@ pub struct WalkAction {
     pub from: Vector2Int,
 }
 
-#[derive(Event)]
-pub struct MovingEvent {
-    from: Position,
-    to: Position,
-}
-
 impl Action for WalkAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
         if !self.can_execute(world) {
