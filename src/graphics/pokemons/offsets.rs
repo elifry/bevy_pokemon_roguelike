@@ -100,11 +100,12 @@ pub fn update_offsets(
                 let red = image.data[start_index];
                 let green = image.data[start_index + 1];
                 let blue = image.data[start_index + 2];
+                let alpha = image.data[start_index + 3];
 
                 let real_x = x as f32 - texture.min.x;
                 let real_y = y as f32 - texture.min.y;
 
-                if red == 255 && green == 255 && blue == 255 {
+                if red == 0 && green == 0 && blue == 0 && alpha == 255 {
                     offsets.head = Vec2::new(real_x, real_y);
                 } else if green == 255 {
                     offsets.body = Vec2::new(real_x, real_y);
@@ -146,12 +147,28 @@ pub fn debug_offsets(
         let half_tile_size = anim_info.tile_size() / 2.0;
 
         // Calculate the offset vector based on provided offsets and adjustments
-        // Notice the subtraction of `offsets.body.y` from `anim_info.tile_size().y` for correct y-axis adjustment
-        let offset_vector = Vec2::new(offsets.body.x, anim_info.tile_size().y - offsets.body.y);
+        let body_offset_vector =
+            Vec2::new(offsets.body.x, anim_info.tile_size().y - offsets.body.y);
+        let body_position = base_translation - half_tile_size + body_offset_vector;
 
-        // Combine the base translation with adjustments and offsets
-        // This single line combines all calculations into a clearer and more concise expression
-        let position = base_translation - half_tile_size + offset_vector;
-        gizmos.circle_2d(position + Vec2::new(0.5, 0.5), 1., Color::GREEN);
+        gizmos.circle_2d(body_position + Vec2::new(0.5, 0.5), 1., Color::GREEN);
+
+        let head_offset_vector =
+            Vec2::new(offsets.head.x, anim_info.tile_size().y - offsets.head.y);
+        let head_position = base_translation - half_tile_size + head_offset_vector;
+
+        gizmos.circle_2d(head_position + Vec2::new(0.5, 0.5), 1., Color::BLACK);
+
+        let right_offset_vector =
+            Vec2::new(offsets.right.x, anim_info.tile_size().y - offsets.right.y);
+        let right_position = base_translation - half_tile_size + right_offset_vector;
+
+        gizmos.circle_2d(right_position + Vec2::new(0.5, 0.5), 1., Color::BLUE);
+
+        let left_offset_vector =
+            Vec2::new(offsets.left.x, anim_info.tile_size().y - offsets.left.y);
+        let left_position = base_translation - half_tile_size + left_offset_vector;
+
+        gizmos.circle_2d(left_position + Vec2::new(0.5, 0.5), 1., Color::RED);
     }
 }
