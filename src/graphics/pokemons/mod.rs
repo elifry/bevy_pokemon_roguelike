@@ -42,10 +42,7 @@ impl Plugin for PokemonPlugin {
                     .chain()
                     .in_set(ActionAnimationSet::Animator),
             )
-            .add_systems(
-                Update,
-                update_offsets.after(ActionAnimationSet::PlayAnimations),
-            );
+            .add_systems(Update, update_offsets.after(GamePlayingSet::LateLogics));
         #[cfg(debug_assertions)]
         {
             app.add_systems(Update, (debug_offsets).run_if(in_state(GameState::Playing)));
