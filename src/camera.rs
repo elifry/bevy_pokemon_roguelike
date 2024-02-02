@@ -22,7 +22,7 @@ fn spawn_2d_camera(mut commands: Commands) {
         4. * TILE_SIZE,
         camera.transform.translation.z,
     );
-    camera.projection.scale = 0.5;
+    // camera.projection.scale = 0.5;
     camera.projection.scaling_mode = ScalingMode::AutoMin {
         min_width: 320.,
         min_height: 320.,

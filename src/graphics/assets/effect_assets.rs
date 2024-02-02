@@ -5,8 +5,7 @@ use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashMap;
 
-use crate::effects::EffectID;
-
+use crate::effects::Effect;
 use crate::utils::get_path_from_handle;
 use crate::GameState;
 
@@ -24,11 +23,18 @@ impl Plugin for EffectAssetsPlugin {
 pub struct EffectAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
 
 #[derive(Resource, Debug, Default)]
-pub struct EffectAssets(pub HashMap<EffectID, EffectAsset>);
+pub struct EffectAssets(pub HashMap<Effect, EffectAsset>);
 
 #[derive(Debug, Clone)]
 pub struct EffectAsset {
-    pub textures: HashMap<String, Handle<TextureAtlas>>,
+    pub textures: HashMap<String, EffectTextureInfo>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct EffectTextureInfo {
+    pub texture_atlas: Handle<TextureAtlas>,
+    /// Contains the correct order for displaying animation from the texture atlas
+    pub frame_order: Vec<usize>,
 }
 
 fn process_effect_assets(
@@ -48,7 +54,7 @@ fn process_effect_assets(
             }
         };
 
-        let effect = match EffectID::from_str(&effect.to_string()) {
+        let effect = match Effect::from_str(&effect.to_string()) {
             Ok(effect) => effect,
             Err(_) => {
                 error!("Invalid effect: {}", effect);
@@ -94,12 +100,14 @@ fn process_effect_assets(
             });
         }
 
-        let mut effect_texture_atlases: HashMap<String, Handle<TextureAtlas>> = HashMap::new();
+        let mut effect_texture_atlases: HashMap<String, EffectTextureInfo> = HashMap::new();
 
         for (sub_type, images) in effects_by_sub_type.into_iter() {
             let mut builder = TextureAtlasBuilder::default();
-            for handle in images {
-                let id = handle.id();
+
+            for handle in &images {
+                let id: AssetId<Image> = handle.id();
+                println!("{:?}", handle);
 
                 let Some(texture) = textures.get(id) else {
                     warn!("Texture not loaded: {:?}", handle.path().unwrap());
@@ -110,8 +118,21 @@ fn process_effect_assets(
             }
 
             let atlas = builder.finish(&mut textures).unwrap();
+
+            let mut frame_order: Vec<usize> = Vec::new();
+            for handle in images {
+                let texture_index = atlas.get_texture_index(handle).unwrap();
+                frame_order.push(texture_index);
+            }
+
             let atlas_handle = texture_atlases.add(atlas);
-            effect_texture_atlases.insert(sub_type, atlas_handle);
+            effect_texture_atlases.insert(
+                sub_type,
+                EffectTextureInfo {
+                    texture_atlas: atlas_handle,
+                    frame_order,
+                },
+            );
         }
 
         effect_assets.0.insert(

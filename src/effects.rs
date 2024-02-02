@@ -1,55 +1,26 @@
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::prelude::*;
 use strum::{Display, EnumString};
 
-use crate::{
-    graphics::{assets::EffectAssets, get_world_position, POKEMON_Z},
-    vector2_int::Vector2Int,
-    GameState,
-};
+use crate::{map::Position, vector2_int::Vector2Int, GameState};
 
 pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Initializing), spawn_test);
+        app.add_systems(OnEnter(GameState::Initializing), spawn_test_effect);
     }
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, EnumString, Display, Copy, Clone)]
-#[strum()]
-pub enum EffectID {
+#[derive(Component, Debug, Hash, PartialEq, Eq, EnumString, Display, Copy, Clone)]
+pub enum Effect {
     #[strum(serialize = "0110")]
     _0110,
 }
 
-#[derive(Component, Debug)]
-pub struct Effect(pub EffectID);
-
-fn spawn_test(mut commands: Commands, assets: Res<EffectAssets>) {
-    let texture_atlas = assets
-        .0
-        .get(&EffectID::_0110)
-        .unwrap()
-        .textures
-        .get("002")
-        .unwrap()
-        .clone();
-
-    let sprite = TextureAtlasSprite {
-        index: 5,
-        anchor: Anchor::Center,
-        ..default()
-    };
-
-    let v = get_world_position(&Vector2Int::new(3, 3), POKEMON_Z);
-
+fn spawn_test_effect(mut commands: Commands) {
     commands.spawn((
-        Name::new("Test"),
-        SpriteSheetBundle {
-            texture_atlas,
-            sprite,
-            transform: Transform::from_translation(v),
-            ..default()
-        },
+        Name::new("TestEffect"),
+        Effect::_0110,
+        Position(Vector2Int::new(3, 3)),
     ));
 }

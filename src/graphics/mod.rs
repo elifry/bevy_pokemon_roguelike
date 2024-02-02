@@ -4,14 +4,15 @@ use crate::vector2_int::Vector2Int;
 
 use self::{
     action_animation::ActionAnimationPlugin, anim_data::AnimDataPlugin,
-    animations::AnimationsPlugin, assets::AssetsPlugin, pokemons::PokemonPlugin,
-    tiles::TilesPlugin,
+    animations::AnimationsPlugin, assets::AssetsPlugin, effects::EffectsPlugin,
+    pokemons::PokemonPlugin, tiles::TilesPlugin,
 };
 
 pub mod action_animation;
 pub mod anim_data;
 pub mod animations;
 pub mod assets;
+mod effects;
 mod pokemons;
 pub mod tile_sprite_index;
 mod tiles;
@@ -20,9 +21,13 @@ pub const TILE_Z: f32 = 0.;
 pub const TILE_SIZE: f32 = 24.;
 
 pub const POKEMON_Z: f32 = 10.;
+pub const EFFECT_Z: f32 = 15.;
 pub const SHADOW_POKEMON_Z: f32 = -5.; // relative to `POKEMON_Z`
+
 pub const WALK_SPEED: f32 = 1.43;
 pub const POSITION_TOLERANCE: f32 = 0.1;
+
+pub const FRAME_DURATION_MILLIS: i64 = 22;
 
 pub struct GraphicsPlugin;
 
@@ -35,6 +40,7 @@ impl Plugin for GraphicsPlugin {
             AssetsPlugin,
             AnimDataPlugin,
             AnimationsPlugin,
+            EffectsPlugin,
         ));
     }
 }

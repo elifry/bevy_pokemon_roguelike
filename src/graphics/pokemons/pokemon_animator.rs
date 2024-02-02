@@ -8,6 +8,7 @@ use crate::{
         anim_data::{AnimData, AnimKey},
         animations::{AnimationFrame, AnimationIndices, Animator},
         assets::{AnimTextureType, PokemonAnimation},
+        FRAME_DURATION_MILLIS,
     },
     pieces::Orientation,
 };
@@ -34,7 +35,7 @@ pub fn get_pokemon_animator(
         .enumerate()
         .map(|(index, duration)| AnimationFrame {
             duration: Duration::from_millis(
-                ((duration.value * 22) as f32 / GAME_SPEED).floor() as u64
+                ((duration.value * FRAME_DURATION_MILLIS) as f32 / GAME_SPEED).floor() as u64,
             ),
             atlas_index: animation_indices.first + index,
         })
