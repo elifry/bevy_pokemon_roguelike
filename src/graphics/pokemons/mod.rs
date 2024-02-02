@@ -1,4 +1,4 @@
-pub mod offsets;
+mod offsets;
 mod pokemon_animator;
 mod shadow;
 
@@ -15,6 +15,7 @@ use self::{
 };
 
 use super::{
+    action_animation::ActionAnimationSet,
     anim_data::{AnimData, AnimKey},
     assets::{AnimTextureType, PokemonAnimationAssets},
     POKEMON_Z, SHADOW_POKEMON_Z,
@@ -32,16 +33,18 @@ impl Plugin for PokemonPlugin {
             .add_systems(
                 Update,
                 (
+                    update_animator,
                     update_shadow_animator,
+                    update_offsets_animator,
                     apply_deferred,
                     update_pokemon_shadow_renderer,
                 )
                     .chain()
-                    .in_set(GamePlayingSet::LateLogics),
+                    .in_set(ActionAnimationSet::Animator),
             )
             .add_systems(
                 Update,
-                (update_offsets_animator, update_offsets).run_if(in_state(GameState::Playing)),
+                update_offsets.after(ActionAnimationSet::PlayAnimations),
             );
         #[cfg(debug_assertions)]
         {
@@ -57,7 +60,7 @@ pub struct AnimatorUpdatedEvent(pub Entity);
 pub struct PokemonAnimationState(pub AnimKey);
 
 #[allow(clippy::type_complexity)]
-pub fn update_animator(
+fn update_animator(
     mut query: Query<
         (
             Entity,

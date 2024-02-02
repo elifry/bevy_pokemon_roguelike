@@ -10,10 +10,7 @@ use crate::{
 };
 
 use super::{
-    anim_data::AnimKey,
-    animations::Animator,
-    get_world_position,
-    pokemons::{update_animator, PokemonAnimationState},
+    anim_data::AnimKey, animations::Animator, get_world_position, pokemons::PokemonAnimationState,
     POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
 };
 
@@ -27,6 +24,7 @@ impl Plugin for ActionAnimationPlugin {
                 Update,
                 (
                     ActionAnimationSet::Prepare,
+                    ActionAnimationSet::Animator,
                     ActionAnimationSet::PlayAnimations,
                     ActionAnimationSet::Flush,
                 )
@@ -35,8 +33,7 @@ impl Plugin for ActionAnimationPlugin {
             )
             .add_systems(
                 Update,
-                (add_action_animation, update_animator, apply_deferred)
-                    .in_set(ActionAnimationSet::Prepare),
+                (add_action_animation).in_set(ActionAnimationSet::Prepare),
             )
             .add_systems(
                 Update,
@@ -54,8 +51,9 @@ impl Plugin for ActionAnimationPlugin {
 }
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-enum ActionAnimationSet {
+pub enum ActionAnimationSet {
     Prepare,
+    Animator,
     PlayAnimations,
     Flush,
 }
