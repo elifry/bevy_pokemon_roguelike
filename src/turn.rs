@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{ActionQueue, NextActions, ProcessingActionEvent, QueuedAction},
-    graphics::action_animation::{AnimationHolder},
+    graphics::action_animation::AnimationHolder,
     pieces::{Actor, Health},
     player::{Player, PlayerActionEvent},
     GamePlayingSet,
@@ -80,6 +80,7 @@ fn handle_actor_death(
     mut ev_processing_action: EventReader<ProcessingActionEvent>,
 ) {
     if ev_processing_action.read().len() > 0 {
+        ev_processing_action.clear();
         return;
     }
 
@@ -93,7 +94,7 @@ fn handle_actor_death(
 
         actor_queue.0.remove(death_actor_index);
 
-        commands.entity(entity).despawn();
+        commands.entity(entity).despawn_recursive();
     }
 }
 
