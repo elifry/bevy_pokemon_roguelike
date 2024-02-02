@@ -97,20 +97,22 @@ pub fn update_offsets(
                 let start_index = (y as usize * bytes_per_row) + (x as usize * 4);
 
                 // Access individual color components
-                let r = image.data[start_index];
-                let g = image.data[start_index + 1];
-                let b = image.data[start_index + 2];
-                let a = image.data[start_index + 3];
+                let red = image.data[start_index];
+                let green = image.data[start_index + 1];
+                let blue = image.data[start_index + 2];
 
                 let real_x = x as f32 - texture.min.x;
                 let real_y = y as f32 - texture.min.y;
-                if g == 255 {
-                    warn!("fond body at {}, {}", real_x, real_y);
-                    offsets.body = Vec2::new(real_x, real_y);
-                }
 
-                // Now you have the RGBA values for the pixel at (x, y)
-                // You can process them as needed
+                if red == 255 && green == 255 && blue == 255 {
+                    offsets.head = Vec2::new(real_x, real_y);
+                } else if green == 255 {
+                    offsets.body = Vec2::new(real_x, real_y);
+                } else if red == 255 {
+                    offsets.left = Vec2::new(real_x, real_y);
+                } else if blue == 255 {
+                    offsets.right = Vec2::new(real_x, real_y);
+                }
             }
         }
     }
