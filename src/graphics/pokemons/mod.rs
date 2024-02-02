@@ -2,19 +2,14 @@ pub mod offsets;
 mod pokemon_animator;
 mod shadow;
 
-
-
 use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
-    map::Position,
-    pieces::{FacingOrientation},
-    pokemons::Pokemon,
-    GamePlayingSet, GameState,
+    map::Position, pieces::FacingOrientation, pokemons::Pokemon, GamePlayingSet, GameState,
 };
 
 use self::{
-    offsets::{update_offsets_animator, PokemonOffsets},
+    offsets::{debug_offsets, update_offsets, update_offsets_animator, PokemonOffsets},
     pokemon_animator::get_pokemon_animator,
     shadow::{update_pokemon_shadow_renderer, update_shadow_animator, PokemonShadow},
 };
@@ -46,8 +41,12 @@ impl Plugin for PokemonPlugin {
             )
             .add_systems(
                 Update,
-                update_offsets_animator.run_if(in_state(GameState::Playing)),
+                (update_offsets_animator, update_offsets).run_if(in_state(GameState::Playing)),
             );
+        #[cfg(debug_assertions)]
+        {
+            app.add_systems(Update, (debug_offsets).run_if(in_state(GameState::Playing)));
+        }
     }
 }
 
@@ -176,7 +175,7 @@ fn spawn_pokemon_renderer(
                         texture_atlas: offsets_texture_atlas.clone(),
                         sprite: offsets_sprite,
                         transform: Transform::from_xyz(0., 0., POKEMON_Z + 1.),
-                        // visibility: Visibility::Hidden,
+                        visibility: Visibility::Hidden,
                         ..default()
                     },
                 ));

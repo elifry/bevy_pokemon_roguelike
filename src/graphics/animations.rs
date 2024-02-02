@@ -12,12 +12,19 @@ pub struct AnimationsPlugin;
 impl Plugin for AnimationsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AnimationFinished>()
+            .add_event::<AnimationFrameChangedEvent>()
             .add_systems(Update, animation_system.in_set(GamePlayingSet::LateLogics));
     }
 }
 
 #[derive(Event)]
 pub struct AnimationFinished(pub Entity);
+
+#[derive(Event, Debug)]
+pub struct AnimationFrameChangedEvent {
+    pub entity: Entity,
+    pub frame: AnimationFrame,
+}
 
 #[derive(Debug, Copy, Clone)]
 pub struct AnimationFrame {
@@ -89,6 +96,7 @@ fn animation_system(
     time: Res<Time>,
     mut query: Query<(Entity, &mut Animator, &mut TextureAtlasSprite)>,
     mut ev_finished: EventWriter<AnimationFinished>,
+    mut ev_animation_frame_changed: EventWriter<AnimationFrameChangedEvent>,
 ) {
     for (entity, mut animator, mut sprite) in &mut query.iter_mut() {
         animator.timer.tick(time.delta());
@@ -111,8 +119,9 @@ fn animation_system(
 
         animator.timer.set_duration(frame.duration);
         animator.timer.reset();
-
         sprite.index = frame.atlas_index;
+
+        ev_animation_frame_changed.send(AnimationFrameChangedEvent { entity, frame });
 
         // Next frame
         animator.current_frame = if animator.current_frame + 1 < animator.frames.len() {

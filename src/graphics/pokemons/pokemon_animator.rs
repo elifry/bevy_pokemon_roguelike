@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     constants::GAME_SPEED,
@@ -9,10 +9,8 @@ use crate::{
         animations::{AnimationFrame, AnimationIndices, Animator},
         assets::{AnimTextureType, PokemonAnimation},
     },
-    pieces::{Orientation},
+    pieces::Orientation,
 };
-
-
 
 pub fn get_pokemon_animator(
     anim_data_assets: &Res<'_, Assets<AnimData>>,

@@ -1,17 +1,15 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     graphics::{
         anim_data::AnimData,
         assets::{AnimTextureType, PokemonAnimationAssets},
     },
-    pieces::{FacingOrientation},
+    pieces::FacingOrientation,
     pokemons::Pokemon,
 };
 
-use super::{
-    pokemon_animator::get_pokemon_animator, AnimatorUpdatedEvent, PokemonAnimationState,
-};
+use super::{pokemon_animator::get_pokemon_animator, AnimatorUpdatedEvent, PokemonAnimationState};
 
 #[derive(Component, Default)]
 pub enum PokemonShadow {
@@ -77,52 +75,54 @@ pub fn update_pokemon_shadow_renderer(
 ) {
     for (entity, texture_atlas_handle, shadow) in query.iter_mut() {
         // get the image from the texture handle
-        if let Some(atlas) = atlases.get(texture_atlas_handle) {
-            let image_handle = atlas.texture.clone();
-            // get the image struct
-            if let Some(image) = images.get(&image_handle) {
-                // get raw image data
-                let mut data = image.data.clone();
+        let Some(atlas) = atlases.get(texture_atlas_handle) else {
+            continue;
+        };
+        let image_handle = atlas.texture.clone();
+        // get the image struct
+        let Some(image) = images.get(&image_handle) else {
+            continue;
+        };
+        // get raw image data
+        let mut data = image.data.clone();
 
-                // iterate over the image data
-                for pixel in data.chunks_exact_mut(4) {
-                    // set rgb parts of pixel based on palette
+        // iterate over the image data
+        for pixel in data.chunks_exact_mut(4) {
+            // set rgb parts of pixel based on palette
 
-                    // pixel[0] = red / pixel[1] = green / pixel[2] = blue
-                    // pixel[3] = alpha
-                    let is_visible = match shadow {
-                        PokemonShadow::Small => pixel[1] == 255,
-                        PokemonShadow::Medium => pixel[0] == 255 || pixel[1] == 255,
-                        PokemonShadow::Big => pixel[0] == 255 || pixel[1] == 255 || pixel[2] == 255,
-                    };
+            // pixel[0] = red / pixel[1] = green / pixel[2] = blue
+            // pixel[3] = alpha
+            let is_visible = match shadow {
+                PokemonShadow::Small => pixel[1] == 255,
+                PokemonShadow::Medium => pixel[0] == 255 || pixel[1] == 255,
+                PokemonShadow::Big => pixel[0] == 255 || pixel[1] == 255 || pixel[2] == 255,
+            };
 
-                    if is_visible {
-                        pixel[0] = 80;
-                        pixel[1] = 80;
-                        pixel[2] = 80;
-                        pixel[3] = 180;
-                    } else {
-                        pixel[3] = 0;
-                    }
-                }
-
-                // create a new image from the modified data
-                let new_image = Image {
-                    data,
-                    ..image.clone()
-                };
-
-                // add the image to the assets, to get a handle
-                let new_image_handle = images.add(new_image);
-
-                // create a new texture atlas from the new texture
-                let mut new_texture_atlas = TextureAtlas::new_empty(new_image_handle, atlas.size);
-                new_texture_atlas.textures = atlas.textures.clone();
-                let new_atlas_handle = atlases.add(new_texture_atlas);
-
-                // replace the texture atlas handle on the entity
-                commands.entity(entity).insert(new_atlas_handle);
+            if is_visible {
+                pixel[0] = 80;
+                pixel[1] = 80;
+                pixel[2] = 80;
+                pixel[3] = 180;
+            } else {
+                pixel[3] = 0;
             }
         }
+
+        // create a new image from the modified data
+        let new_image = Image {
+            data,
+            ..image.clone()
+        };
+
+        // add the image to the assets, to get a handle
+        let new_image_handle = images.add(new_image);
+
+        // create a new texture atlas from the new texture
+        let mut new_texture_atlas = TextureAtlas::new_empty(new_image_handle, atlas.size);
+        new_texture_atlas.textures = atlas.textures.clone();
+        let new_atlas_handle = atlases.add(new_texture_atlas);
+
+        // replace the texture atlas handle on the entity
+        commands.entity(entity).insert(new_atlas_handle);
     }
 }
