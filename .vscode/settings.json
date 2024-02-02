@@ -5,5 +5,18 @@
     // "RUSTFLAGS": "-Clinker=clang -Clink-arg=-fuse-ld=lld"
   },
   "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"],
-  "rust-analyzer.check.command": "clippy"
+  "rust-analyzer.check.command": "clippy",
+  "cSpell.words": [
+    "Actionlike",
+    "anims",
+    "Charmander",
+    "hashbrown",
+    "leafwing",
+    "lerp",
+    "npcs",
+    "pokemons",
+    "Rattata",
+    "thiserror",
+    "Tilemap"
+  ]
 }
