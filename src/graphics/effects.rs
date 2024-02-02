@@ -5,7 +5,7 @@ use bevy::{prelude::*, sprite::Anchor};
 use crate::{constants::GAME_SPEED, effects::Effect, map::Position, GameState};
 
 use super::{
-    animations::{AnimationFrame, Animator},
+    animations::{AnimationFinished, AnimationFrame, Animator},
     assets::EffectAssets,
     get_world_position, EFFECT_Z, FRAME_DURATION_MILLIS,
 };
@@ -16,7 +16,7 @@ impl Plugin for EffectsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_effect_renderer).run_if(in_state(GameState::Playing)),
+            (spawn_effect_renderer, despawn_effect).run_if(in_state(GameState::Playing)),
         );
     }
 }
@@ -52,7 +52,7 @@ fn spawn_effect_renderer(
         let first_index = frames[0].atlas_index;
 
         commands.entity(entity).insert((
-            Animator::new(effect_texture_info.texture_atlas.clone(), frames, true),
+            Animator::new(effect_texture_info.texture_atlas.clone(), frames, false),
             SpriteSheetBundle {
                 texture_atlas: effect_texture_info.texture_atlas.clone(),
                 transform: Transform::from_translation(v),
@@ -63,5 +63,21 @@ fn spawn_effect_renderer(
                 ..default()
             },
         ));
+    }
+}
+
+fn despawn_effect(
+    query: Query<(&Animator), With<Effect>>,
+    mut ev_animation_finished: EventReader<AnimationFinished>,
+    mut commands: Commands,
+) {
+    for ev in ev_animation_finished.read() {
+        let Ok(animator) = query.get(ev.0) else {
+            continue;
+        };
+
+        if animator.is_finished() {
+            commands.entity(ev.0).despawn_recursive();
+        }
     }
 }
