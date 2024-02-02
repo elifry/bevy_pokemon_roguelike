@@ -1,4 +1,4 @@
-use bevy::{gizmos, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     graphics::{

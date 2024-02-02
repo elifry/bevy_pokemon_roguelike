@@ -47,8 +47,8 @@ impl GameMap {
         for dy in 0..=2 {
             for dx in 0..=2 {
                 let neighbor_position = Vector2Int {
-                    x: position.x + dx as i32 - 1,
-                    y: position.y + dy as i32 - 1,
+                    x: position.x + dx - 1,
+                    y: position.y + dy - 1,
                 };
                 if neighbor_position == *position {
                     continue;

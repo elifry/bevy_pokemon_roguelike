@@ -164,6 +164,7 @@ struct ChangeState(GameState);
 #[derive(Component)]
 struct OpenLink(&'static str);
 
+#[allow(clippy::type_complexity)]
 fn click_play_button(
     mut next_state: ResMut<NextState<GameState>>,
     mut interaction_query: Query<

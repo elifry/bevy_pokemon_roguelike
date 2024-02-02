@@ -66,10 +66,12 @@ impl AnimInfo<'_> {
         let value: &AnimValue = match anim {
             Anim::Value(value) => value,
             Anim::CopyOf(copy_of) => {
-                let reference = self.anims.anim.get(&copy_of.name).unwrap();
+                let reference = self.anims.anim.get(&copy_of.copy_of).unwrap();
                 match reference {
                     Anim::Value(reference_value) => reference_value,
-                    Anim::CopyOf(_) => panic!("Can't copy of copy of"),
+                    Anim::CopyOf(_) => {
+                        panic!("Can't copy {:?} for {:?}", copy_of.name, copy_of.copy_of)
+                    }
                 }
             }
         };
@@ -146,10 +148,10 @@ struct AnimRaw {
     frame_width: Option<i64>,
     frame_height: Option<i64>,
     durations: Option<Durations>,
-    copy_of: Option<String>,
-    rush_frame: Option<i64>,
-    hit_frame: Option<i64>,
-    return_frame: Option<i64>,
+    copy_of: Option<AnimKey>,
+    // rush_frame: Option<i64>,
+    // hit_frame: Option<i64>,
+    // return_frame: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -170,7 +172,7 @@ pub struct AnimValue {
 pub struct AnimCopyOf {
     name: AnimKey,
     index: i64,
-    copy_of: String,
+    copy_of: AnimKey,
 }
 
 #[derive(Debug, Deserialize, Clone)]

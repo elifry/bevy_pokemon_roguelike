@@ -23,6 +23,7 @@ use super::{
 
 pub struct PokemonPlugin;
 
+// TODO: Create plugin for sub systems
 impl Plugin for PokemonPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AnimatorUpdatedEvent>()

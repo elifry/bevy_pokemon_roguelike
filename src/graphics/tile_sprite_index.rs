@@ -126,8 +126,8 @@ pub fn find_sprite_index_tile(position: &Vector2Int, map: &HashMap<Vector2Int, T
     for dy in 0..=2 {
         for dx in 0..=2 {
             let neighbor_position = Vector2Int {
-                x: position.x + dx as i32 - 1,
-                y: position.y + dy as i32 - 1,
+                x: position.x + dx - 1,
+                y: position.y + dy - 1,
             };
 
             let neighbor_type = map.get(&neighbor_position);

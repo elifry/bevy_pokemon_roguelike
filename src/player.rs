@@ -56,7 +56,7 @@ fn spawn_player(mut commands: Commands) {
         Player,
         Occupier,
         Health { value: 10 },
-        Actor::default(),
+        Actor,
         Piece {
             kind: PieceKind::Player,
         },

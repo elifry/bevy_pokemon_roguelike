@@ -3,7 +3,6 @@ use std::str::FromStr;
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use bevy_asset_loader::prelude::*;
 use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
 
 use crate::graphics::anim_data::{AnimData, AnimKey};

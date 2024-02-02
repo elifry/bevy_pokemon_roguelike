@@ -1,14 +1,11 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use bevy::asset::{LoadedFolder};
+use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashMap;
-use bevy_asset_loader::prelude::*;
-
 
 use crate::effects::EffectID;
-
 
 use crate::utils::get_path_from_handle;
 use crate::GameState;
