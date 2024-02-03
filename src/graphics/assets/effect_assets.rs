@@ -108,7 +108,6 @@ fn process_effect_assets(
 
             for handle in &images {
                 let id: AssetId<Image> = handle.id();
-                println!("{:?}", handle);
 
                 let Some(texture) = textures.get(id) else {
                     warn!("Texture not loaded: {:?}", handle.path().unwrap());

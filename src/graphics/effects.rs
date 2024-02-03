@@ -6,7 +6,7 @@ use crate::{constants::GAME_SPEED, effects::Effect, map::Position, GameState};
 
 use super::{
     animations::{AnimationFinished, AnimationFrame, Animator},
-    assets::EffectAssets,
+    assets::{visual_effect_assets::VisualEffectAssets, EffectAssets},
     get_world_position, EFFECT_Z, FRAME_DURATION_MILLIS,
 };
 
@@ -23,24 +23,25 @@ impl Plugin for EffectsPlugin {
 
 fn spawn_effect_renderer(
     mut commands: Commands,
-    assets: Res<EffectAssets>,
+    visual_effect_assets: Res<VisualEffectAssets>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
     query: Query<(Entity, &Effect, &Position), Added<Effect>>,
 ) {
     for (entity, effect, position) in query.iter() {
-        let Some(effect_texture_info) = assets
-            .0
-            .get(effect)
-            .and_then(|effect| effect.textures.get("000"))
-            .cloned()
-        else {
+        let Some(effect_texture_info) = visual_effect_assets.0.get("Flame_Wheel").cloned() else {
             continue;
         };
 
-        let frames = effect_texture_info
-            .frame_order
+        let Some(texture_atlas) = texture_atlases.get(&effect_texture_info.texture_atlas) else {
+            continue;
+        };
+
+        let frames = texture_atlas
+            .textures
             .iter()
-            .map(|atlas_index| AnimationFrame {
-                atlas_index: *atlas_index,
+            .enumerate()
+            .map(|(atlas_index, _)| AnimationFrame {
+                atlas_index,
                 duration: Duration::from_millis(
                     ((FRAME_DURATION_MILLIS * 2) as f32 / GAME_SPEED).floor() as u64,
                 ),
@@ -52,7 +53,7 @@ fn spawn_effect_renderer(
         let first_index = frames[0].atlas_index;
 
         commands.entity(entity).insert((
-            Animator::new(effect_texture_info.texture_atlas.clone(), frames, false),
+            Animator::new(effect_texture_info.texture_atlas.clone(), frames, true),
             SpriteSheetBundle {
                 texture_atlas: effect_texture_info.texture_atlas.clone(),
                 transform: Transform::from_translation(v),
