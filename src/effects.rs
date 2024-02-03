@@ -85,16 +85,22 @@ pub enum Effect {
     /// Encore
     #[strum(serialize = "0025")]
     _0025,
+    /// (Blue fang 000-0007) /// NF
+    #[strum(serialize = "0026")]
+    _0026,
     // Feather Dance
     #[strum(serialize = "0027")]
     _0027,
     /// Fire Blast(002) / Fire Punch (003) / Flame Wheel (002 / 003) / Flamethrower (005/003)
     #[strum(serialize = "0028")]
     _0028,
-    /// Fire Blast
+    /// Wil-O-Wisp(003)
+    #[strum(serialize = "0029")]
+    _0029,
+    /// Fire Blast / Flame Wheel (003)
     #[strum(serialize = "0030")]
     _0030,
-    /// (Impact Yellow)
+    /// (Impact Yellow) // NF
     #[strum(serialize = "0031")]
     _0031,
     /// Sunny Day
