@@ -55,12 +55,33 @@ pub enum Effect {
     /// Taunt
     #[strum(serialize = "0015")]
     _0015,
+    /// Cleanse
+    #[strum(serialize = "0016")]
+    _0016,
+    /// Feint?
+    #[strum(serialize = "0017")]
+    _0017,
     /// Shock Wave
     #[strum(serialize = "0018")]
     _0018,
-    /// Mud Sport
+    /// (Electric ball) // NF
+    #[strum(serialize = "0019")]
+    _0019,
+    /// Lock-On(001) / Helping Hand(005) / (Circle Blue)
+    #[strum(serialize = "0020")]
+    _0020,
+    /// Dive(000) / Ice Ball(001)
+    #[strum(serialize = "0021")]
+    _0021,
+    /// Mud Sport() / Sludge(002)
     #[strum(serialize = "0022")]
     _0022,
+    /// NF
+    #[strum(serialize = "0023")]
+    _0023,
+    /// Drought
+    #[strum(serialize = "0024")]
+    _0024,
     /// Encore
     #[strum(serialize = "0025")]
     _0025,
