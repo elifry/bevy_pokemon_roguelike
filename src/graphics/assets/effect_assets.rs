@@ -34,6 +34,7 @@ pub struct EffectAsset {
 pub struct EffectTextureInfo {
     pub texture_atlas: Handle<TextureAtlas>,
     /// Contains the correct order for displaying animation from the texture atlas
+    /// TODO: Handle empty frame (example, if there 004 then 006, it means 005 should be an empty frame)
     pub frame_order: Vec<usize>,
 }
 
