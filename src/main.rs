@@ -11,10 +11,7 @@ fn main() {
         })
         .add_plugins(
             DefaultPlugins
-                .set(AssetPlugin {
-                    // mode: AssetMode::Processed,
-                    ..default()
-                })
+                .set(AssetPlugin { ..default() })
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Bevy pokemon roguelike".to_string(), // ToDo

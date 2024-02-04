@@ -11,8 +11,13 @@ impl Plugin for EffectsPlugin {
     }
 }
 
+#[derive(Component, Debug)]
+pub struct Effect {
+    pub name: String,
+}
+
 #[derive(Component, Debug, Hash, PartialEq, Eq, EnumString, Display, Copy, Clone)]
-pub enum Effect {
+enum _Effect {
     /// Dig
     #[strum(serialize = "0002")]
     _0002,
@@ -150,7 +155,9 @@ pub enum Effect {
 fn spawn_test_effect(mut commands: Commands) {
     commands.spawn((
         Name::new("TestEffect"),
-        Effect::_0110,
+        Effect {
+            name: "Flame_Wheel".to_string(),
+        },
         Position(Vector2Int::new(3, 3)),
     ));
 }

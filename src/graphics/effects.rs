@@ -6,7 +6,7 @@ use crate::{constants::GAME_SPEED, effects::Effect, map::Position, GameState};
 
 use super::{
     animations::{AnimationFinished, AnimationFrame, Animator},
-    assets::{visual_effect_assets::VisualEffectAssets, EffectAssets},
+    assets::visual_effect_assets::VisualEffectAssets,
     get_world_position, EFFECT_Z, FRAME_DURATION_MILLIS,
 };
 
@@ -28,7 +28,8 @@ fn spawn_effect_renderer(
     query: Query<(Entity, &Effect, &Position), Added<Effect>>,
 ) {
     for (entity, effect, position) in query.iter() {
-        let Some(effect_texture_info) = visual_effect_assets.0.get("Flame_Wheel").cloned() else {
+        let Some(effect_texture_info) = visual_effect_assets.0.get(&effect.name).cloned() else {
+            warn!("Visual effect texture not found for {}", effect.name);
             continue;
         };
 

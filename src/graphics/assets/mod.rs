@@ -5,14 +5,13 @@ use bevy_asset_loader::prelude::*;
 
 use crate::GameState;
 
-pub mod effect_assets;
 pub mod pokemon_assets;
 pub mod visual_effect_assets;
 
-pub use self::effect_assets::*;
 pub use self::pokemon_assets::*;
 use self::visual_effect_assets::VisualEffectAssetsFolder;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
+pub use self::visual_effect_assets::*;
 
 pub struct AssetsPlugin;
 
@@ -20,7 +19,7 @@ impl Plugin for AssetsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             PokemonAssetsPlugin,
-            EffectAssetsPlugin,
+            // EffectAssetsPlugin,
             VisualEffectAssetsPlugin,
         ))
         .init_collection::<TileAssets>()
@@ -69,7 +68,6 @@ fn set_playing(mut next_state: ResMut<NextState<GameState>>) {
 fn load_assets(
     asset_server: Res<AssetServer>,
     mut pokemon_assets_folder: ResMut<PokemonAssetsFolder>,
-    mut effect_assets_folder: ResMut<EffectAssetsFolder>,
     mut visual_effect_assets_folder: ResMut<VisualEffectAssetsFolder>,
 ) {
     println!("assets loading...");
@@ -85,13 +83,13 @@ fn load_assets(
     }
 
     // Effects
-    let effect_to_load_list = vec!["0110"];
-    for effect_to_load in effect_to_load_list {
-        let effect_folder = asset_server.load_folder(format!("effects/{effect_to_load}"));
-        effect_assets_folder
-            .0
-            .insert(effect_to_load.to_string(), effect_folder);
-    }
+    // let effect_to_load_list = vec!["0110"];
+    // for effect_to_load in effect_to_load_list {
+    //     let effect_folder = asset_server.load_folder(format!("effects/{effect_to_load}"));
+    //     effect_assets_folder
+    //         .0
+    //         .insert(effect_to_load.to_string(), effect_folder);
+    // }
 
     // Visual Effects
     let visual_effect_folder = asset_server.load_folder("visual_effects");
