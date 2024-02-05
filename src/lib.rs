@@ -26,6 +26,7 @@ mod menu;
 mod pieces;
 mod player;
 mod pokemons;
+pub mod spells;
 mod turn;
 pub mod utils;
 mod vector2_int;

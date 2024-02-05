@@ -14,6 +14,7 @@ pub mod damage_action;
 pub mod destroy_wall_action;
 pub mod melee_hit_action;
 pub mod skip_action;
+pub mod spell_action;
 pub mod walk_action;
 
 pub struct ActionsPlugin;

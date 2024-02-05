@@ -121,7 +121,9 @@ fn check_assets_loading(
         Some(LoadState::Loading) => {
             is_loading = true;
         }
-        Some(LoadState::Failed) => {}
+        Some(LoadState::Failed) => {
+            error!("couldn't load visual effect")
+        }
         _ => {}
     }
 

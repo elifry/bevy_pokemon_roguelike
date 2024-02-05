@@ -3,8 +3,11 @@ use bevy::prelude::*;
 use crate::{
     actions::{
         damage_action::DamageAction, destroy_wall_action::DestroyWallAction,
-        melee_hit_action::MeleeHitAction, walk_action::WalkAction, RunningAction,
+        melee_hit_action::MeleeHitAction, spell_action::SpellAction, walk_action::WalkAction,
+        RunningAction,
     },
+    effects::Effect,
+    map::Position,
     vector2_int::Vector2Int,
     GamePlayingSet,
 };
@@ -67,9 +70,18 @@ pub struct ActionAnimationFinishedEvent(pub Entity);
 #[derive(Clone)]
 pub enum ActionAnimation {
     Move(MoveAnimation),
+    Projectile(ProjectileAnimation),
     Attack,
     Hurt,
     Skip,
+}
+
+#[derive(Clone)]
+pub struct ProjectileAnimation {
+    pub entity: Entity,
+    pub to: Vector2Int,
+    pub from: Vector2Int,
+    t: f32,
 }
 
 #[derive(Clone)]
@@ -135,6 +147,22 @@ fn add_action_animation(
         } else if let Some(_action) = action.downcast_ref::<DestroyWallAction>() {
             let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
             commands.entity(entity).insert(attack_animation);
+        } else if let Some(action) = action.downcast_ref::<SpellAction>() {
+            let projectile_animation: AnimationHolder =
+                AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
+                    entity,
+                    to: Vector2Int::new(3, 3),
+                    from: Vector2Int::new(3, 4),
+                    t: 0.,
+                }));
+            commands.spawn((
+                Name::new("Flame_Wheel Effect"),
+                Effect {
+                    name: "Flame_Wheel".to_string(),
+                },
+                Position(Vector2Int::new(3, 3)),
+                projectile_animation,
+            ));
         } else {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
         }

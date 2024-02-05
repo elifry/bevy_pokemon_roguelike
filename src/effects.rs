@@ -153,11 +153,11 @@ enum _Effect {
 }
 
 fn spawn_test_effect(mut commands: Commands) {
-    commands.spawn((
-        Name::new("TestEffect"),
-        Effect {
-            name: "Flame_Wheel".to_string(),
-        },
-        Position(Vector2Int::new(3, 3)),
-    ));
+    // commands.spawn((
+    //     Name::new("TestEffect"),
+    //     Effect {
+    //         name: "Flame_Wheel".to_string(),
+    //     },
+    //     Position(Vector2Int::new(3, 3)),
+    // ));
 }

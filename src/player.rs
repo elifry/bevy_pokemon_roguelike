@@ -7,11 +7,13 @@ use leafwing_input_manager::{Actionlike, InputManagerBundle};
 use crate::actions::destroy_wall_action::DestroyWallAction;
 use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
+use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ActionQueueProcessedEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::Pokemon;
+use crate::spells::{Spell, SpellType};
 use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
@@ -46,6 +48,10 @@ pub enum PlayerAction {
     Up,
     Down,
     Skip,
+    SpellSlot1,
+    SpellSlot2,
+    SpellSlot3,
+    SpellSlot4,
 }
 
 fn spawn_player(mut commands: Commands) {
@@ -73,6 +79,10 @@ fn spawn_player(mut commands: Commands) {
                 (KeyCode::Left, PlayerAction::Left),
                 (KeyCode::D, PlayerAction::Right),
                 (KeyCode::Right, PlayerAction::Right),
+                (KeyCode::Key1, PlayerAction::SpellSlot1),
+                (KeyCode::Key2, PlayerAction::SpellSlot2),
+                (KeyCode::Key3, PlayerAction::SpellSlot3),
+                (KeyCode::Key4, PlayerAction::SpellSlot4),
             ]),
         },
     ));
@@ -129,6 +139,20 @@ fn take_action(
             destroy_wall,
         ]));
         return;
+    }
+
+    if action_state.pressed(PlayerAction::SpellSlot1) {
+        let action = Box::new(SpellAction {
+            caster: entity,
+            spell: Spell {
+                name: "Flamethrower".to_string(),
+                spell_type: SpellType::Projectile {
+                    visual_effect: "Flamethrower".to_string(),
+                },
+            },
+        });
+        *is_taking_action = true;
+        ev_action.send(PlayerActionEvent(vec![action]));
     }
 
     if action_state.pressed(PlayerAction::Skip) {

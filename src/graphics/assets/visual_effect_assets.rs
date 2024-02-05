@@ -134,5 +134,5 @@ fn process_effect_assets(
             .insert(visual_effect_name.to_owned(), visual_effect_texture_info);
     }
 
-    commands.remove_resource::<VisualEffectAssetsFolder>();
+    // commands.remove_resource::<VisualEffectAssetsFolder>();
 }
