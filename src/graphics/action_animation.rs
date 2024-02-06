@@ -33,23 +33,23 @@ impl Plugin for ActionAnimationPlugin {
                 )
                     .chain()
                     .in_set(GamePlayingSet::Animations),
-            )
-            .add_systems(
-                Update,
-                (add_action_animation).in_set(ActionAnimationSet::Prepare),
-            )
-            .add_systems(
-                Update,
-                (move_animation, attack_animation, hurt_animation)
-                    .chain()
-                    .in_set(ActionAnimationSet::PlayAnimations),
-            )
-            .add_systems(
-                Update,
-                (clean_up_animation,)
-                    .chain()
-                    .in_set(ActionAnimationSet::Flush),
             );
+        // .add_systems(
+        //     Update,
+        //     (add_action_animation).in_set(ActionAnimationSet::Prepare),
+        // )
+        // .add_systems(
+        //     Update,
+        //     (move_animation, attack_animation, hurt_animation)
+        //         .chain()
+        //         .in_set(ActionAnimationSet::PlayAnimations),
+        // )
+        // .add_systems(
+        //     Update,
+        //     (clean_up_animation,)
+        //         .chain()
+        //         .in_set(ActionAnimationSet::Flush),
+        //);
     }
 }
 

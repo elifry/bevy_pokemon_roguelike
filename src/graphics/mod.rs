@@ -13,7 +13,7 @@ pub mod anim_data;
 pub mod animations;
 pub mod assets;
 mod effects;
-mod pokemons;
+pub mod pokemons;
 pub mod tile_sprite_index;
 mod tiles;
 
@@ -27,7 +27,7 @@ pub const SHADOW_POKEMON_Z: f32 = -5.; // relative to `POKEMON_Z`
 pub const WALK_SPEED: f32 = 1.43;
 pub const POSITION_TOLERANCE: f32 = 0.1;
 
-pub const FRAME_DURATION_MILLIS: i64 = 22;
+pub const FRAME_DURATION_MILLIS: i64 = 23;
 
 pub struct GraphicsPlugin;
 

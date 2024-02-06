@@ -9,7 +9,7 @@ use crate::actions::melee_hit_action::MeleeHitAction;
 use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
-use crate::actions::{Action, ActionQueueProcessedEvent};
+use crate::actions::{Action, ProcessingActionEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::Pokemon;
@@ -90,17 +90,12 @@ fn spawn_player(mut commands: Commands) {
 
 fn take_action(
     player_query: Query<(Entity, &ActionState<PlayerAction>, &Position), With<Player>>,
-    mut ev_action_queue_processed: EventReader<ActionQueueProcessedEvent>,
+    mut ev_action_processing: EventReader<ProcessingActionEvent>,
     mut ev_action: EventWriter<PlayerActionEvent>,
-    mut is_taking_action: Local<bool>,
 ) {
-    if ev_action_queue_processed.read().len() > 0 {
-        info!("Player can take action");
-        *is_taking_action = false;
-        ev_action_queue_processed.clear();
-    }
-
-    if *is_taking_action {
+    if ev_action_processing.read().len() > 0 {
+        // info!("Player can take action");
+        ev_action_processing.clear();
         return;
     }
 
@@ -132,11 +127,10 @@ fn take_action(
         }) as Box<dyn Action>;
 
         info!("Send player action event");
-        *is_taking_action = true;
         ev_action.send(PlayerActionEvent(vec![
             walk_action,
-            attack_action,
-            destroy_wall,
+            //attack_action,
+            //destroy_wall,
         ]));
         return;
     }
@@ -151,13 +145,11 @@ fn take_action(
                 },
             },
         });
-        *is_taking_action = true;
         ev_action.send(PlayerActionEvent(vec![action]));
     }
 
     if action_state.pressed(PlayerAction::Skip) {
         let action = Box::new(SkipAction);
-        *is_taking_action = true;
         ev_action.send(PlayerActionEvent(vec![action]));
     }
 }
