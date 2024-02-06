@@ -129,7 +129,7 @@ fn walk_action_system(
 
         commands
             .entity(walk_action.entity)
-            .remove::<RunningAction>();
+            .remove::<(RunningAction, WalkActionComponent)>();
 
         ev_action_executed.send(ActionExecutedEvent(walk_action.entity));
     }
