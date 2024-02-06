@@ -2,10 +2,7 @@ use std::collections::VecDeque;
 
 use bevy::prelude::*;
 
-use crate::{
-    actions::RunningAction, graphics::action_animation::ActionAnimationFinishedEvent,
-    pieces::Health,
-};
+use crate::{actions::RunningAction, pieces::Health};
 
 use super::{Action, ProcessingActionEvent};
 

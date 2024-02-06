@@ -23,6 +23,7 @@ impl Plugin for ActionAnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ActionAnimationPlayingEvent>()
             .add_event::<ActionAnimationFinishedEvent>()
+            // TODO: move the sets somewhere else
             .configure_sets(
                 Update,
                 (
