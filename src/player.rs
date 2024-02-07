@@ -13,7 +13,7 @@ use crate::actions::{Action, ActionQueueProcessedEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::Pokemon;
-use crate::spells::{Spell, SpellType};
+use crate::spells::{ProjectileSpell, Spell, SpellType};
 use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
@@ -146,9 +146,9 @@ fn take_action(
             caster: entity,
             spell: Spell {
                 name: "Flamethrower".to_string(),
-                spell_type: SpellType::Projectile {
-                    visual_effect: "Flamethrower".to_string(),
-                },
+                spell_type: SpellType::Projectile(ProjectileSpell {
+                    visual_effect: "Flame_Wheel".to_string(),
+                }),
             },
         });
         *is_taking_action = true;

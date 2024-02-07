@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::{prelude::*, sprite::Anchor, transform};
 
 use crate::{constants::GAME_SPEED, effects::Effect, map::Position, GameState};
 
@@ -25,9 +25,9 @@ fn spawn_effect_renderer(
     mut commands: Commands,
     visual_effect_assets: Res<VisualEffectAssets>,
     texture_atlases: Res<Assets<TextureAtlas>>,
-    query: Query<(Entity, &Effect, &Position), Added<Effect>>,
+    query: Query<(Entity, &Effect, &Transform), Added<Effect>>,
 ) {
-    for (entity, effect, position) in query.iter() {
+    for (entity, effect, transform) in query.iter() {
         let Some(effect_texture_info) = visual_effect_assets.0.get(&effect.name).cloned() else {
             warn!("Visual effect texture not found for {}", effect.name);
             continue;
@@ -49,15 +49,13 @@ fn spawn_effect_renderer(
             })
             .collect::<Vec<_>>();
 
-        let v = get_world_position(&position.0, EFFECT_Z);
-
         let first_index = frames[0].atlas_index;
 
         commands.entity(entity).insert((
             Animator::new(effect_texture_info.texture_atlas.clone(), frames, true),
             SpriteSheetBundle {
                 texture_atlas: effect_texture_info.texture_atlas.clone(),
-                transform: Transform::from_translation(v),
+                transform: *transform,
                 sprite: TextureAtlasSprite {
                     index: first_index,
                     ..default()

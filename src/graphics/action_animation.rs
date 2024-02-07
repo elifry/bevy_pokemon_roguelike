@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use crate::{
     actions::{
         damage_action::DamageAction, destroy_wall_action::DestroyWallAction,
-        melee_hit_action::MeleeHitAction, spell_action::SpellAction, walk_action::WalkAction,
-        RunningAction,
+        melee_hit_action::MeleeHitAction, projectile_action::ProjectileAction,
+        spell_action::SpellAction, walk_action::WalkAction, RunningAction,
     },
     effects::Effect,
     map::Position,
@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     anim_data::AnimKey, animations::Animator, get_world_position, pokemons::PokemonAnimationState,
-    POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
+    EFFECT_Z, POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
 };
 
 pub struct ActionAnimationPlugin;
@@ -79,16 +79,16 @@ pub enum ActionAnimation {
 #[derive(Clone)]
 pub struct ProjectileAnimation {
     pub entity: Entity,
-    pub to: Vector2Int,
-    pub from: Vector2Int,
+    pub to: Vec3,
+    pub from: Vec3,
     t: f32,
 }
 
 #[derive(Clone)]
 pub struct MoveAnimation {
     pub entity: Entity,
-    pub to: Vector2Int,
-    pub from: Vector2Int,
+    pub to: Vec3,
+    pub from: Vec3,
     t: f32,
 }
 
@@ -96,8 +96,8 @@ impl MoveAnimation {
     pub fn new(entity: Entity, from: Vector2Int, to: Vector2Int) -> Self {
         Self {
             entity,
-            from,
-            to,
+            from: get_world_position(&from, POKEMON_Z),
+            to: get_world_position(&to, POKEMON_Z),
             t: 0.,
         }
     }
@@ -121,12 +121,12 @@ fn clean_up_animation(
 }
 
 fn add_action_animation(
-    mut query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    mut query: Query<(Entity, &Position, &RunningAction), Added<RunningAction>>,
     mut commands: Commands,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
-    for (entity, running_action) in query.iter_mut() {
+    for (entity, position, running_action) in query.iter_mut() {
         ev_animation_playing.send(ActionAnimationPlayingEvent);
 
         let action = running_action.0.as_any();
@@ -148,19 +148,26 @@ fn add_action_animation(
             let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
             commands.entity(entity).insert(attack_animation);
         } else if let Some(action) = action.downcast_ref::<SpellAction>() {
+            let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
+            commands.entity(entity).insert(attack_animation);
+        } else if let Some(action) = action.downcast_ref::<ProjectileAction>() {
+            let from = get_world_position(&position.0, EFFECT_Z);
             let projectile_animation: AnimationHolder =
                 AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
                     entity,
-                    to: Vector2Int::new(3, 3),
-                    from: Vector2Int::new(3, 4),
+                    to: get_world_position(&action.target, EFFECT_Z),
+                    from,
                     t: 0.,
                 }));
             commands.spawn((
-                Name::new("Flame_Wheel Effect"),
+                Name::new(action.projectile.visual_effect.to_string()),
                 Effect {
-                    name: "Flame_Wheel".to_string(),
+                    name: action.projectile.visual_effect.to_string(),
                 },
-                Position(Vector2Int::new(3, 3)),
+                SpatialBundle {
+                    transform: Transform::from_translation(from),
+                    ..default()
+                },
                 projectile_animation,
             ));
         } else {
@@ -245,19 +252,19 @@ pub fn move_animation(
             animation_state.0 = AnimKey::Walk;
         }
 
-        let target = get_world_position(&move_animation.to, POKEMON_Z);
-        let from = get_world_position(&move_animation.from, POKEMON_Z);
-        let d = (target - transform.translation).length();
+        let d = (move_animation.to - transform.translation).length();
 
         if d > POSITION_TOLERANCE {
             ev_animation_playing.send(ActionAnimationPlayingEvent);
             move_animation.t = (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
-            transform.translation = from.lerp(target, move_animation.t);
+            transform.translation = move_animation
+                .from
+                .lerp(move_animation.to, move_animation.t);
             continue;
         }
 
         // the entity is at the desired path position
-        transform.translation = target;
+        transform.translation = move_animation.to;
 
         if !animator.is_finished() {
             continue;

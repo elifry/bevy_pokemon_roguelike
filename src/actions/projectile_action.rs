@@ -3,19 +3,20 @@ use bevy::prelude::*;
 use crate::{
     map::Position,
     pieces::{FacingOrientation, Health, Orientation, PieceDeathEvent},
-    spells::{Spell, SpellType},
+    spells::{ProjectileSpell, Spell, SpellType},
     vector2_int::Vector2Int,
 };
 
-use super::{orient_entity, projectile_action::ProjectileAction, Action};
+use super::{orient_entity, Action};
 
 #[derive(Debug, Clone)]
-pub struct SpellAction {
+pub struct ProjectileAction {
     pub caster: Entity,
-    pub spell: Spell,
+    pub projectile: ProjectileSpell,
+    pub target: Vector2Int,
 }
 
-impl Action for SpellAction {
+impl Action for ProjectileAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
         if !self.can_execute(world) {
             return Err(());
@@ -33,14 +34,7 @@ impl Action for SpellAction {
 
         orient_entity(world, self.caster, direction);
 
-        match &self.spell.spell_type {
-            SpellType::Projectile(projectile_spell) => Ok(vec![Box::new(ProjectileAction {
-                caster: self.caster,
-                projectile: projectile_spell.clone(),
-                target: direction,
-            })]),
-            _ => Ok(vec![]),
-        }
+        Ok(Vec::new())
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

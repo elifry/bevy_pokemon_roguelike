@@ -13,6 +13,7 @@ mod action_queue;
 pub mod damage_action;
 pub mod destroy_wall_action;
 pub mod melee_hit_action;
+pub mod projectile_action;
 pub mod skip_action;
 pub mod spell_action;
 pub mod walk_action;
