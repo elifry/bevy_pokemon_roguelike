@@ -28,7 +28,7 @@ impl Action for SpellAction {
             return Err(());
         };
 
-        let range = 3;
+        let range = 2;
         let direction = facing_orientation.0.to_vector() * range + position.0;
 
         orient_entity(world, self.caster, direction);

@@ -1,13 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{
-    map::Position,
-    pieces::{FacingOrientation, Health, Orientation, PieceDeathEvent},
-    spells::{ProjectileSpell, Spell, SpellType},
-    vector2_int::Vector2Int,
-};
+use crate::{map::Position, pieces::Health, spells::ProjectileSpell, vector2_int::Vector2Int};
 
-use super::{orient_entity, Action};
+use super::{damage_action::DamageAction, Action};
 
 #[derive(Debug, Clone)]
 pub struct ProjectileAction {
@@ -22,19 +17,30 @@ impl Action for ProjectileAction {
             return Err(());
         };
 
-        let Ok((facing_orientation, position)) = world
-            .query::<(&FacingOrientation, &Position)>()
-            .get(world, self.caster)
-        else {
-            return Err(());
-        };
+        let target_entities = world
+            .query_filtered::<(Entity, &Position), With<Health>>()
+            .iter(world)
+            .filter(|(_, p)| p.0 == self.target)
+            .collect::<Vec<_>>();
 
-        let range = 3;
-        let direction = facing_orientation.0.to_vector() * range + position.0;
+        if target_entities.is_empty() {
+            // return error there if we dont want to play the projectile animation
+            //return Err(());
+            return Ok(vec![]);
+        }
 
-        orient_entity(world, self.caster, direction);
+        let result = target_entities
+            .iter()
+            .map(|target| {
+                Box::new(DamageAction {
+                    attacker: self.caster,
+                    target: target.0,
+                    value: self.projectile.damage,
+                }) as Box<dyn Action>
+            })
+            .collect::<Vec<_>>();
 
-        Ok(Vec::new())
+        Ok(result)
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

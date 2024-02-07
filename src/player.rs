@@ -142,6 +142,7 @@ fn take_action(
                 name: "Flamethrower".to_string(),
                 spell_type: SpellType::Projectile(ProjectileSpell {
                     visual_effect: "Flame_Wheel".to_string(),
+                    damage: 1,
                 }),
             },
         });

@@ -22,7 +22,7 @@ pub struct Occupier;
 
 #[derive(Component)]
 pub struct Health {
-    pub value: u32,
+    pub value: usize,
 }
 
 impl Health {
