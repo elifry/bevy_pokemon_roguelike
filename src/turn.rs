@@ -17,7 +17,7 @@ impl Plugin for TurnPlugin {
         app.init_resource::<TurnOrder>()
             .add_systems(
                 Update,
-                (add_actor_to_queue, turn_system)
+                (add_actor_to_queue, apply_deferred, turn_system)
                     .chain()
                     .in_set(GamePlayingSet::TurnLogics),
             )

@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     anim_data::AnimKey, animations::Animator, get_world_position, pokemons::PokemonAnimationState,
-    EFFECT_Z, POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
+    GraphicsWaitEvent, EFFECT_Z, POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
 };
 
 pub struct ActionAnimationPlugin;
@@ -40,8 +40,12 @@ impl Plugin for ActionAnimationPlugin {
             )
             .add_systems(
                 Update,
-                (move_animation, attack_animation, hurt_animation)
-                    .chain()
+                (
+                    move_animation,
+                    attack_animation,
+                    hurt_animation,
+                    projectile_animation,
+                )
                     .in_set(ActionAnimationSet::PlayAnimations),
             )
             .add_systems(
@@ -112,7 +116,9 @@ fn clean_up_animation(
     mut commands: Commands,
 ) {
     for ev in ev_animation_finished.read() {
-        commands.entity(ev.0).remove::<AnimationHolder>();
+        commands
+            .entity(ev.0)
+            .remove::<(AnimationHolder, RunningAction)>();
         let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
             continue;
         };
@@ -125,9 +131,11 @@ fn add_action_animation(
     mut commands: Commands,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
 ) {
     for (entity, position, running_action) in query.iter_mut() {
         ev_animation_playing.send(ActionAnimationPlayingEvent);
+        ev_graphics_wait.send(GraphicsWaitEvent);
 
         let action = running_action.0.as_any();
 
@@ -173,8 +181,6 @@ fn add_action_animation(
         } else {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
         }
-
-        commands.entity(entity).remove::<RunningAction>();
     }
 }
 
@@ -186,6 +192,7 @@ pub fn hurt_animation(
         &Animator,
     )>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
@@ -198,6 +205,7 @@ pub fn hurt_animation(
         }
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
+        ev_graphics_wait.send(GraphicsWaitEvent);
 
         if animator.is_finished() {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
@@ -213,6 +221,7 @@ pub fn attack_animation(
         &Animator,
     )>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
@@ -225,6 +234,7 @@ pub fn attack_animation(
         }
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
+        ev_graphics_wait.send(GraphicsWaitEvent);
 
         if animator.is_finished() {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
@@ -241,6 +251,7 @@ pub fn move_animation(
     )>,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
     for (mut animation, mut animation_state, mut transform, animator) in query.iter_mut() {
@@ -256,6 +267,8 @@ pub fn move_animation(
 
         if d > POSITION_TOLERANCE {
             ev_animation_playing.send(ActionAnimationPlayingEvent);
+            ev_graphics_wait.send(GraphicsWaitEvent);
+
             move_animation.t = (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
             transform.translation = move_animation
                 .from
@@ -270,5 +283,48 @@ pub fn move_animation(
             continue;
         }
         ev_animation_finished.send(ActionAnimationFinishedEvent(move_animation.entity));
+    }
+}
+
+pub fn projectile_animation(
+    mut query: Query<(
+        Entity,
+        &mut AnimationHolder,
+        &mut Effect,
+        &mut Transform,
+        &Animator,
+    )>,
+    time: Res<Time>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
+    mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut commands: Commands,
+) {
+    for (entity, mut animation, mut effect, mut transform, animator) in query.iter_mut() {
+        let AnimationHolder(ActionAnimation::Projectile(projectile_animation)) = animation.as_mut()
+        else {
+            continue;
+        };
+
+        let d = (projectile_animation.to - transform.translation).length();
+
+        if d > POSITION_TOLERANCE {
+            ev_animation_playing.send(ActionAnimationPlayingEvent);
+            ev_graphics_wait.send(GraphicsWaitEvent);
+
+            projectile_animation.t =
+                (projectile_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
+            transform.translation = projectile_animation
+                .from
+                .lerp(projectile_animation.to, projectile_animation.t);
+            continue;
+        }
+
+        // the entity is at the desired path position
+        transform.translation = projectile_animation.to;
+
+        ev_animation_finished.send(ActionAnimationFinishedEvent(projectile_animation.entity));
+
+        commands.entity(entity).despawn_recursive();
     }
 }

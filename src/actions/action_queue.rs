@@ -2,11 +2,7 @@ use std::collections::VecDeque;
 
 use bevy::prelude::*;
 
-use crate::{
-    actions::{ActionQueueProcessedEvent, RunningAction},
-    graphics::action_animation::ActionAnimationFinishedEvent,
-    pieces::Health,
-};
+use crate::{actions::RunningAction, pieces::Health};
 
 use super::{Action, ProcessingActionEvent};
 
@@ -20,23 +16,10 @@ pub struct QueuedAction {
 pub struct ActionQueue(pub VecDeque<QueuedAction>);
 
 pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Local<u32>) {
-    let mut ev_animation_finished = world.resource_mut::<Events<ActionAnimationFinishedEvent>>();
-    let mut animation_finished_reader = ev_animation_finished.get_reader();
+    let mut running_action_query = world.query_filtered::<Entity, With<RunningAction>>();
 
-    let mut processed = false;
-    for _ in animation_finished_reader.read(&ev_animation_finished) {
-        if *tracking_queue_animation > 0 {
-            *tracking_queue_animation = tracking_queue_animation.saturating_sub(1);
-
-            if *tracking_queue_animation == 0 {
-                processed = true;
-            }
-        }
-        info!("tracking queue {:?}", tracking_queue_animation);
-    }
-    ev_animation_finished.clear();
-
-    if *tracking_queue_animation > 0 {
+    if running_action_query.iter(world).next().is_some() {
+        world.send_event(ProcessingActionEvent);
         return;
     }
 
@@ -103,17 +86,5 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
         }
 
         apply_deferred(world);
-    }
-
-    if processed {
-        if world.resource::<ActionQueue>().0.is_empty() {
-            info!("Action queue processed");
-            world.send_event(ActionQueueProcessedEvent);
-        } else {
-            info!(
-                "Action queue couldn't processed, actions remaining {:?}",
-                world.resource::<ActionQueue>().0.len()
-            );
-        }
     }
 }

@@ -1,4 +1,7 @@
 use crate::{
+    graphics::{
+        action_animation::ActionAnimationSet, anim_data::AnimKey, pokemons::PokemonAnimationState,
+    },
     map::Position,
     pieces::{FacingOrientation, Orientation},
     vector2_int::Vector2Int,
@@ -30,6 +33,10 @@ impl Plugin for ActionsPlugin {
                 Update,
                 (process_action_queue).in_set(GamePlayingSet::Actions),
             );
+        // .add_systems(
+        //     Update,
+        //     handle_action_finished.in_set(ActionAnimationSet::Flush),
+        // );
     }
 }
 
@@ -52,7 +59,7 @@ pub struct NextActions(pub Vec<Box<dyn Action>>);
 pub struct ProcessingActionEvent;
 
 #[derive(Event, Debug)]
-pub struct ActionExecutedEvent(pub Box<dyn Action>);
+pub struct ActionExecutedEvent(Entity);
 
 #[derive(Event, Debug)]
 pub struct ActionQueueProcessedEvent;
@@ -69,3 +76,15 @@ pub fn orient_entity(world: &mut World, entity: Entity, target: Vector2Int) {
 
     facing_orientation.0 = Orientation::from_vector(direction);
 }
+
+// fn handle_action_finished(
+//     mut ev_animation_finished: EventReader<ActionExecutedEvent>,
+//     mut query_animation_state: Query<&mut PokemonAnimationState>,
+// ) {
+//     for ev in ev_animation_finished.read() {
+//         let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
+//             continue;
+//         };
+//         animation_state.0 = AnimKey::Idle;
+//     }
+// }

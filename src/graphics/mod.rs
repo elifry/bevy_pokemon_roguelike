@@ -13,7 +13,7 @@ pub mod anim_data;
 pub mod animations;
 pub mod assets;
 mod effects;
-mod pokemons;
+pub mod pokemons;
 pub mod tile_sprite_index;
 mod tiles;
 
