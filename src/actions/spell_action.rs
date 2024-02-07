@@ -21,6 +21,8 @@ impl Action for SpellAction {
             return Err(());
         };
 
+        let world: &mut World = world;
+
         let Ok((facing_orientation, position)) = world
             .query::<(&FacingOrientation, &Position)>()
             .get(world, self.caster)
@@ -28,16 +30,36 @@ impl Action for SpellAction {
             return Err(());
         };
 
-        let range = 2;
-        let direction = facing_orientation.0.to_vector() * range + position.0;
+        let max_range = 2;
+        let min_range = 1;
+        let vector_dir = facing_orientation.0.to_vector();
+        let position_vector = position.0;
 
+        let direction = vector_dir + position_vector;
         orient_entity(world, self.caster, direction);
+
+        let mut target: Vector2Int = vector_dir * max_range + position_vector;
+        for i in min_range..=max_range {
+            let test_position = vector_dir * i + position_vector;
+
+            let targetable_entities = world
+                .query_filtered::<(Entity, &Position), With<Health>>()
+                .iter(world)
+                .filter(|(_, p)| p.0 == test_position)
+                .collect::<Vec<_>>();
+
+            if targetable_entities.is_empty() {
+                continue;
+            }
+            target = test_position;
+            break;
+        }
 
         match &self.spell.spell_type {
             SpellType::Projectile(projectile_spell) => Ok(vec![Box::new(ProjectileAction {
                 caster: self.caster,
                 projectile: projectile_spell.clone(),
-                target: direction,
+                target,
             })]),
             _ => Ok(vec![]),
         }

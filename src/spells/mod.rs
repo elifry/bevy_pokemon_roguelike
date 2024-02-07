@@ -2,6 +2,7 @@
 pub struct ProjectileSpell {
     pub visual_effect: String,
     pub damage: usize,
+    pub range: usize,
 }
 
 #[derive(Debug, Clone)]
