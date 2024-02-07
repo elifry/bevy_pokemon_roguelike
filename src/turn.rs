@@ -75,7 +75,7 @@ pub fn turn_system(
 
 fn handle_actor_death(
     mut actor_queue: ResMut<TurnOrder>,
-    query_health: Query<(Entity, &Health), Without<AnimationHolder>>,
+    query_health: Query<(Entity, &Health)>,
     mut commands: Commands,
     mut ev_processing_action: EventReader<ProcessingActionEvent>,
 ) {

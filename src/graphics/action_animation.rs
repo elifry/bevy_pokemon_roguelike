@@ -76,8 +76,13 @@ pub enum ActionAnimation {
     Move(MoveAnimation),
     Projectile(ProjectileAnimation),
     Attack,
-    Hurt,
+    Hurt(HurtAnimation),
     Skip,
+}
+
+#[derive(Clone)]
+pub struct HurtAnimation {
+    pub attacker: Entity,
 }
 
 #[derive(Clone)]
@@ -150,7 +155,10 @@ fn add_action_animation(
             let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
             commands.entity(entity).insert(attack_animation);
         } else if let Some(action) = action.downcast_ref::<DamageAction>() {
-            let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Hurt);
+            let attack_animation: AnimationHolder =
+                AnimationHolder(ActionAnimation::Hurt(HurtAnimation {
+                    attacker: action.attacker,
+                }));
             commands.entity(action.target).insert(attack_animation);
         } else if let Some(_action) = action.downcast_ref::<DestroyWallAction>() {
             let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
@@ -196,7 +204,7 @@ pub fn hurt_animation(
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
-        let AnimationHolder(ActionAnimation::Hurt) = animation.as_mut() else {
+        let AnimationHolder(ActionAnimation::Hurt(hurt_animation)) = animation.as_mut() else {
             continue;
         };
 
@@ -208,7 +216,7 @@ pub fn hurt_animation(
         ev_graphics_wait.send(GraphicsWaitEvent);
 
         if animator.is_finished() {
-            ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
+            ev_animation_finished.send(ActionAnimationFinishedEvent(hurt_animation.attacker));
         }
     }
 }
