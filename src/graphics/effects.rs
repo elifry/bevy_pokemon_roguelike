@@ -56,6 +56,9 @@ fn spawn_effect_renderer(
                 effect_texture_info.texture_atlas.clone(),
                 frames,
                 effect.is_loop,
+                None,
+                None,
+                None,
             ),
             effect_texture_info.texture_atlas.clone(),
             TextureAtlasSprite {

@@ -39,6 +39,9 @@ pub struct Animator {
     pub timer: Timer,
     pub is_loop: bool,
     pub frames: Vec<AnimationFrame>,
+    pub return_frame: usize,
+    pub hit_frame: usize,
+    pub rush_frame: usize,
     is_finished: bool,
 }
 
@@ -47,17 +50,36 @@ impl Animator {
         texture_atlas: Handle<TextureAtlas>,
         frames: Vec<AnimationFrame>,
         is_loop: bool,
+        return_frame: Option<usize>,
+        hit_frame: Option<usize>,
+        rush_frame: Option<usize>,
     ) -> Self {
+        let last_frame = frames.len() - 1;
         Self {
             texture_atlas,
             frames,
             is_loop,
+            return_frame: return_frame.unwrap_or(last_frame),
+            hit_frame: hit_frame.unwrap_or(last_frame),
+            rush_frame: rush_frame.unwrap_or(0),
             ..default()
         }
     }
 
     pub fn is_finished(&self) -> bool {
         self.is_finished
+    }
+
+    pub fn is_hit_frame(&self) -> bool {
+        self.current_frame == self.hit_frame
+    }
+
+    pub fn is_rush_frame(&self) -> bool {
+        self.current_frame == self.rush_frame
+    }
+
+    pub fn is_return_frame(&self) -> bool {
+        self.current_frame == self.return_frame
     }
 }
 

@@ -28,7 +28,7 @@ pub const WALK_SPEED: f32 = 1.43;
 pub const PROJECTILE_SPEED: f32 = 1.8;
 pub const POSITION_TOLERANCE: f32 = 0.1;
 
-pub const FRAME_DURATION_MILLIS: i64 = 22;
+pub const FRAME_DURATION_MILLIS: i32 = 22;
 
 pub struct GraphicsPlugin;
 

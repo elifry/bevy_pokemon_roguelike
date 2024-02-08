@@ -26,7 +26,7 @@ impl Plugin for AnimDataPlugin {
 #[derive(Asset, TypePath, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct AnimData {
-    pub shadow_size: i64,
+    pub shadow_size: i32,
     pub anims: Anims,
 }
 
@@ -144,34 +144,34 @@ pub enum Anim {
 #[serde(rename_all = "PascalCase")]
 struct AnimRaw {
     name: AnimKey,
-    index: i64,
-    frame_width: Option<i64>,
-    frame_height: Option<i64>,
+    index: usize,
+    frame_width: Option<i32>,
+    frame_height: Option<i32>,
     durations: Option<Durations>,
     copy_of: Option<AnimKey>,
-    // rush_frame: Option<i64>,
-    // hit_frame: Option<i64>,
-    // return_frame: Option<i64>,
+    rush_frame: Option<usize>,
+    hit_frame: Option<usize>,
+    return_frame: Option<usize>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct AnimValue {
     pub name: AnimKey,
-    pub index: i64,
-    pub frame_width: i64,
-    pub frame_height: i64,
+    pub index: usize,
+    pub frame_width: i32,
+    pub frame_height: i32,
     pub durations: Durations,
-    // rush_frame: Option<i64>,
-    // hit_frame: Option<i64>,
-    // return_frame: Option<i64>,
+    pub rush_frame: Option<usize>,
+    pub hit_frame: Option<usize>,
+    pub return_frame: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct AnimCopyOf {
     name: AnimKey,
-    index: i64,
+    index: usize,
     copy_of: AnimKey,
 }
 
@@ -184,7 +184,7 @@ pub struct Durations {
 #[derive(Debug, Deserialize, Clone)]
 pub struct DurationValue {
     #[serde(rename = "$text")]
-    pub value: i64,
+    pub value: i32,
 }
 
 // Dirty hack for enum deserialize issue: https://github.com/tafia/quick-xml/issues/203
@@ -212,6 +212,9 @@ impl std::convert::TryFrom<AnimRaw> for Anim {
                 durations,
                 frame_width,
                 frame_height,
+                rush_frame: anim_raw.rush_frame,
+                hit_frame: anim_raw.hit_frame,
+                return_frame: anim_raw.return_frame,
             }));
         }
         Err("Anim is not AnimValue or AnimCopyOf.")

@@ -90,7 +90,7 @@ pub enum ActionAnimation {
     /* #region spells */
     Projectile(projectile_animation::ProjectileAnimation),
     SpellHit(spell_hit_animation::SpellHitAnimation),
-    SpellCast,
+    SpellCast(spell_cast_animation::SpellCastAnimation),
     /* #endregion */
     Move(move_animation::MoveAnimation),
     Attack,
@@ -152,9 +152,10 @@ fn add_action_animation(
                     .insert(hurt_animation::create_hurt_animation(action));
             }
             id if id == TypeId::of::<DestroyWallAction>() || id == TypeId::of::<SpellAction>() => {
+                let action = action.downcast_ref::<SpellAction>().unwrap();
                 commands
                     .entity(entity)
-                    .insert(AnimationHolder(ActionAnimation::SpellCast));
+                    .insert(spell_cast_animation::create_spell_cast_animation(action));
             }
             id if id == TypeId::of::<SpellProjectileAction>() => {
                 let action = action.downcast_ref::<SpellProjectileAction>().unwrap();

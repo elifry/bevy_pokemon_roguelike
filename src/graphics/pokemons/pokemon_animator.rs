@@ -49,5 +49,12 @@ pub fn get_pokemon_animator(
         return None;
     };
 
-    Some(Animator::new(texture_atlas.clone(), frames, is_loop))
+    Some(Animator::new(
+        texture_atlas.clone(),
+        frames,
+        is_loop,
+        anim_info.value().return_frame,
+        anim_info.value().hit_frame,
+        anim_info.value().rush_frame,
+    ))
 }
