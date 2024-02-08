@@ -50,7 +50,6 @@ pub fn move_animation(
     )>,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
-    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
@@ -67,7 +66,6 @@ pub fn move_animation(
 
         if d > POSITION_TOLERANCE {
             ev_animation_playing.send(ActionAnimationPlayingEvent);
-            ev_graphics_wait.send(GraphicsWaitEvent);
 
             move_animation.t = (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
             transform.translation = move_animation

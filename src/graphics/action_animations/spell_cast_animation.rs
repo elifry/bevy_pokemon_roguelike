@@ -29,7 +29,6 @@ pub fn spell_cast_animation(
         &Animator,
     )>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
-    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
@@ -44,6 +43,9 @@ pub fn spell_cast_animation(
 
         if animator.is_hit_frame() && !animation.hit_send {
             animation.hit_send = true;
+            // TODO: otherwise we can push a component on the entity
+            // Then simplify listen when this component is added to emit the next action
+            // Remove this component when action animation is finished
             ev_animation_next.send(ActionAnimationNextEvent(entity));
         }
 
@@ -54,6 +56,5 @@ pub fn spell_cast_animation(
         }
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
-        ev_graphics_wait.send(GraphicsWaitEvent);
     }
 }

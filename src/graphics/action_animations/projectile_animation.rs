@@ -57,7 +57,6 @@ pub fn projectile_animation(
     )>,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
-    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
@@ -72,7 +71,6 @@ pub fn projectile_animation(
 
         if d > POSITION_TOLERANCE {
             ev_animation_playing.send(ActionAnimationPlayingEvent);
-            ev_graphics_wait.send(GraphicsWaitEvent);
 
             projectile_animation.t =
                 (projectile_animation.t + PROJECTILE_SPEED * time.delta_seconds()).clamp(0., 1.);

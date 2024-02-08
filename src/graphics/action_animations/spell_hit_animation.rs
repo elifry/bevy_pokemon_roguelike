@@ -41,7 +41,6 @@ pub fn create_spell_hit_animation(
 pub fn spell_hit_animation(
     mut query: Query<(Entity, &mut AnimationHolder, &mut Effect, &Animator)>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
-    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
@@ -59,6 +58,5 @@ pub fn spell_hit_animation(
         }
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
-        ev_graphics_wait.send(GraphicsWaitEvent);
     }
 }

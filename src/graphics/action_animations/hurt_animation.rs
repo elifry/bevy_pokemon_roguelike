@@ -29,7 +29,6 @@ pub fn hurt_animation(
         &Animator,
     )>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
-    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
@@ -49,6 +48,5 @@ pub fn hurt_animation(
         }
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
-        ev_graphics_wait.send(GraphicsWaitEvent);
     }
 }
