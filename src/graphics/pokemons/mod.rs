@@ -15,7 +15,7 @@ use self::{
 };
 
 use super::{
-    action_animation::ActionAnimationSet,
+    action_animations::ActionAnimationSet,
     anim_data::{AnimData, AnimKey},
     assets::{AnimTextureType, PokemonAnimationAssets},
     POKEMON_Z, SHADOW_POKEMON_Z,

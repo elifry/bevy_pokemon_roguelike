@@ -3,12 +3,12 @@ use bevy::prelude::*;
 use crate::vector2_int::Vector2Int;
 
 use self::{
-    action_animation::ActionAnimationPlugin, anim_data::AnimDataPlugin,
+    action_animations::ActionAnimationPlugin, anim_data::AnimDataPlugin,
     animations::AnimationsPlugin, assets::AssetsPlugin, effects::EffectsPlugin,
     pokemons::PokemonPlugin, tiles::TilesPlugin,
 };
 
-pub mod action_animation;
+pub mod action_animations;
 pub mod anim_data;
 pub mod animations;
 pub mod assets;
@@ -25,6 +25,7 @@ pub const EFFECT_Z: f32 = 15.;
 pub const SHADOW_POKEMON_Z: f32 = -5.; // relative to `POKEMON_Z`
 
 pub const WALK_SPEED: f32 = 1.43;
+pub const PROJECTILE_SPEED: f32 = 1.8;
 pub const POSITION_TOLERANCE: f32 = 0.1;
 
 pub const FRAME_DURATION_MILLIS: i64 = 22;
