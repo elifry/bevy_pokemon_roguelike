@@ -13,11 +13,13 @@ use super::{
 #[derive(Clone, Default)]
 pub struct SpellCastAnimation {
     pub hit_send: bool,
+    pub cast_animation: AnimKey,
 }
 
-pub fn create_spell_cast_animation(_action: &SpellAction) -> AnimationHolder {
+pub fn create_spell_cast_animation(action: &SpellAction) -> AnimationHolder {
     AnimationHolder(ActionAnimation::SpellCast(SpellCastAnimation {
         hit_send: false,
+        cast_animation: action.spell.cast_animation,
     }))
 }
 
@@ -37,8 +39,8 @@ pub fn spell_cast_animation(
             continue;
         };
 
-        if animation_state.0 != AnimKey::Attack {
-            animation_state.0 = AnimKey::Attack;
+        if animation_state.0 != animation.cast_animation {
+            animation_state.0 = animation.cast_animation;
         }
 
         if animator.is_hit_frame() && !animation.hit_send {

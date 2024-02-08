@@ -1,5 +1,7 @@
 use std::ops::RangeInclusive;
 
+use crate::graphics::anim_data::AnimKey;
+
 #[derive(Debug, Clone)]
 pub struct ProjectileSpell {
     pub visual_effect: String,
@@ -22,4 +24,5 @@ pub struct Spell {
     pub range: RangeInclusive<i32>,
     pub spell_type: SpellType,
     pub hit: SpellHit,
+    pub cast_animation: AnimKey,
 }

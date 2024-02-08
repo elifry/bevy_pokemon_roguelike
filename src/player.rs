@@ -10,6 +10,7 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
+use crate::graphics::anim_data::AnimKey;
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::Pokemon;
@@ -148,6 +149,7 @@ fn take_action(
                     visual_effect: "Flamethrower".to_string(),
                     damage: 1,
                 },
+                cast_animation: AnimKey::Shoot,
             },
         });
         ev_action.send(PlayerActionEvent(vec![action]));

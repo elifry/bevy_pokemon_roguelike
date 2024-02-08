@@ -83,7 +83,7 @@ impl AnimInfo<'_> {
 #[derive(Debug, Deserialize)]
 #[serde(try_from = "AnimsRaw")]
 pub struct Anims {
-    anim: HashMap<AnimKey, Anim>,
+    pub anim: HashMap<AnimKey, Anim>,
 }
 
 #[derive(Debug, Deserialize)]

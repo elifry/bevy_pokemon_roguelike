@@ -85,6 +85,8 @@ fn process_pokemon_assets(
         let anim_to_load = vec![
             AnimKey::Idle,
             AnimKey::Walk,
+            AnimKey::Shoot,
+            AnimKey::Charge,
             AnimKey::Attack,
             AnimKey::Hurt,
             AnimKey::Swing,
@@ -132,7 +134,9 @@ fn get_texture_atlas_by_anim_key(
     hashmap_files: &mut HashMap<&str, &UntypedHandle>,
     texture_atlases: &mut ResMut<'_, Assets<TextureAtlas>>,
 ) -> Handle<TextureAtlas> {
-    let anim_key_str: &'static str = anim_key.into();
+    let anim_info = anim_data.get(anim_key);
+
+    let anim_key_str: &'static str = anim_info.value().name.into();
     let mut anim_file = anim_key_str.to_owned();
     anim_file.push_str(&format!("-{anim_texture_type}.png"));
 
@@ -144,8 +148,6 @@ fn get_texture_atlas_by_anim_key(
     else {
         panic!("Couldn't load the {anim_key} animation asset")
     };
-
-    let anim_info = anim_data.get(anim_key);
 
     let texture_atlas = TextureAtlas::from_grid(
         image_handle,
