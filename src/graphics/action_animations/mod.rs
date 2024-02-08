@@ -14,8 +14,13 @@ use crate::{
 };
 
 use super::{
-    anim_data::AnimKey, get_world_position, pokemons::PokemonAnimationState, GraphicsWaitEvent,
-    EFFECT_Z,
+    anim_data::AnimKey,
+    get_world_position,
+    pokemons::{
+        offsets::{PokemonHeadOffset, PokemonOffsets},
+        PokemonAnimationState,
+    },
+    GraphicsWaitEvent, EFFECT_Z,
 };
 
 mod attack_animation;
@@ -120,16 +125,22 @@ fn clean_up_animation(
 }
 
 fn add_action_animation(
-    mut query: Query<(Entity, &Position, &RunningAction), Added<RunningAction>>,
+    mut query: Query<(Entity, &Position, &RunningAction, &Children), Added<RunningAction>>,
+    query_head_offset: Query<&GlobalTransform, With<PokemonHeadOffset>>,
     mut commands: Commands,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
 ) {
-    for (entity, position, running_action) in query.iter_mut() {
+    for (entity, position, running_action, children) in query.iter_mut() {
         ev_animation_playing.send(ActionAnimationPlayingEvent);
         ev_graphics_wait.send(GraphicsWaitEvent);
+
+        let head_offset = children
+            .iter()
+            .filter_map(|&child| query_head_offset.get(child).ok())
+            .next();
 
         let action = running_action.0.as_any();
 
@@ -164,7 +175,11 @@ fn add_action_animation(
             }
             id if id == TypeId::of::<SpellProjectileAction>() => {
                 let action = action.downcast_ref::<SpellProjectileAction>().unwrap();
-                let from = get_world_position(&position.0, EFFECT_Z);
+                let from =
+                    head_offset.map_or(get_world_position(&position.0, EFFECT_Z), |offset| {
+                        let translation = offset.translation();
+                        Vec3::new(translation.x, translation.y, EFFECT_Z)
+                    });
                 commands.spawn(projectile_animation::create_projectile_animation(
                     action, from,
                 ));

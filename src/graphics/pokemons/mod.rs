@@ -1,15 +1,21 @@
-mod offsets;
+pub mod offsets;
 mod pokemon_animator;
 mod shadow;
 
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::{
+    prelude::*,
+    sprite::{Anchor, MaterialMesh2dBundle},
+};
 
 use crate::{
     map::Position, pieces::FacingOrientation, pokemons::Pokemon, GamePlayingSet, GameState,
 };
 
 use self::{
-    offsets::{debug_offsets, update_offsets, update_offsets_animator, PokemonOffsets},
+    offsets::{
+        debug_offsets, update_head_offset, update_offsets, update_offsets_animator,
+        PokemonHeadOffset, PokemonOffsets,
+    },
     pokemon_animator::get_pokemon_animator,
     shadow::{update_pokemon_shadow_renderer, update_shadow_animator, PokemonShadow},
 };
@@ -38,6 +44,7 @@ impl Plugin for PokemonPlugin {
                     update_shadow_animator,
                     update_offsets_animator,
                     apply_deferred,
+                    update_head_offset,
                     update_pokemon_shadow_renderer,
                 )
                     .chain()
@@ -97,6 +104,8 @@ fn spawn_pokemon_renderer(
     mut commands: Commands,
     assets: Res<PokemonAnimationAssets>,
     query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let default_state = AnimKey::Idle;
     for (entity, position, pokemon) in query.iter() {
@@ -144,6 +153,7 @@ fn spawn_pokemon_renderer(
                 };
 
                 parent.spawn((
+                    Name::new("Shadow"),
                     PokemonShadow::default(),
                     SpriteSheetBundle {
                         texture_atlas: shadow_texture_atlas.clone(),
@@ -151,6 +161,14 @@ fn spawn_pokemon_renderer(
                         transform: Transform::from_xyz(0., 0., SHADOW_POKEMON_Z),
                         ..default()
                     },
+                ));
+            })
+            // TODO: Spawn one children per offsets
+            .with_children(|parent| {
+                parent.spawn((
+                    Name::new("HeadOffset"),
+                    PokemonHeadOffset,
+                    SpatialBundle::default(),
                 ));
             })
             .with_children(|parent| {
@@ -171,6 +189,7 @@ fn spawn_pokemon_renderer(
                 };
 
                 parent.spawn((
+                    Name::new("Offsets"),
                     PokemonOffsets::default(),
                     SpriteSheetBundle {
                         texture_atlas: offsets_texture_atlas.clone(),

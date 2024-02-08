@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     actions::walk_action::WalkAction,
+    constants::GAME_SPEED,
     graphics::{
         anim_data::AnimKey, animations::Animator, get_world_position,
         pokemons::PokemonAnimationState, POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
@@ -67,7 +68,8 @@ pub fn move_animation(
         if d > POSITION_TOLERANCE {
             ev_animation_playing.send(ActionAnimationPlayingEvent);
 
-            move_animation.t = (move_animation.t + WALK_SPEED * time.delta_seconds()).clamp(0., 1.);
+            move_animation.t =
+                (move_animation.t + WALK_SPEED * time.delta_seconds() * GAME_SPEED).clamp(0., 1.);
             transform.translation = move_animation
                 .from
                 .lerp(move_animation.to, move_animation.t);

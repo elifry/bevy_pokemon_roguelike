@@ -14,11 +14,24 @@ use super::{pokemon_animator::get_pokemon_animator, AnimatorUpdatedEvent, Pokemo
 
 #[derive(Component, Default)]
 pub struct PokemonOffsets {
-    body: Vec2,  // Green
-    head: Vec2,  // Black
-    right: Vec2, // Blue
-    left: Vec2,  // Red
+    pub body: Vec2,  // Green
+    pub head: Vec2,  // Black
+    pub right: Vec2, // Blue
+    pub left: Vec2,  // Red
 }
+
+//
+#[derive(Component, Default)]
+pub struct PokemonHeadOffset;
+
+#[derive(Component, Default)]
+pub struct PokemonBodyOffset;
+
+#[derive(Component, Default)]
+pub struct PokemonLeftOffset;
+
+#[derive(Component, Default)]
+pub struct PokemonRightOffset;
 
 #[allow(clippy::type_complexity)]
 pub fn update_offsets_animator(
@@ -63,19 +76,38 @@ pub fn update_offsets_animator(
 
 /// Update the [`PokemonOffsets`] based on its current texture each new animation frame
 pub fn update_offsets(
-    mut query_offsets: Query<(&mut PokemonOffsets, &Handle<TextureAtlas>)>,
+    mut query_offsets: Query<(&mut PokemonOffsets, &Handle<TextureAtlas>, &Parent)>,
+    query_parent: Query<(&Pokemon, &PokemonAnimationState)>,
     mut ev_frame_changed: EventReader<AnimationFrameChangedEvent>,
     atlases: ResMut<Assets<TextureAtlas>>,
     images: ResMut<Assets<Image>>,
+    anim_data_assets: Res<Assets<AnimData>>,
+    pokemon_animation_assets: ResMut<PokemonAnimationAssets>,
 ) {
     for ev in ev_frame_changed.read() {
-        let Ok((mut offsets, texture_atlas_handle)) = query_offsets.get_mut(ev.entity) else {
+        let Ok((mut offsets, texture_atlas_handle, parent)) = query_offsets.get_mut(ev.entity)
+        else {
             continue;
         };
+
+        let Ok((pokemon, animation_state)) = query_parent.get(parent.get()) else {
+            continue;
+        };
+
+        let Some(pokemon_animation) = pokemon_animation_assets.0.get(pokemon) else {
+            continue;
+        };
+
+        let Some(anim_data) = anim_data_assets.get(&pokemon_animation.anim_data) else {
+            continue;
+        };
+
         let Some(atlas) = atlases.get(texture_atlas_handle) else {
             continue;
         };
+
         let image_handle = atlas.texture.clone();
+
         // get the image struct
         let Some(image) = images.get(&image_handle) else {
             continue;
@@ -85,6 +117,10 @@ pub fn update_offsets(
         let Some(texture) = atlas.textures.get(ev.frame.atlas_index) else {
             continue;
         };
+
+        let anim_info = anim_data.get(animation_state.0);
+
+        let tile_size = anim_info.tile_size();
 
         let atlas_image_width = image.texture_descriptor.size.width;
 
@@ -106,69 +142,68 @@ pub fn update_offsets(
                 let real_y = y as f32 - texture.min.y;
 
                 if red == 0 && green == 0 && blue == 0 && alpha == 255 {
-                    offsets.head = Vec2::new(real_x, real_y);
+                    offsets.head = calculate_offset(real_x, real_y, tile_size);
                 } else if green == 255 {
-                    offsets.body = Vec2::new(real_x, real_y);
+                    offsets.body = calculate_offset(real_x, real_y, tile_size);
                 } else if red == 255 {
-                    offsets.left = Vec2::new(real_x, real_y);
+                    offsets.left = calculate_offset(real_x, real_y, tile_size);
                 } else if blue == 255 {
-                    offsets.right = Vec2::new(real_x, real_y);
+                    offsets.right = calculate_offset(real_x, real_y, tile_size);
                 }
             }
         }
     }
 }
 
+fn calculate_offset(real_x: f32, real_y: f32, tile_size: Vec2) -> Vec2 {
+    let half_tile_size = tile_size / 2.;
+    let coordinates = Vec2::new(real_x, tile_size.y - real_y);
+    coordinates - Vec2::new(half_tile_size.x, half_tile_size.y)
+}
+
+pub fn update_head_offset(
+    mut query_head_offset: Query<(&Parent, &mut Transform), With<PokemonHeadOffset>>,
+    query_parent: Query<&Children, With<Pokemon>>,
+    query_offsets: Query<&mut PokemonOffsets>,
+) {
+    for (parent, mut transform) in query_head_offset.iter_mut() {
+        let Ok(children) = query_parent.get(parent.get()) else {
+            continue;
+        };
+        let Some(offsets) = children
+            .iter()
+            .filter_map(|&child| query_offsets.get(child).ok())
+            .next()
+        else {
+            continue;
+        };
+
+        transform.translation = Vec3::new(offsets.head.x, offsets.head.y, 1.);
+    }
+}
+
 pub fn debug_offsets(
-    query_offsets: Query<(&mut PokemonOffsets, &GlobalTransform, &Parent)>,
-    query_parent: Query<(&PokemonAnimationState, &Pokemon)>,
-    anim_data_assets: Res<Assets<AnimData>>,
-    pokemon_animation_assets: ResMut<PokemonAnimationAssets>,
+    query_offsets: Query<(&mut PokemonOffsets, &GlobalTransform)>,
     mut gizmos: Gizmos,
 ) {
-    for (offsets, global_transform, parent) in query_offsets.iter() {
-        let Ok((animation_state, pokemon)) = query_parent.get(**parent) else {
-            continue;
-        };
-        let Some(pokemon_animation) = pokemon_animation_assets.0.get(pokemon) else {
-            continue;
-        };
-        let Some(anim_data) = anim_data_assets.get(&pokemon_animation.anim_data) else {
-            continue;
-        };
-        let anim_info = anim_data.get(animation_state.0);
+    for (offsets, global_transform) in query_offsets.iter() {
         // Extract the base translation as Vec2 directly from the global_transform's x and y components
         let base_translation = Vec2::new(
             global_transform.translation().x,
             global_transform.translation().y,
         );
 
-        // Calculate the half tile size vector for adjustment
-        let half_tile_size = anim_info.tile_size() / 2.0;
-
         // Calculate the offset vector based on provided offsets and adjustments
-        let body_offset_vector =
-            Vec2::new(offsets.body.x, anim_info.tile_size().y - offsets.body.y);
-        let body_position = base_translation - half_tile_size + body_offset_vector;
-
+        let body_position = base_translation + offsets.body;
         gizmos.circle_2d(body_position + Vec2::new(0.5, 0.5), 1., Color::GREEN);
 
-        let head_offset_vector =
-            Vec2::new(offsets.head.x, anim_info.tile_size().y - offsets.head.y);
-        let head_position = base_translation - half_tile_size + head_offset_vector;
-
+        let head_position = base_translation + offsets.head;
         gizmos.circle_2d(head_position + Vec2::new(0.5, 0.5), 1., Color::BLACK);
 
-        let right_offset_vector =
-            Vec2::new(offsets.right.x, anim_info.tile_size().y - offsets.right.y);
-        let right_position = base_translation - half_tile_size + right_offset_vector;
-
+        let right_position = base_translation + offsets.right;
         gizmos.circle_2d(right_position + Vec2::new(0.5, 0.5), 1., Color::BLUE);
 
-        let left_offset_vector =
-            Vec2::new(offsets.left.x, anim_info.tile_size().y - offsets.left.y);
-        let left_position = base_translation - half_tile_size + left_offset_vector;
-
+        let left_position = base_translation + offsets.left;
         gizmos.circle_2d(left_position + Vec2::new(0.5, 0.5), 1., Color::RED);
     }
 }

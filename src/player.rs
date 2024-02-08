@@ -149,6 +149,8 @@ fn take_action(
                     visual_effect: "Flamethrower".to_string(),
                     damage: 1,
                 },
+                // Damage visual effect: Hit_Neutral
+                // Cast visual effect: Circle_Small_Blue_Out
                 cast_animation: AnimKey::Shoot,
             },
         });

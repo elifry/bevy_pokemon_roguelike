@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     actions::spell_projectile_action::SpellProjectileAction,
+    constants::GAME_SPEED,
     effects::Effect,
     graphics::{
         animations::Animator, get_world_position, EFFECT_Z, POSITION_TOLERANCE, PROJECTILE_SPEED,
@@ -64,8 +65,9 @@ pub fn projectile_animation(
         if d > POSITION_TOLERANCE {
             ev_animation_playing.send(ActionAnimationPlayingEvent);
 
-            projectile_animation.t =
-                (projectile_animation.t + PROJECTILE_SPEED * time.delta_seconds()).clamp(0., 1.);
+            projectile_animation.t = (projectile_animation.t
+                + PROJECTILE_SPEED * time.delta_seconds() * GAME_SPEED)
+                .clamp(0., 1.);
             transform.translation = projectile_animation
                 .from
                 .lerp(projectile_animation.to, projectile_animation.t);
