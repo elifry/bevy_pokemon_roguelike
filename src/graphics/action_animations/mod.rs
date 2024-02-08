@@ -6,23 +6,23 @@ use crate::{
     actions::{
         damage_action::DamageAction, destroy_wall_action::DestroyWallAction,
         melee_hit_action::MeleeHitAction, spell_action::SpellAction,
-        spell_projectile_action::SpellProjectileAction, walk_action::WalkAction, RunningAction,
+        spell_hit_action::SpellHitAction, spell_projectile_action::SpellProjectileAction,
+        walk_action::WalkAction, RunningAction,
     },
-    effects::Effect,
     map::Position,
-    vector2_int::Vector2Int,
     GamePlayingSet,
 };
 
 use super::{
     anim_data::AnimKey, get_world_position, pokemons::PokemonAnimationState, GraphicsWaitEvent,
-    EFFECT_Z, POKEMON_Z,
+    EFFECT_Z,
 };
 
 mod attack_animation;
 mod hurt_animation;
 mod move_animation;
 mod projectile_animation;
+mod spell_hit_animation;
 
 pub struct ActionAnimationPlugin;
 
@@ -52,12 +52,13 @@ impl Plugin for ActionAnimationPlugin {
                     attack_animation::attack_animation,
                     hurt_animation::hurt_animation,
                     projectile_animation::projectile_animation,
+                    spell_hit_animation::spell_hit_animation,
                 )
                     .in_set(ActionAnimationSet::PlayAnimations),
             )
             .add_systems(
                 Update,
-                (clean_up_animation,)
+                (clean_up_animation)
                     .chain()
                     .in_set(ActionAnimationSet::Flush),
             );
@@ -82,6 +83,7 @@ pub struct ActionAnimationFinishedEvent(pub Entity);
 pub enum ActionAnimation {
     Move(move_animation::MoveAnimation),
     Projectile(projectile_animation::ProjectileAnimation),
+    SpellHit(spell_hit_animation::SpellHitAnimation),
     Attack,
     Hurt(hurt_animation::HurtAnimation),
     Skip,
@@ -148,6 +150,13 @@ fn add_action_animation(
                 commands.spawn(projectile_animation::create_projectile_animation(
                     action, from,
                 ));
+            }
+            id if id == TypeId::of::<SpellHitAction>() => {
+                let action = action.downcast_ref::<SpellHitAction>().unwrap();
+
+                commands.entity(action.target).with_children(|parent| {
+                    parent.spawn(spell_hit_animation::create_spell_hit_animation(action));
+                });
             }
             _ => ev_animation_finished.send(ActionAnimationFinishedEvent(entity)),
         }

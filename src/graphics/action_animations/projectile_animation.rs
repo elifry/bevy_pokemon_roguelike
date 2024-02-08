@@ -17,7 +17,7 @@ use super::{
 
 #[derive(Clone)]
 pub struct ProjectileAnimation {
-    pub entity: Entity,
+    pub caster: Entity,
     pub to: Vec3,
     pub from: Vec3,
     t: f32,
@@ -32,13 +32,14 @@ pub fn create_projectile_animation(
         Name::new(action.projectile.visual_effect.to_string()),
         Effect {
             name: action.projectile.visual_effect.to_string(),
+            is_loop: true,
         },
         SpatialBundle {
             transform: Transform::from_translation(from),
             ..default()
         },
         AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
-            entity: action.caster,
+            caster: action.caster,
             to,
             from,
             t: 0.,
@@ -83,7 +84,7 @@ pub fn projectile_animation(
         // the entity is at the desired path position
         transform.translation = projectile_animation.to;
 
-        ev_animation_finished.send(ActionAnimationFinishedEvent(projectile_animation.entity));
+        ev_animation_finished.send(ActionAnimationFinishedEvent(projectile_animation.caster));
 
         commands.entity(entity).despawn_recursive();
     }

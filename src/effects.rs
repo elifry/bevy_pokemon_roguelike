@@ -14,6 +14,7 @@ impl Plugin for EffectsPlugin {
 #[derive(Component, Debug)]
 pub struct Effect {
     pub name: String,
+    pub is_loop: bool,
 }
 
 #[derive(Component, Debug, Hash, PartialEq, Eq, EnumString, Display, Copy, Clone)]

@@ -1,0 +1,61 @@
+use bevy::prelude::*;
+
+use crate::{
+    actions::spell_hit_action::SpellHitAction,
+    effects::Effect,
+    graphics::{animations::Animator, POSITION_TOLERANCE, PROJECTILE_SPEED},
+};
+
+use super::{
+    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationPlayingEvent, AnimationHolder,
+    GraphicsWaitEvent,
+};
+
+#[derive(Clone)]
+pub struct SpellHitAnimation {
+    pub target: Entity,
+    pub caster: Entity,
+}
+
+pub fn create_spell_hit_animation(
+    action: &SpellHitAction,
+) -> (Name, Effect, SpatialBundle, AnimationHolder) {
+    (
+        Name::new(action.hit.visual_effect.to_string()),
+        Effect {
+            name: action.hit.visual_effect.to_string(),
+            is_loop: false,
+        },
+        SpatialBundle {
+            // TODO: target the correct part of the pokemon
+            transform: Transform::from_translation(Vec3::new(0., 15., 0.)),
+            ..default()
+        },
+        AnimationHolder(ActionAnimation::SpellHit(SpellHitAnimation {
+            target: action.target,
+            caster: action.caster,
+        })),
+    )
+}
+
+pub fn spell_hit_animation(
+    mut query: Query<(Entity, &mut AnimationHolder, &mut Effect, &Animator)>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
+    mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut commands: Commands,
+) {
+    for (entity, mut animation, mut effect, animator) in query.iter_mut() {
+        let AnimationHolder(ActionAnimation::SpellHit(animation)) = animation.as_mut() else {
+            continue;
+        };
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+        ev_graphics_wait.send(GraphicsWaitEvent);
+
+        if animator.is_finished() {
+            ev_animation_finished.send(ActionAnimationFinishedEvent(animation.caster));
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+}
