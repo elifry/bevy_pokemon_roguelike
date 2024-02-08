@@ -13,7 +13,7 @@ use crate::actions::{Action, ActionQueueProcessedEvent, ProcessingActionEvent};
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::Pokemon;
-use crate::spells::{ProjectileSpell, Spell, SpellType};
+use crate::spells::{ProjectileSpell, Spell, SpellHit, SpellType};
 use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
@@ -143,8 +143,11 @@ fn take_action(
                 range: 1..=3,
                 spell_type: SpellType::Projectile(ProjectileSpell {
                     visual_effect: "Flamethrower_2".to_string(),
-                    damage: 1,
                 }),
+                hit: SpellHit {
+                    visual_effect: "Flamethrower".to_string(),
+                    damage: 1,
+                },
             },
         });
         ev_action.send(PlayerActionEvent(vec![action]));

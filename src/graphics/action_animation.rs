@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use crate::{
     actions::{
         damage_action::DamageAction, destroy_wall_action::DestroyWallAction,
-        melee_hit_action::MeleeHitAction, projectile_action::ProjectileAction,
-        spell_action::SpellAction, walk_action::WalkAction, RunningAction,
+        melee_hit_action::MeleeHitAction, spell_action::SpellAction,
+        spell_projectile_action::SpellProjectileAction, walk_action::WalkAction, RunningAction,
     },
     effects::Effect,
     map::Position,
@@ -166,7 +166,7 @@ fn add_action_animation(
         } else if let Some(action) = action.downcast_ref::<SpellAction>() {
             let attack_animation: AnimationHolder = AnimationHolder(ActionAnimation::Attack);
             commands.entity(entity).insert(attack_animation);
-        } else if let Some(action) = action.downcast_ref::<ProjectileAction>() {
+        } else if let Some(action) = action.downcast_ref::<SpellProjectileAction>() {
             let from = get_world_position(&position.0, EFFECT_Z);
             let projectile_animation: AnimationHolder =
                 AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {

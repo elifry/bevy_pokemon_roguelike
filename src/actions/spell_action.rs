@@ -7,7 +7,7 @@ use crate::{
     vector2_int::Vector2Int,
 };
 
-use super::{orient_entity, projectile_action::ProjectileAction, Action};
+use super::{orient_entity, spell_projectile_action::SpellProjectileAction, Action};
 
 #[derive(Debug, Clone)]
 pub struct SpellAction {
@@ -56,9 +56,10 @@ impl Action for SpellAction {
         }
 
         match &self.spell.spell_type {
-            SpellType::Projectile(projectile_spell) => Ok(vec![Box::new(ProjectileAction {
+            SpellType::Projectile(projectile_spell) => Ok(vec![Box::new(SpellProjectileAction {
                 caster: self.caster,
                 projectile: projectile_spell.clone(),
+                spell: self.spell.clone(),
                 target,
             })]),
             _ => Ok(vec![]),

@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use rand::{thread_rng, Rng};
 
 use crate::{
-    actions::{walk_action::WalkAction, Action, NextActions},
+    actions::{skip_action::SkipAction, walk_action::WalkAction, Action, NextActions},
     map::{GameMap, Position},
     pieces::Occupier,
     player::Player,
@@ -56,7 +56,7 @@ struct PossibleAction {
 
 fn spawn_npcs(mut commands: Commands) {
     // spawn_test_npc(&mut commands, Vector2Int::new(5, 5));
-    // spawn_test_npc(&mut commands, Vector2Int::new(4, 5));
+    spawn_test_npc(&mut commands, Vector2Int::new(4, 5));
 }
 
 fn spawn_test_npc(commands: &mut Commands, position: Vector2Int) {
@@ -76,7 +76,7 @@ fn npc_action(mut query: Query<(Entity, &mut PossibleActions), With<AI>>, mut co
 
         commands
             .entity(entity)
-            .insert(NextActions(possible_actions));
+            .insert(NextActions(vec![Box::new(SkipAction)]));
     }
 }
 

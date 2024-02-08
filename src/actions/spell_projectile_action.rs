@@ -1,17 +1,23 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Health, spells::ProjectileSpell, vector2_int::Vector2Int};
+use crate::{
+    map::Position,
+    pieces::Health,
+    spells::{ProjectileSpell, Spell},
+    vector2_int::Vector2Int,
+};
 
-use super::{damage_action::DamageAction, Action};
+use super::{damage_action::DamageAction, spell_hit_action::SpellHitAction, Action};
 
 #[derive(Debug, Clone)]
-pub struct ProjectileAction {
+pub struct SpellProjectileAction {
     pub caster: Entity,
+    pub spell: Spell,
     pub projectile: ProjectileSpell,
     pub target: Vector2Int,
 }
 
-impl Action for ProjectileAction {
+impl Action for SpellProjectileAction {
     fn execute(&self, world: &mut World) -> Result<Vec<Box<dyn Action>>, ()> {
         if !self.can_execute(world) {
             return Err(());
@@ -32,10 +38,10 @@ impl Action for ProjectileAction {
         let result = target_entities
             .iter()
             .map(|target| {
-                Box::new(DamageAction {
-                    attacker: self.caster,
+                Box::new(SpellHitAction {
+                    caster: self.caster,
                     target: target.0,
-                    value: self.projectile.damage,
+                    hit: self.spell.hit.clone(),
                 }) as Box<dyn Action>
             })
             .collect::<Vec<_>>();
