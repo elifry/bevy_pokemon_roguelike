@@ -11,7 +11,7 @@ use super::{orient_entity, Action};
 pub struct DamageAction {
     pub attacker: Entity,
     pub target: Entity,
-    pub value: usize,
+    pub value: i32,
 }
 
 impl Action for DamageAction {

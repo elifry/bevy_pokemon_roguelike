@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
-    pieces::{FacingOrientation, Health, Orientation, PieceDeathEvent},
+    pieces::{FacingOrientation, Health},
     spells::{Spell, SpellType},
     vector2_int::Vector2Int,
 };
@@ -30,17 +30,17 @@ impl Action for SpellAction {
             return Err(());
         };
 
-        let max_range = 2;
-        let min_range = 1;
-        let vector_dir = facing_orientation.0.to_vector();
+        let direction_vector = facing_orientation.0.to_vector();
         let position_vector = position.0;
 
-        let direction = vector_dir + position_vector;
+        let direction = direction_vector + position_vector;
         orient_entity(world, self.caster, direction);
 
-        let mut target: Vector2Int = vector_dir * max_range + position_vector;
-        for i in min_range..=max_range {
-            let test_position = vector_dir * i + position_vector;
+        let mut target: Vector2Int = direction_vector * *self.spell.range.end() + position_vector;
+
+        // Looks for any target in range of the spell
+        for i in self.spell.range.clone() {
+            let test_position = direction_vector * i + position_vector;
 
             let targetable_entities = world
                 .query_filtered::<(Entity, &Position), With<Health>>()

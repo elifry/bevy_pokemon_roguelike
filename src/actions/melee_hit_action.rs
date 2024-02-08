@@ -8,7 +8,7 @@ use super::{damage_action::DamageAction, orient_entity, Action};
 pub struct MeleeHitAction {
     pub attacker: Entity,
     pub target: Vector2Int,
-    pub damage: usize,
+    pub damage: i32,
 }
 
 impl Action for MeleeHitAction {

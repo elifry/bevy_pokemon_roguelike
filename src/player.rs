@@ -140,10 +140,10 @@ fn take_action(
             caster: entity,
             spell: Spell {
                 name: "Flamethrower".to_string(),
+                range: 1..=3,
                 spell_type: SpellType::Projectile(ProjectileSpell {
-                    visual_effect: "Flame_Wheel".to_string(),
+                    visual_effect: "Flamethrower_2".to_string(),
                     damage: 1,
-                    range: 2,
                 }),
             },
         });
