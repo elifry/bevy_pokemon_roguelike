@@ -7,7 +7,7 @@ use super::{
     ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
 };
 
-pub fn attack_animation(
+pub fn spell_cast_animation(
     mut query: Query<(
         Entity,
         &mut AnimationHolder,
@@ -20,7 +20,7 @@ pub fn attack_animation(
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
-        let AnimationHolder(ActionAnimation::Attack) = animation.as_mut() else {
+        let AnimationHolder(ActionAnimation::SpellCast) = animation.as_mut() else {
             continue;
         };
 

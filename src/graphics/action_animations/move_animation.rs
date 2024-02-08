@@ -10,8 +10,8 @@ use crate::{
 };
 
 use super::{
-    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationPlayingEvent, AnimationHolder,
-    GraphicsWaitEvent,
+    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
+    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
 };
 
 #[derive(Clone)]
@@ -52,6 +52,7 @@ pub fn move_animation(
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
     for (mut animation, mut animation_state, mut transform, animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Move(move_animation)) = animation.as_mut() else {
@@ -81,6 +82,8 @@ pub fn move_animation(
         if !animator.is_finished() {
             continue;
         }
+
         ev_animation_finished.send(ActionAnimationFinishedEvent(move_animation.entity));
+        ev_animation_next.send(ActionAnimationNextEvent(move_animation.entity));
     }
 }

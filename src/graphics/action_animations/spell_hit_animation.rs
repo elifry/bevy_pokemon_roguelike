@@ -7,8 +7,8 @@ use crate::{
 };
 
 use super::{
-    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationPlayingEvent, AnimationHolder,
-    GraphicsWaitEvent,
+    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
+    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
 };
 
 #[derive(Clone)]
@@ -43,6 +43,7 @@ pub fn spell_hit_animation(
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
 ) {
     for (entity, mut animation, mut effect, animator) in query.iter_mut() {
@@ -50,12 +51,14 @@ pub fn spell_hit_animation(
             continue;
         };
 
-        ev_animation_playing.send(ActionAnimationPlayingEvent);
-        ev_graphics_wait.send(GraphicsWaitEvent);
-
         if animator.is_finished() {
             ev_animation_finished.send(ActionAnimationFinishedEvent(animation.caster));
+            ev_animation_next.send(ActionAnimationNextEvent(animation.caster));
             commands.entity(entity).despawn_recursive();
+            continue;
         }
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+        ev_graphics_wait.send(GraphicsWaitEvent);
     }
 }

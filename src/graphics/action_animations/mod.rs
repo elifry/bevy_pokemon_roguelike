@@ -22,6 +22,7 @@ mod attack_animation;
 mod hurt_animation;
 mod move_animation;
 mod projectile_animation;
+mod spell_cast_animation;
 mod spell_hit_animation;
 
 pub struct ActionAnimationPlugin;
@@ -30,6 +31,7 @@ impl Plugin for ActionAnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ActionAnimationPlayingEvent>()
             .add_event::<ActionAnimationFinishedEvent>()
+            .add_event::<ActionAnimationNextEvent>()
             .configure_sets(
                 Update,
                 (
@@ -53,6 +55,7 @@ impl Plugin for ActionAnimationPlugin {
                     hurt_animation::hurt_animation,
                     projectile_animation::projectile_animation,
                     spell_hit_animation::spell_hit_animation,
+                    spell_cast_animation::spell_cast_animation,
                 )
                     .in_set(ActionAnimationSet::PlayAnimations),
             )
@@ -77,13 +80,19 @@ pub enum ActionAnimationSet {
 pub struct ActionAnimationPlayingEvent;
 
 #[derive(Event, Debug)]
+pub struct ActionAnimationNextEvent(pub Entity);
+
+#[derive(Event, Debug)]
 pub struct ActionAnimationFinishedEvent(pub Entity);
 
 #[derive(Clone)]
 pub enum ActionAnimation {
-    Move(move_animation::MoveAnimation),
+    /* #region spells */
     Projectile(projectile_animation::ProjectileAnimation),
     SpellHit(spell_hit_animation::SpellHitAnimation),
+    SpellCast,
+    /* #endregion */
+    Move(move_animation::MoveAnimation),
     Attack,
     Hurt(hurt_animation::HurtAnimation),
     Skip,
@@ -94,13 +103,15 @@ pub struct AnimationHolder(pub ActionAnimation);
 
 fn clean_up_animation(
     mut ev_animation_finished: EventReader<ActionAnimationFinishedEvent>,
+    mut ev_animation_next: EventReader<ActionAnimationNextEvent>,
     mut query_animation_state: Query<&mut PokemonAnimationState>,
     mut commands: Commands,
 ) {
+    for ev in ev_animation_next.read() {
+        commands.entity(ev.0).remove::<RunningAction>();
+    }
     for ev in ev_animation_finished.read() {
-        commands
-            .entity(ev.0)
-            .remove::<(AnimationHolder, RunningAction)>();
+        commands.entity(ev.0).remove::<AnimationHolder>();
         let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
             continue;
         };
@@ -113,6 +124,7 @@ fn add_action_animation(
     mut commands: Commands,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
 ) {
     for (entity, position, running_action) in query.iter_mut() {
@@ -142,7 +154,7 @@ fn add_action_animation(
             id if id == TypeId::of::<DestroyWallAction>() || id == TypeId::of::<SpellAction>() => {
                 commands
                     .entity(entity)
-                    .insert(AnimationHolder(ActionAnimation::Attack));
+                    .insert(AnimationHolder(ActionAnimation::SpellCast));
             }
             id if id == TypeId::of::<SpellProjectileAction>() => {
                 let action = action.downcast_ref::<SpellProjectileAction>().unwrap();
@@ -158,7 +170,10 @@ fn add_action_animation(
                     parent.spawn(spell_hit_animation::create_spell_hit_animation(action));
                 });
             }
-            _ => ev_animation_finished.send(ActionAnimationFinishedEvent(entity)),
+            _ => {
+                ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
+                ev_animation_next.send(ActionAnimationNextEvent(entity));
+            }
         }
     }
 }

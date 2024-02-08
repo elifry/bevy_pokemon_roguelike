@@ -6,8 +6,8 @@ use crate::{
 };
 
 use super::{
-    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationPlayingEvent, AnimationHolder,
-    GraphicsWaitEvent,
+    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
+    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
 };
 
 #[derive(Clone)]
@@ -31,6 +31,7 @@ pub fn hurt_animation(
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
     for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Hurt(hurt_animation)) = animation.as_mut() else {
@@ -41,11 +42,13 @@ pub fn hurt_animation(
             animation_state.0 = AnimKey::Hurt;
         }
 
-        ev_animation_playing.send(ActionAnimationPlayingEvent);
-        ev_graphics_wait.send(GraphicsWaitEvent);
-
         if animator.is_finished() {
             ev_animation_finished.send(ActionAnimationFinishedEvent(hurt_animation.attacker));
+            ev_animation_next.send(ActionAnimationNextEvent(hurt_animation.attacker));
+            continue;
         }
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+        ev_graphics_wait.send(GraphicsWaitEvent);
     }
 }

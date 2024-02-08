@@ -11,8 +11,8 @@ use crate::{
 };
 
 use super::{
-    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationPlayingEvent, AnimationHolder,
-    GraphicsWaitEvent,
+    ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
+    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
 };
 
 #[derive(Clone)]
@@ -59,6 +59,7 @@ pub fn projectile_animation(
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
+    mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
 ) {
     for (entity, mut animation, mut effect, mut transform, animator) in query.iter_mut() {
@@ -84,8 +85,9 @@ pub fn projectile_animation(
         // the entity is at the desired path position
         transform.translation = projectile_animation.to;
 
-        ev_animation_finished.send(ActionAnimationFinishedEvent(projectile_animation.caster));
-
         commands.entity(entity).despawn_recursive();
+
+        ev_animation_finished.send(ActionAnimationFinishedEvent(projectile_animation.caster));
+        ev_animation_next.send(ActionAnimationNextEvent(projectile_animation.caster));
     }
 }
