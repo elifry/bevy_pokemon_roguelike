@@ -1,14 +1,12 @@
 use bevy::prelude::*;
 
 use crate::{
-    actions::spell_hit_action::SpellHitAction,
-    effects::Effect,
-    graphics::{animations::Animator, POSITION_TOLERANCE, PROJECTILE_SPEED},
+    actions::spell_hit_action::SpellHitAction, effects::Effect, graphics::animations::Animator,
 };
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
+    ActionAnimationPlayingEvent, AnimationHolder,
 };
 
 #[derive(Clone)]
@@ -39,13 +37,13 @@ pub fn create_spell_hit_animation(
 }
 
 pub fn spell_hit_animation(
-    mut query: Query<(Entity, &mut AnimationHolder, &mut Effect, &Animator)>,
+    mut query: Query<(Entity, &mut AnimationHolder, &Animator), With<Effect>>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
 ) {
-    for (entity, mut animation, mut effect, animator) in query.iter_mut() {
+    for (entity, mut animation, animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::SpellHit(animation)) = animation.as_mut() else {
             continue;
         };

@@ -4,7 +4,7 @@ use crate::graphics::{anim_data::AnimKey, animations::Animator, pokemons::Pokemo
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
+    ActionAnimationPlayingEvent, AnimationHolder,
 };
 
 pub fn attack_animation(

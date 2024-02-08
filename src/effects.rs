@@ -1,14 +1,10 @@
 use bevy::prelude::*;
 use strum::{Display, EnumString};
 
-use crate::{map::Position, vector2_int::Vector2Int, GameState};
-
 pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Initializing), spawn_test_effect);
-    }
+    fn build(&self, _app: &mut App) {}
 }
 
 #[derive(Component, Debug)]
@@ -151,14 +147,4 @@ enum _Effect {
     /// Charge Beam
     #[strum(serialize = "0215")]
     _0215,
-}
-
-fn spawn_test_effect(mut commands: Commands) {
-    // commands.spawn((
-    //     Name::new("TestEffect"),
-    //     Effect {
-    //         name: "Flame_Wheel".to_string(),
-    //     },
-    //     Position(Vector2Int::new(3, 3)),
-    // ));
 }

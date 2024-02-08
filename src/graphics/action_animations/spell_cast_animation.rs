@@ -7,7 +7,7 @@ use crate::{
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
+    ActionAnimationPlayingEvent, AnimationHolder,
 };
 
 #[derive(Clone, Default)]

@@ -7,7 +7,7 @@ use crate::{
     vector2_int::Vector2Int,
 };
 
-use super::{damage_action::DamageAction, spell_hit_action::SpellHitAction, Action};
+use super::{spell_hit_action::SpellHitAction, Action};
 
 #[derive(Debug, Clone)]
 pub struct SpellProjectileAction {
@@ -57,7 +57,7 @@ impl Action for SpellProjectileAction {
         false
     }
 
-    fn can_execute(&self, world: &mut World) -> bool {
+    fn can_execute(&self, _world: &mut World) -> bool {
         true
     }
 }

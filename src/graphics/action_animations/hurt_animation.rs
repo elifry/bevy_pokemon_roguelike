@@ -7,7 +7,7 @@ use crate::{
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
+    ActionAnimationPlayingEvent, AnimationHolder,
 };
 
 #[derive(Clone)]
@@ -22,17 +22,12 @@ pub fn create_hurt_animation(action: &DamageAction) -> AnimationHolder {
 }
 
 pub fn hurt_animation(
-    mut query: Query<(
-        Entity,
-        &mut AnimationHolder,
-        &mut PokemonAnimationState,
-        &Animator,
-    )>,
+    mut query: Query<(&mut AnimationHolder, &mut PokemonAnimationState, &Animator)>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
-    for (entity, mut animation, mut animation_state, animator) in query.iter_mut() {
+    for (mut animation, mut animation_state, animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Hurt(hurt_animation)) = animation.as_mut() else {
             continue;
         };

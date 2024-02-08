@@ -27,7 +27,7 @@ fn spawn_effect_renderer(
     texture_atlases: Res<Assets<TextureAtlas>>,
     query: Query<(Entity, &Effect, &Transform), Added<Effect>>,
 ) {
-    for (entity, effect, transform) in query.iter() {
+    for (entity, effect, _transform) in query.iter() {
         let Some(effect_texture_info) = visual_effect_assets.0.get(&effect.name).cloned() else {
             warn!("Visual effect texture not found for {}", effect.name);
             continue;

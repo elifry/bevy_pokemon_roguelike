@@ -74,6 +74,7 @@ fn npc_action(mut query: Query<(Entity, &mut PossibleActions), With<AI>>, mut co
             .map(|possible_action| possible_action.action)
             .collect::<Vec<_>>();
 
+        // TODO: replace with possible_actions
         commands
             .entity(entity)
             .insert(NextActions(vec![Box::new(SkipAction)]));

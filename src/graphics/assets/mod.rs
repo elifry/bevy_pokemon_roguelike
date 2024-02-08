@@ -11,7 +11,7 @@ pub mod visual_effect_assets;
 pub use self::pokemon_assets::*;
 use self::visual_effect_assets::VisualEffectAssetsFolder;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
-pub use self::visual_effect_assets::*;
+
 
 pub struct AssetsPlugin;
 

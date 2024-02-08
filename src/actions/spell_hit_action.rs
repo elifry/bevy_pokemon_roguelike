@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Health, spells::SpellHit};
+use crate::{spells::SpellHit};
 
 use super::{damage_action::DamageAction, Action};
 
@@ -32,7 +32,7 @@ impl Action for SpellHitAction {
         false
     }
 
-    fn can_execute(&self, world: &mut World) -> bool {
+    fn can_execute(&self, _world: &mut World) -> bool {
         true
     }
 }

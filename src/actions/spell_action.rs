@@ -74,7 +74,7 @@ impl Action for SpellAction {
         false
     }
 
-    fn can_execute(&self, world: &mut World) -> bool {
+    fn can_execute(&self, _world: &mut World) -> bool {
         true
     }
 }

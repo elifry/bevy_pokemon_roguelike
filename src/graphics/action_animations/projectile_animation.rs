@@ -4,15 +4,13 @@ use crate::{
     actions::spell_projectile_action::SpellProjectileAction,
     effects::Effect,
     graphics::{
-        anim_data::AnimKey, animations::Animator, get_world_position,
-        pokemons::PokemonAnimationState, EFFECT_Z, POSITION_TOLERANCE, PROJECTILE_SPEED,
-        WALK_SPEED,
+        animations::Animator, get_world_position, EFFECT_Z, POSITION_TOLERANCE, PROJECTILE_SPEED,
     },
 };
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder, GraphicsWaitEvent,
+    ActionAnimationPlayingEvent, AnimationHolder,
 };
 
 #[derive(Clone)]
@@ -48,20 +46,14 @@ pub fn create_projectile_animation(
 }
 
 pub fn projectile_animation(
-    mut query: Query<(
-        Entity,
-        &mut AnimationHolder,
-        &mut Effect,
-        &mut Transform,
-        &Animator,
-    )>,
+    mut query: Query<(Entity, &mut AnimationHolder, &mut Transform, &Animator), With<Effect>>,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
 ) {
-    for (entity, mut animation, mut effect, mut transform, animator) in query.iter_mut() {
+    for (entity, mut animation, mut transform, _animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Projectile(projectile_animation)) = animation.as_mut()
         else {
             continue;

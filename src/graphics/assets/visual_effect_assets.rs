@@ -41,7 +41,6 @@ fn process_effect_assets(
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     textures: Res<Assets<Image>>,
-    mut commands: Commands,
 ) {
     let folder: &LoadedFolder = match loaded_folder_assets.get(&visual_effect_assets_folder.0) {
         Some(folder) => folder,
