@@ -151,7 +151,12 @@ fn add_action_animation(
                     .entity(action.target)
                     .insert(hurt_animation::create_hurt_animation(action));
             }
-            id if id == TypeId::of::<DestroyWallAction>() || id == TypeId::of::<SpellAction>() => {
+            id if id == TypeId::of::<DestroyWallAction>() => {
+                commands
+                    .entity(entity)
+                    .insert(AnimationHolder(ActionAnimation::Attack));
+            }
+            id if id == TypeId::of::<SpellAction>() => {
                 let action = action.downcast_ref::<SpellAction>().unwrap();
                 commands
                     .entity(entity)
