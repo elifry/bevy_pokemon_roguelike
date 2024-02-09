@@ -1,18 +1,35 @@
 use bevy::prelude::*;
 
 use crate::{
-    actions::spell_projectile_action::SpellProjectileAction,
+    actions::{spell_projectile_action::SpellProjectileAction, RunningAction},
     constants::GAME_SPEED,
     effects::Effect,
     graphics::{
-        animations::Animator, get_world_position, EFFECT_Z, POSITION_TOLERANCE, PROJECTILE_SPEED,
+        animations::Animator, get_world_position, pokemons::offsets::PokemonHeadOffset, EFFECT_Z,
+        POSITION_TOLERANCE, PROJECTILE_SPEED,
     },
+    map::Position,
 };
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder,
+    ActionAnimationPlayingEvent, ActionAnimationSet, AnimationHolder,
 };
+
+pub struct ProjectileAnimationPlugin;
+
+impl Plugin for ProjectileAnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (init_projectile_animation).in_set(ActionAnimationSet::Prepare),
+        )
+        .add_systems(
+            Update,
+            (projectile_animation).in_set(ActionAnimationSet::PlayAnimations),
+        );
+    }
+}
 
 #[derive(Clone)]
 pub struct ProjectileAnimation {
@@ -22,31 +39,52 @@ pub struct ProjectileAnimation {
     t: f32,
 }
 
-pub fn create_projectile_animation(
-    action: &SpellProjectileAction,
-    from: Vec3,
-) -> (Name, Effect, SpatialBundle, AnimationHolder) {
-    let to = get_world_position(&action.target, EFFECT_Z);
-    (
-        Name::new(action.projectile.visual_effect.to_string()),
-        Effect {
-            name: action.projectile.visual_effect.to_string(),
-            is_loop: true,
-        },
-        SpatialBundle {
-            transform: Transform::from_translation(from),
-            ..default()
-        },
-        AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
-            caster: action.caster,
-            to,
-            from,
-            t: 0.,
-        })),
-    )
+fn init_projectile_animation(
+    query: Query<(Entity, &RunningAction, &Position, &Children), Added<RunningAction>>,
+    query_head_offset: Query<&GlobalTransform, With<PokemonHeadOffset>>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut commands: Commands,
+) {
+    for (entity, running_action, position, children) in query.iter() {
+        let action = running_action.0.as_any();
+        let Some(spell_projectile_action) = action.downcast_ref::<SpellProjectileAction>() else {
+            continue;
+        };
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+
+        let head_offset = children
+            .iter()
+            .filter_map(|&child| query_head_offset.get(child).ok())
+            .next();
+
+        let from = head_offset.map_or(get_world_position(&position.0, EFFECT_Z), |offset| {
+            let translation = offset.translation();
+            Vec3::new(translation.x, translation.y, EFFECT_Z)
+        });
+        let to = get_world_position(&spell_projectile_action.target, EFFECT_Z);
+
+        commands.spawn((
+            Name::new(spell_projectile_action.projectile.visual_effect.to_string()),
+            Effect {
+                name: spell_projectile_action.projectile.visual_effect.to_string(),
+                is_loop: true,
+            },
+            SpatialBundle {
+                transform: Transform::from_translation(from),
+                ..default()
+            },
+            AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
+                caster: spell_projectile_action.caster,
+                to,
+                from,
+                t: 0.,
+            })),
+        ));
+    }
 }
 
-pub fn projectile_animation(
+fn projectile_animation(
     mut query: Query<(Entity, &mut AnimationHolder, &mut Transform, &Animator), With<Effect>>,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,

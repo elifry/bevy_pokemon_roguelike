@@ -3,25 +3,17 @@ use std::any::TypeId;
 use bevy::prelude::*;
 
 use crate::{
-    actions::{
-        damage_action::DamageAction, destroy_wall_action::DestroyWallAction,
-        melee_hit_action::MeleeHitAction, spell_action::SpellAction,
-        spell_hit_action::SpellHitAction, spell_projectile_action::SpellProjectileAction,
-        walk_action::WalkAction, RunningAction,
-    },
-    map::Position,
+    actions::{skip_action::SkipAction, RunningAction},
     GamePlayingSet,
 };
 
-use super::{
-    anim_data::AnimKey,
-    get_world_position,
-    pokemons::{
-        offsets::{PokemonHeadOffset, PokemonOffsets},
-        PokemonAnimationState,
-    },
-    GraphicsWaitEvent, EFFECT_Z,
+use self::{
+    attack_animation::AttackAnimationPlugin, hurt_animation::HurtAnimationPlugin,
+    move_animation::MoveAnimationPlugin, projectile_animation::ProjectileAnimationPlugin,
+    spell_cast_animation::SpellCastAnimationPlugin, spell_hit_animation::SpellHitAnimationPlugin,
 };
+
+use super::{anim_data::AnimKey, pokemons::PokemonAnimationState};
 
 mod attack_animation;
 mod hurt_animation;
@@ -37,6 +29,14 @@ impl Plugin for ActionAnimationPlugin {
         app.add_event::<ActionAnimationPlayingEvent>()
             .add_event::<ActionAnimationFinishedEvent>()
             .add_event::<ActionAnimationNextEvent>()
+            .add_plugins((
+                AttackAnimationPlugin,
+                HurtAnimationPlugin,
+                MoveAnimationPlugin,
+                ProjectileAnimationPlugin,
+                SpellCastAnimationPlugin,
+                SpellHitAnimationPlugin,
+            ))
             .configure_sets(
                 Update,
                 (
@@ -51,18 +51,6 @@ impl Plugin for ActionAnimationPlugin {
             .add_systems(
                 Update,
                 (add_action_animation).in_set(ActionAnimationSet::Prepare),
-            )
-            .add_systems(
-                Update,
-                (
-                    move_animation::move_animation,
-                    attack_animation::attack_animation,
-                    hurt_animation::hurt_animation,
-                    projectile_animation::projectile_animation,
-                    spell_hit_animation::spell_hit_animation,
-                    spell_cast_animation::spell_cast_animation,
-                )
-                    .in_set(ActionAnimationSet::PlayAnimations),
             )
             .add_systems(
                 Update,
@@ -100,11 +88,10 @@ pub enum ActionAnimation {
     Move(move_animation::MoveAnimation),
     Attack,
     Hurt(hurt_animation::HurtAnimation),
-    Skip,
 }
 
 #[derive(Component)]
-pub struct AnimationHolder(pub ActionAnimation);
+struct AnimationHolder(pub ActionAnimation);
 
 fn clean_up_animation(
     mut ev_animation_finished: EventReader<ActionAnimationFinishedEvent>,
@@ -126,76 +113,20 @@ fn clean_up_animation(
 }
 
 fn add_action_animation(
-    mut query: Query<(Entity, &Position, &RunningAction, &Children), Added<RunningAction>>,
-    query_head_offset: Query<&GlobalTransform, With<PokemonHeadOffset>>,
-    mut commands: Commands,
-    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    query: Query<(Entity, &RunningAction), Added<RunningAction>>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
-    mut ev_graphics_wait: EventWriter<GraphicsWaitEvent>,
 ) {
-    for (entity, position, running_action, children) in query.iter_mut() {
-        ev_animation_playing.send(ActionAnimationPlayingEvent);
-        ev_graphics_wait.send(GraphicsWaitEvent);
-
-        let head_offset = children
-            .iter()
-            .filter_map(|&child| query_head_offset.get(child).ok())
-            .next();
-
+    for (entity, running_action) in query.iter() {
+        // ev_animation_playing.send(ActionAnimationPlayingEvent);
         let action = running_action.0.as_any();
-
+        // TODO: move somewhere else
         match action.type_id() {
-            id if id == TypeId::of::<WalkAction>() => {
-                let action = action.downcast_ref::<WalkAction>().unwrap();
-                commands
-                    .entity(entity)
-                    .insert(move_animation::create_move_animation(action));
-            }
-            id if id == TypeId::of::<MeleeHitAction>() => {
-                commands
-                    .entity(entity)
-                    .insert(AnimationHolder(ActionAnimation::Attack));
-            }
-            id if id == TypeId::of::<DamageAction>() => {
-                let action = action.downcast_ref::<DamageAction>().unwrap();
-                commands
-                    .entity(action.target)
-                    .insert(hurt_animation::create_hurt_animation(action));
-            }
-            id if id == TypeId::of::<DestroyWallAction>() => {
-                commands
-                    .entity(entity)
-                    .insert(AnimationHolder(ActionAnimation::Attack));
-            }
-            id if id == TypeId::of::<SpellAction>() => {
-                let action = action.downcast_ref::<SpellAction>().unwrap();
-                commands
-                    .entity(entity)
-                    .insert(spell_cast_animation::create_spell_cast_animation(action));
-            }
-            id if id == TypeId::of::<SpellProjectileAction>() => {
-                let action = action.downcast_ref::<SpellProjectileAction>().unwrap();
-                let from =
-                    head_offset.map_or(get_world_position(&position.0, EFFECT_Z), |offset| {
-                        let translation = offset.translation();
-                        Vec3::new(translation.x, translation.y, EFFECT_Z)
-                    });
-                commands.spawn(projectile_animation::create_projectile_animation(
-                    action, from,
-                ));
-            }
-            id if id == TypeId::of::<SpellHitAction>() => {
-                let action = action.downcast_ref::<SpellHitAction>().unwrap();
-
-                commands.entity(action.target).with_children(|parent| {
-                    parent.spawn(spell_hit_animation::create_spell_hit_animation(action));
-                });
-            }
-            _ => {
+            id if id == TypeId::of::<SkipAction>() => {
                 ev_animation_finished.send(ActionAnimationFinishedEvent(entity));
                 ev_animation_next.send(ActionAnimationNextEvent(entity));
             }
+            _ => {}
         }
     }
 }

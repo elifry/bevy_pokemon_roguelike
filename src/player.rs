@@ -14,7 +14,7 @@ use crate::graphics::anim_data::AnimKey;
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
 use crate::pokemons::Pokemon;
-use crate::spells::{ProjectileSpell, Spell, SpellHit, SpellType};
+use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
 use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
@@ -149,9 +149,11 @@ fn take_action(
                     visual_effect: "Flamethrower".to_string(),
                     damage: 1,
                 },
-                // Damage visual effect: Hit_Neutral
-                // Cast visual effect: Circle_Small_Blue_Out
-                cast_animation: AnimKey::Shoot,
+                cast: SpellCast {
+                    visual_effect: "Circle_Small_Blue_Out".to_string(),
+                    animation: AnimKey::Shoot,
+                }, // Damage visual effect: Hit_Neutral
+                   // Cast visual effect: Circle_Small_Blue_Out
             },
         });
         ev_action.send(PlayerActionEvent(vec![action]));

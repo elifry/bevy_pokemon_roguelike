@@ -1,19 +1,35 @@
 use bevy::prelude::*;
 
 use crate::{
-    actions::walk_action::WalkAction,
+    actions::{walk_action::WalkAction, RunningAction},
     constants::GAME_SPEED,
     graphics::{
         anim_data::AnimKey, animations::Animator, get_world_position,
         pokemons::PokemonAnimationState, POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
     },
+    map::Position,
     vector2_int::Vector2Int,
 };
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder,
+    ActionAnimationPlayingEvent, ActionAnimationSet, AnimationHolder,
 };
+
+pub struct MoveAnimationPlugin;
+
+impl Plugin for MoveAnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (init_move_animation).in_set(ActionAnimationSet::Prepare),
+        )
+        .add_systems(
+            Update,
+            (move_animation).in_set(ActionAnimationSet::PlayAnimations),
+        );
+    }
+}
 
 #[derive(Clone)]
 pub struct MoveAnimation {
@@ -34,15 +50,31 @@ impl MoveAnimation {
     }
 }
 
-pub fn create_move_animation(action: &WalkAction) -> AnimationHolder {
-    AnimationHolder(ActionAnimation::Move(MoveAnimation::new(
-        action.entity,
-        action.from,
-        action.to,
-    )))
+fn init_move_animation(
+    mut query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut commands: Commands,
+) {
+    for (entity, running_action) in query.iter_mut() {
+        let action = running_action.0.as_any();
+        let Some(walk_action) = action.downcast_ref::<WalkAction>() else {
+            continue;
+        };
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+
+        commands.entity(entity).insert((
+            AnimationHolder(ActionAnimation::Move(MoveAnimation::new(
+                walk_action.entity,
+                walk_action.from,
+                walk_action.to,
+            ))),
+            PokemonAnimationState(AnimKey::Walk),
+        ));
+    }
 }
 
-pub fn move_animation(
+fn move_animation(
     mut query: Query<(
         &mut AnimationHolder,
         &mut PokemonAnimationState,
@@ -58,10 +90,6 @@ pub fn move_animation(
         let AnimationHolder(ActionAnimation::Move(move_animation)) = animation.as_mut() else {
             continue;
         };
-
-        if move_animation.t == 0. {
-            animation_state.0 = AnimKey::Walk;
-        }
 
         let d = (move_animation.to - transform.translation).length();
 

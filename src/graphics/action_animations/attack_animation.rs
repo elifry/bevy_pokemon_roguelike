@@ -1,13 +1,55 @@
 use bevy::prelude::*;
 
-use crate::graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState};
+use crate::{
+    actions::{
+        destroy_wall_action::DestroyWallAction, melee_hit_action::MeleeHitAction, RunningAction,
+    },
+    graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState},
+};
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder,
+    ActionAnimationPlayingEvent, ActionAnimationSet, AnimationHolder,
 };
 
-pub fn attack_animation(
+pub struct AttackAnimationPlugin;
+
+impl Plugin for AttackAnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (init_attack_animation).in_set(ActionAnimationSet::Prepare),
+        )
+        .add_systems(
+            Update,
+            (attack_animation).in_set(ActionAnimationSet::PlayAnimations),
+        );
+    }
+}
+
+fn init_attack_animation(
+    query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut commands: Commands,
+) {
+    for (entity, running_action) in query.iter() {
+        let action = running_action.0.as_any();
+        if action.downcast_ref::<MeleeHitAction>().is_none()
+            && action.downcast_ref::<DestroyWallAction>().is_none()
+        {
+            continue;
+        }
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+
+        commands.entity(entity).insert((
+            AnimationHolder(ActionAnimation::Attack),
+            PokemonAnimationState(AnimKey::Attack),
+        ));
+    }
+}
+
+fn attack_animation(
     mut query: Query<(
         Entity,
         &mut AnimationHolder,
@@ -22,10 +64,6 @@ pub fn attack_animation(
         let AnimationHolder(ActionAnimation::Attack) = animation.as_mut() else {
             continue;
         };
-
-        if animation_state.0 != AnimKey::Attack {
-            animation_state.0 = AnimKey::Attack;
-        }
 
         if animator.is_finished() {
             ev_animation_finished.send(ActionAnimationFinishedEvent(entity));

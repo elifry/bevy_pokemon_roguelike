@@ -1,29 +1,62 @@
 use bevy::prelude::*;
 
 use crate::{
-    actions::spell_action::SpellAction,
+    actions::{damage_action::DamageAction, spell_action::SpellAction, RunningAction},
     graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState},
+    spells::SpellCast,
 };
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder,
+    ActionAnimationPlayingEvent, ActionAnimationSet, AnimationHolder,
 };
 
-#[derive(Clone, Default)]
+pub struct SpellCastAnimationPlugin;
+
+impl Plugin for SpellCastAnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (init_spell_cast_animation).in_set(ActionAnimationSet::Prepare),
+        )
+        .add_systems(
+            Update,
+            (spell_cast_animation).in_set(ActionAnimationSet::PlayAnimations),
+        );
+    }
+}
+
+#[derive(Clone)]
 pub struct SpellCastAnimation {
     pub hit_send: bool,
-    pub cast_animation: AnimKey,
+    pub spell_cast: SpellCast,
 }
 
-pub fn create_spell_cast_animation(action: &SpellAction) -> AnimationHolder {
-    AnimationHolder(ActionAnimation::SpellCast(SpellCastAnimation {
-        hit_send: false,
-        cast_animation: action.spell.cast_animation,
-    }))
+fn init_spell_cast_animation(
+    query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut commands: Commands,
+) {
+    for (entity, running_action) in query.iter() {
+        let action = running_action.0.as_any();
+        let Some(spell_action) = action.downcast_ref::<SpellAction>() else {
+            continue;
+        };
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+
+        commands
+            .entity(entity)
+            .insert(AnimationHolder(ActionAnimation::SpellCast(
+                SpellCastAnimation {
+                    hit_send: false,
+                    spell_cast: spell_action.spell.cast.clone(),
+                },
+            )));
+    }
 }
 
-pub fn spell_cast_animation(
+fn spell_cast_animation(
     mut query: Query<(
         Entity,
         &mut AnimationHolder,
@@ -39,8 +72,8 @@ pub fn spell_cast_animation(
             continue;
         };
 
-        if animation_state.0 != animation.cast_animation {
-            animation_state.0 = animation.cast_animation;
+        if animation_state.0 != animation.spell_cast.animation {
+            animation_state.0 = animation.spell_cast.animation;
         }
 
         if animator.is_hit_frame() && !animation.hit_send {

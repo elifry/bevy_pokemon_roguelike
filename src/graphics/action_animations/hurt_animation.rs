@@ -1,27 +1,58 @@
 use bevy::prelude::*;
 
 use crate::{
-    actions::damage_action::DamageAction,
+    actions::{damage_action::DamageAction, RunningAction},
     graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState},
 };
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
-    ActionAnimationPlayingEvent, AnimationHolder,
+    ActionAnimationPlayingEvent, ActionAnimationSet, AnimationHolder,
 };
+
+pub struct HurtAnimationPlugin;
+
+impl Plugin for HurtAnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (init_hurt_animation).in_set(ActionAnimationSet::Prepare),
+        )
+        .add_systems(
+            Update,
+            (hurt_animation).in_set(ActionAnimationSet::PlayAnimations),
+        );
+    }
+}
 
 #[derive(Clone)]
 pub struct HurtAnimation {
     pub attacker: Entity,
 }
 
-pub fn create_hurt_animation(action: &DamageAction) -> AnimationHolder {
-    AnimationHolder(ActionAnimation::Hurt(HurtAnimation {
-        attacker: action.attacker,
-    }))
+fn init_hurt_animation(
+    query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
+    mut commands: Commands,
+) {
+    for (entity, running_action) in query.iter() {
+        let action = running_action.0.as_any();
+        let Some(damage_action) = action.downcast_ref::<DamageAction>() else {
+            continue;
+        };
+
+        ev_animation_playing.send(ActionAnimationPlayingEvent);
+
+        commands.entity(damage_action.target).insert((
+            AnimationHolder(ActionAnimation::Hurt(HurtAnimation {
+                attacker: damage_action.attacker,
+            })),
+            PokemonAnimationState(AnimKey::Hurt),
+        ));
+    }
 }
 
-pub fn hurt_animation(
+fn hurt_animation(
     mut query: Query<(&mut AnimationHolder, &mut PokemonAnimationState, &Animator)>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
@@ -31,10 +62,6 @@ pub fn hurt_animation(
         let AnimationHolder(ActionAnimation::Hurt(hurt_animation)) = animation.as_mut() else {
             continue;
         };
-
-        if animation_state.0 != AnimKey::Hurt {
-            animation_state.0 = AnimKey::Hurt;
-        }
 
         if animator.is_finished() {
             ev_animation_finished.send(ActionAnimationFinishedEvent(hurt_animation.attacker));

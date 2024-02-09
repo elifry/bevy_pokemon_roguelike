@@ -19,10 +19,16 @@ pub struct SpellHit {
 }
 
 #[derive(Debug, Clone)]
+pub struct SpellCast {
+    pub visual_effect: String,
+    pub animation: AnimKey,
+}
+
+#[derive(Debug, Clone)]
 pub struct Spell {
     pub name: String,
     pub range: RangeInclusive<i32>,
     pub spell_type: SpellType,
     pub hit: SpellHit,
-    pub cast_animation: AnimKey,
+    pub cast: SpellCast,
 }
