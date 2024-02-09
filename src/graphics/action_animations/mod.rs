@@ -121,7 +121,7 @@ fn clean_up_animation(
             continue;
         };
         info!("animation finished");
-        // animation_state.0 = AnimKey::Idle;
+        animation_state.0 = AnimKey::Idle;
     }
 }
 

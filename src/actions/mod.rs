@@ -31,10 +31,6 @@ impl Plugin for ActionsPlugin {
                 Update,
                 (process_action_queue).in_set(GamePlayingSet::Actions),
             );
-        // .add_systems(
-        //     Update,
-        //     handle_action_finished.in_set(ActionAnimationSet::Flush),
-        // );
     }
 }
 
@@ -74,15 +70,3 @@ pub fn orient_entity(world: &mut World, entity: Entity, target: Vector2Int) {
 
     facing_orientation.0 = Orientation::from_vector(direction);
 }
-
-// fn handle_action_finished(
-//     mut ev_animation_finished: EventReader<ActionExecutedEvent>,
-//     mut query_animation_state: Query<&mut PokemonAnimationState>,
-// ) {
-//     for ev in ev_animation_finished.read() {
-//         let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
-//             continue;
-//         };
-//         animation_state.0 = AnimKey::Idle;
-//     }
-// }
