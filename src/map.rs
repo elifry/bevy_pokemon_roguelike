@@ -22,15 +22,15 @@ impl GameMap {
     pub fn new() -> Self {
         let mut tiles: HashMap<Vector2Int, TileType> = HashMap::new();
 
-        for x in 4..8 {
-            for y in 1..8 {
+        for x in 4..20 {
+            for y in 1..20 {
                 let position = Vector2Int::new(x, y);
                 tiles.insert(position, TileType::Ground);
             }
         }
 
         for x in 0..11 {
-            for y in 0..11 {
+            for y in 0..22 {
                 let position = Vector2Int::new(x, y);
                 tiles.entry(position).or_insert(TileType::Wall);
             }

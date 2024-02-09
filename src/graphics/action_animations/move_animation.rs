@@ -77,13 +77,14 @@ pub fn move_animation(
         }
 
         // the entity is at the desired path position
-        transform.translation = move_animation.to;
+        // transform.translation = move_animation.to;
+
+        ev_animation_next.send(ActionAnimationNextEvent(move_animation.entity));
 
         if !animator.is_finished() {
             continue;
         }
 
         ev_animation_finished.send(ActionAnimationFinishedEvent(move_animation.entity));
-        ev_animation_next.send(ActionAnimationNextEvent(move_animation.entity));
     }
 }

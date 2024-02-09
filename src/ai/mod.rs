@@ -56,7 +56,7 @@ struct PossibleAction {
 
 fn spawn_npcs(mut commands: Commands) {
     // spawn_test_npc(&mut commands, Vector2Int::new(5, 5));
-    spawn_test_npc(&mut commands, Vector2Int::new(4, 5));
+    // spawn_test_npc(&mut commands, Vector2Int::new(4, 5));
 }
 
 fn spawn_test_npc(commands: &mut Commands, position: Vector2Int) {

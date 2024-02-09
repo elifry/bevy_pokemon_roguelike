@@ -66,7 +66,7 @@ impl Plugin for ActionAnimationPlugin {
             )
             .add_systems(
                 Update,
-                (clean_up_animation)
+                (clean_up_animation, apply_deferred)
                     .chain()
                     .in_set(ActionAnimationSet::Flush),
             );
@@ -120,7 +120,8 @@ fn clean_up_animation(
         let Ok(mut animation_state) = query_animation_state.get_mut(ev.0) else {
             continue;
         };
-        animation_state.0 = AnimKey::Idle;
+        info!("animation finished");
+        // animation_state.0 = AnimKey::Idle;
     }
 }
 

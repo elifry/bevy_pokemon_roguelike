@@ -1,11 +1,8 @@
 use std::collections::VecDeque;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::info};
 
-use crate::{
-    actions::RunningAction,
-    pieces::Health,
-};
+use crate::{actions::RunningAction, pieces::Health};
 
 use super::{Action, ProcessingActionEvent};
 
