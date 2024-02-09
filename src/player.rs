@@ -150,7 +150,7 @@ fn take_action(
                     damage: 1,
                 },
                 cast: SpellCast {
-                    visual_effect: "Circle_Small_Blue_Out".to_string(),
+                    visual_effect: "Circle_Small_Blue_In".to_string(),
                     animation: AnimKey::Shoot,
                 }, // Damage visual effect: Hit_Neutral
                    // Cast visual effect: Circle_Small_Blue_Out

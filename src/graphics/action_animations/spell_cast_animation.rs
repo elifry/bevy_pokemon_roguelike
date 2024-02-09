@@ -2,7 +2,13 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{damage_action::DamageAction, spell_action::SpellAction, RunningAction},
-    graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState},
+    effects::Effect,
+    graphics::{
+        anim_data::AnimKey,
+        animations::Animator,
+        effects::AutoDespawnEffect,
+        pokemons::{offsets::PokemonHeadOffset, PokemonAnimationState},
+    },
     spells::SpellCast,
 };
 
@@ -33,15 +39,22 @@ pub struct SpellCastAnimation {
 }
 
 fn init_spell_cast_animation(
-    query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    query: Query<(Entity, &RunningAction, &Children), Added<RunningAction>>,
+    query_head_offset: Query<Entity, With<PokemonHeadOffset>>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut commands: Commands,
 ) {
-    for (entity, running_action) in query.iter() {
+    for (entity, running_action, children) in query.iter() {
         let action = running_action.0.as_any();
         let Some(spell_action) = action.downcast_ref::<SpellAction>() else {
             continue;
         };
+
+        let target_entity_cast_effect = children
+            .iter()
+            .filter_map(|&child| query_head_offset.get(child).ok())
+            .next()
+            .unwrap_or(entity);
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
 
@@ -53,6 +66,19 @@ fn init_spell_cast_animation(
                     spell_cast: spell_action.spell.cast.clone(),
                 },
             )));
+        commands
+            .entity(target_entity_cast_effect)
+            .with_children(|parent| {
+                parent.spawn((
+                    Name::new(spell_action.spell.cast.visual_effect.to_string()),
+                    Effect {
+                        name: spell_action.spell.cast.visual_effect.to_string(),
+                        is_loop: false,
+                    },
+                    AutoDespawnEffect,
+                    SpatialBundle::default(),
+                ));
+            });
     }
 }
 

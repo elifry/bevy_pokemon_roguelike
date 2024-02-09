@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use crate::{constants::GAME_SPEED, effects::Effect, GameState};
 
 use super::{
-    animations::{AnimationFrame, Animator},
+    animations::{AnimationFinished, AnimationFrame, Animator},
     assets::visual_effect_assets::VisualEffectAssets,
     FRAME_DURATION_MILLIS,
 };
@@ -16,10 +16,13 @@ impl Plugin for EffectsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_effect_renderer).run_if(in_state(GameState::Playing)),
+            (spawn_effect_renderer, auto_despawn_effect).run_if(in_state(GameState::Playing)),
         );
     }
 }
+
+#[derive(Component)]
+pub struct AutoDespawnEffect;
 
 fn spawn_effect_renderer(
     mut commands: Commands,
@@ -69,19 +72,18 @@ fn spawn_effect_renderer(
     }
 }
 
-// Should despawn effect be handle by the user function?
-// fn despawn_effect(
-//     query: Query<(&Animator), With<Effect>>,
-//     mut ev_animation_finished: EventReader<AnimationFinished>,
-//     mut commands: Commands,
-// ) {
-//     for ev in ev_animation_finished.read() {
-//         let Ok(animator) = query.get(ev.0) else {
-//             continue;
-//         };
+fn auto_despawn_effect(
+    query: Query<&Animator, (With<Effect>, With<AutoDespawnEffect>)>,
+    mut ev_animation_finished: EventReader<AnimationFinished>,
+    mut commands: Commands,
+) {
+    for ev in ev_animation_finished.read() {
+        let Ok(animator) = query.get(ev.0) else {
+            continue;
+        };
 
-//         if animator.is_finished() {
-//             commands.entity(ev.0).despawn_recursive();
-//         }
-//     }
-// }
+        if animator.is_finished() {
+            commands.entity(ev.0).despawn_recursive();
+        }
+    }
+}
