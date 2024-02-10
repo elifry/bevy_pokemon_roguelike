@@ -6,8 +6,8 @@ use bevy::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
-use effects::EffectsPlugin;
 use graphics::GraphicsPlugin;
+use visual_effects::VisualEffectsPlugin;
 
 use map::MapPlugin;
 use menu::MenuPlugin;
@@ -19,7 +19,6 @@ mod actions;
 mod ai;
 mod camera;
 mod constants;
-mod effects;
 mod graphics;
 mod map;
 mod menu;
@@ -30,6 +29,7 @@ pub mod spells;
 mod turn;
 pub mod utils;
 mod vector2_int;
+mod visual_effects;
 
 // This example game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
@@ -89,7 +89,7 @@ impl Plugin for GamePlugin {
                 AIPlugin,
                 ActionsPlugin,
                 TurnPlugin,
-                EffectsPlugin,
+                VisualEffectsPlugin,
             ));
 
         #[cfg(debug_assertions)]

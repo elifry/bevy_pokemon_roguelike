@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{spell_hit_action::SpellHitAction, RunningAction},
-    effects::Effect,
     graphics::animations::Animator,
+    visual_effects::VisualEffect,
 };
 
 use super::{
@@ -50,7 +50,7 @@ fn init_spell_hit_animation(
             .with_children(|parent| {
                 parent.spawn((
                     Name::new(spell_hit_action.hit.visual_effect.to_string()),
-                    Effect {
+                    VisualEffect {
                         name: spell_hit_action.hit.visual_effect,
                         is_loop: false,
                     },
@@ -69,7 +69,7 @@ fn init_spell_hit_animation(
 }
 
 fn spell_hit_animation(
-    mut query: Query<(Entity, &mut AnimationHolder, &Animator), With<Effect>>,
+    mut query: Query<(Entity, &mut AnimationHolder, &Animator), With<VisualEffect>>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,

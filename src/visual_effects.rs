@@ -1,14 +1,14 @@
 use bevy::prelude::*;
 use strum::{Display, EnumString};
 
-pub struct EffectsPlugin;
+pub struct VisualEffectsPlugin;
 
-impl Plugin for EffectsPlugin {
+impl Plugin for VisualEffectsPlugin {
     fn build(&self, _app: &mut App) {}
 }
 
 #[derive(Component, Debug)]
-pub struct Effect {
+pub struct VisualEffect {
     pub name: &'static str,
     pub is_loop: bool,
 }

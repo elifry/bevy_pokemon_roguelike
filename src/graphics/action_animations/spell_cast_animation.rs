@@ -2,14 +2,14 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{damage_action::DamageAction, spell_action::SpellAction, RunningAction},
-    effects::Effect,
     graphics::{
         anim_data::AnimKey,
         animations::Animator,
-        effects::AutoDespawnEffect,
         pokemons::{offsets::PokemonHeadOffset, PokemonAnimationState},
+        visual_effects::AutoDespawnEffect,
     },
     spells::SpellCast,
+    visual_effects::VisualEffect,
 };
 
 use super::{
@@ -72,7 +72,7 @@ fn init_spell_cast_animation(
                 // Visual Effect
                 parent.spawn((
                     Name::new(spell_action.spell.cast.visual_effect.to_string()),
-                    Effect {
+                    VisualEffect {
                         name: spell_action.spell.cast.visual_effect,
                         is_loop: false,
                     },

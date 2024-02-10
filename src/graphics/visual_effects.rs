@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{constants::GAME_SPEED, effects::Effect, GameState};
+use crate::{constants::GAME_SPEED, visual_effects::VisualEffect, GameState};
 
 use super::{
     animations::{AnimationFinished, AnimationFrame, Animator},
@@ -10,13 +10,14 @@ use super::{
     FRAME_DURATION_MILLIS,
 };
 
-pub struct EffectsPlugin;
+pub struct VisualEffectsPlugin;
 
-impl Plugin for EffectsPlugin {
+impl Plugin for VisualEffectsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_effect_renderer, auto_despawn_effect).run_if(in_state(GameState::Playing)),
+            (spawn_visual_effect_renderer, auto_despawn_effect)
+                .run_if(in_state(GameState::Playing)),
         );
     }
 }
@@ -24,11 +25,11 @@ impl Plugin for EffectsPlugin {
 #[derive(Component)]
 pub struct AutoDespawnEffect;
 
-fn spawn_effect_renderer(
+fn spawn_visual_effect_renderer(
     mut commands: Commands,
     visual_effect_assets: Res<VisualEffectAssets>,
     texture_atlases: Res<Assets<TextureAtlas>>,
-    query: Query<(Entity, &Effect, &Transform), Added<Effect>>,
+    query: Query<(Entity, &VisualEffect, &Transform), Added<VisualEffect>>,
 ) {
     for (entity, effect, _transform) in query.iter() {
         let Some(effect_texture_info) = visual_effect_assets.0.get(effect.name).cloned() else {
@@ -72,8 +73,9 @@ fn spawn_effect_renderer(
     }
 }
 
+// TODO: maybe make it more generic to be used with other animator
 fn auto_despawn_effect(
-    query: Query<&Animator, (With<Effect>, With<AutoDespawnEffect>)>,
+    query: Query<&Animator, (With<VisualEffect>, With<AutoDespawnEffect>)>,
     mut ev_animation_finished: EventReader<AnimationFinished>,
     mut commands: Commands,
 ) {

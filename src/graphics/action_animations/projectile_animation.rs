@@ -3,12 +3,12 @@ use bevy::prelude::*;
 use crate::{
     actions::{spell_projectile_action::SpellProjectileAction, RunningAction},
     constants::GAME_SPEED,
-    effects::Effect,
     graphics::{
         animations::Animator, get_world_position, pokemons::offsets::PokemonHeadOffset, EFFECT_Z,
         POSITION_TOLERANCE, PROJECTILE_SPEED,
     },
     map::Position,
+    visual_effects::VisualEffect,
 };
 
 use super::{
@@ -66,7 +66,7 @@ fn init_projectile_animation(
 
         commands.spawn((
             Name::new(spell_projectile_action.projectile.visual_effect.to_string()),
-            Effect {
+            VisualEffect {
                 name: spell_projectile_action.projectile.visual_effect,
                 is_loop: true,
             },
@@ -85,7 +85,7 @@ fn init_projectile_animation(
 }
 
 fn projectile_animation(
-    mut query: Query<(Entity, &mut AnimationHolder, &mut Transform, &Animator), With<Effect>>,
+    mut query: Query<(Entity, &mut AnimationHolder, &mut Transform, &Animator), With<VisualEffect>>,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,

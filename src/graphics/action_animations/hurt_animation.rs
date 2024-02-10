@@ -2,13 +2,13 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{damage_action::DamageAction, RunningAction},
-    effects::Effect,
     graphics::{
         anim_data::AnimKey,
         animations::Animator,
-        effects::AutoDespawnEffect,
         pokemons::{offsets::PokemonBodyOffset, PokemonAnimationState},
+        visual_effects::AutoDespawnEffect,
     },
+    visual_effects::VisualEffect,
 };
 
 use super::{
@@ -73,7 +73,7 @@ fn init_hurt_animation(
                 // Visual Effect
                 parent.spawn((
                     Name::new("Hit_Neutral"),
-                    Effect {
+                    VisualEffect {
                         name: "Hit_Neutral",
                         is_loop: false,
                     },
