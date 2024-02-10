@@ -31,7 +31,7 @@ fn spawn_effect_renderer(
     query: Query<(Entity, &Effect, &Transform), Added<Effect>>,
 ) {
     for (entity, effect, _transform) in query.iter() {
-        let Some(effect_texture_info) = visual_effect_assets.0.get(&effect.name).cloned() else {
+        let Some(effect_texture_info) = visual_effect_assets.0.get(effect.name).cloned() else {
             warn!("Visual effect texture not found for {}", effect.name);
             continue;
         };

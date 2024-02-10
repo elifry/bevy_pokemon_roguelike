@@ -13,8 +13,8 @@ use crate::{
 
 use self::{
     offsets::{
-        debug_offsets, update_head_offset, update_offsets, update_offsets_animator,
-        PokemonHeadOffset, PokemonOffsets,
+        debug_offsets, update_body_offset, update_head_offset, update_offsets,
+        update_offsets_animator, PokemonBodyOffset, PokemonHeadOffset, PokemonOffsets,
     },
     pokemon_animator::get_pokemon_animator,
     shadow::{update_pokemon_shadow_renderer, update_shadow_animator, PokemonShadow},
@@ -45,6 +45,7 @@ impl Plugin for PokemonPlugin {
                     update_offsets_animator,
                     apply_deferred,
                     update_head_offset,
+                    update_body_offset,
                     update_pokemon_shadow_renderer,
                 )
                     .chain()
@@ -104,8 +105,6 @@ fn spawn_pokemon_renderer(
     mut commands: Commands,
     assets: Res<PokemonAnimationAssets>,
     query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let default_state = AnimKey::Idle;
     for (entity, position, pokemon) in query.iter() {
@@ -163,11 +162,17 @@ fn spawn_pokemon_renderer(
                     },
                 ));
             })
-            // TODO: Spawn one children per offsets
             .with_children(|parent| {
                 parent.spawn((
                     Name::new("HeadOffset"),
                     PokemonHeadOffset,
+                    SpatialBundle::default(),
+                ));
+            })
+            .with_children(|parent| {
+                parent.spawn((
+                    Name::new("BodyOffset"),
+                    PokemonBodyOffset,
                     SpatialBundle::default(),
                 ));
             })

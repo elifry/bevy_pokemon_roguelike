@@ -140,17 +140,17 @@ fn take_action(
         let action = Box::new(SpellAction {
             caster: entity,
             spell: Spell {
-                name: "Flamethrower".to_string(),
+                name: "Flamethrower",
                 range: 1..=3,
                 spell_type: SpellType::Projectile(ProjectileSpell {
-                    visual_effect: "Flamethrower_2".to_string(),
+                    visual_effect: "Flamethrower_2",
                 }),
                 hit: SpellHit {
-                    visual_effect: "Flamethrower".to_string(),
+                    visual_effect: "Flamethrower",
                     damage: 1,
                 },
                 cast: SpellCast {
-                    visual_effect: "Circle_Small_Blue_In".to_string(),
+                    visual_effect: "Circle_Small_Blue_In",
                     animation: AnimKey::Shoot,
                 }, // Damage visual effect: Hit_Neutral
                    // Cast visual effect: Circle_Small_Blue_Out

@@ -9,7 +9,7 @@ impl Plugin for EffectsPlugin {
 
 #[derive(Component, Debug)]
 pub struct Effect {
-    pub name: String,
+    pub name: &'static str,
     pub is_loop: bool,
 }
 

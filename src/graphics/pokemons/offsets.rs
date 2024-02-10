@@ -178,7 +178,28 @@ pub fn update_head_offset(
             continue;
         };
 
-        transform.translation = Vec3::new(offsets.head.x, offsets.head.y, 1.);
+        transform.translation = Vec3::new(offsets.head.x, offsets.head.y, 0.);
+    }
+}
+
+pub fn update_body_offset(
+    mut query_body_offset: Query<(&Parent, &mut Transform), With<PokemonBodyOffset>>,
+    query_parent: Query<&Children, With<Pokemon>>,
+    query_offsets: Query<&mut PokemonOffsets>,
+) {
+    for (parent, mut transform) in query_body_offset.iter_mut() {
+        let Ok(children) = query_parent.get(parent.get()) else {
+            continue;
+        };
+        let Some(offsets) = children
+            .iter()
+            .filter_map(|&child| query_offsets.get(child).ok())
+            .next()
+        else {
+            continue;
+        };
+
+        transform.translation = Vec3::new(offsets.body.x, offsets.body.y, 0.);
     }
 }
 

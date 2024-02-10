@@ -51,7 +51,7 @@ fn init_spell_hit_animation(
                 parent.spawn((
                     Name::new(spell_hit_action.hit.visual_effect.to_string()),
                     Effect {
-                        name: spell_hit_action.hit.visual_effect.to_string(),
+                        name: spell_hit_action.hit.visual_effect,
                         is_loop: false,
                     },
                     SpatialBundle {

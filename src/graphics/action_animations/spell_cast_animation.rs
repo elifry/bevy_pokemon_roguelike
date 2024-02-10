@@ -69,10 +69,11 @@ fn init_spell_cast_animation(
         commands
             .entity(target_entity_cast_effect)
             .with_children(|parent| {
+                // Visual Effect
                 parent.spawn((
                     Name::new(spell_action.spell.cast.visual_effect.to_string()),
                     Effect {
-                        name: spell_action.spell.cast.visual_effect.to_string(),
+                        name: spell_action.spell.cast.visual_effect,
                         is_loop: false,
                     },
                     AutoDespawnEffect,

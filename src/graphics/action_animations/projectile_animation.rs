@@ -67,7 +67,7 @@ fn init_projectile_animation(
         commands.spawn((
             Name::new(spell_projectile_action.projectile.visual_effect.to_string()),
             Effect {
-                name: spell_projectile_action.projectile.visual_effect.to_string(),
+                name: spell_projectile_action.projectile.visual_effect,
                 is_loop: true,
             },
             SpatialBundle {

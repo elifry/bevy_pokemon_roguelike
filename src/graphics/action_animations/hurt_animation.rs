@@ -2,7 +2,13 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{damage_action::DamageAction, RunningAction},
-    graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState},
+    effects::Effect,
+    graphics::{
+        anim_data::AnimKey,
+        animations::Animator,
+        effects::AutoDespawnEffect,
+        pokemons::{offsets::PokemonBodyOffset, PokemonAnimationState},
+    },
 };
 
 use super::{
@@ -32,6 +38,8 @@ pub struct HurtAnimation {
 
 fn init_hurt_animation(
     query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    query_children: Query<&Children>,
+    query_body_offset: Query<Entity, With<PokemonBodyOffset>>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut commands: Commands,
 ) {
@@ -43,12 +51,36 @@ fn init_hurt_animation(
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
 
+        let target_entity_hurt_effect =
+            query_children
+                .get(damage_action.target)
+                .map_or(damage_action.target, |children| {
+                    children
+                        .iter()
+                        .find_map(|&child| query_body_offset.get(child).ok())
+                        .unwrap_or(damage_action.target)
+                });
+
         commands.entity(damage_action.target).insert((
             AnimationHolder(ActionAnimation::Hurt(HurtAnimation {
                 attacker: damage_action.attacker,
             })),
             PokemonAnimationState(AnimKey::Hurt),
         ));
+        commands
+            .entity(target_entity_hurt_effect)
+            .with_children(|parent| {
+                // Visual Effect
+                parent.spawn((
+                    Name::new("Hit_Neutral"),
+                    Effect {
+                        name: "Hit_Neutral",
+                        is_loop: false,
+                    },
+                    AutoDespawnEffect,
+                    SpatialBundle::default(),
+                ));
+            });
     }
 }
 
