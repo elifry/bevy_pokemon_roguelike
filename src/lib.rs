@@ -7,6 +7,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use camera::CameraPlugin;
 use graphics::GraphicsPlugin;
+use test::TestPlugin;
 use visual_effects::VisualEffectsPlugin;
 
 use map::MapPlugin;
@@ -26,6 +27,7 @@ mod pieces;
 mod player;
 mod pokemons;
 pub mod spells;
+mod test;
 mod turn;
 pub mod utils;
 mod vector2_int;
@@ -90,6 +92,8 @@ impl Plugin for GamePlugin {
                 ActionsPlugin,
                 TurnPlugin,
                 VisualEffectsPlugin,
+                //Only for testing purposes
+                TestPlugin,
             ));
 
         #[cfg(debug_assertions)]
