@@ -47,9 +47,9 @@ fn load_assets_folder(
     mut loading: ResMut<AssetsLoading>,
     mut font_assets_folder: ResMut<FontAssetsFolder>,
 ) {
-    info!("visual effect assets loading...");
+    info!("font assets loading...");
 
-    // Visual Effects
+    // Fonts
     let fonts_folder = asset_server.load_folder(FONTS_PATH);
     loading.0.push(fonts_folder.clone().untyped());
     font_assets_folder.0 = fonts_folder;
@@ -63,12 +63,10 @@ fn process_font_assets(
     mut textures: ResMut<Assets<Image>>,
     mut commands: Commands,
 ) {
-    info!("font assets loading...");
-
     let folder: &LoadedFolder = match loaded_folder_assets.get(&font_assets_folder.0) {
         Some(folder) => folder,
         None => {
-            error!("Couldn't load the visual effects folder");
+            error!("Couldn't load the fonts folder");
             return;
         }
     };
