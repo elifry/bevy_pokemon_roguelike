@@ -9,12 +9,17 @@ use crate::graphics::anim_data::{AnimData, AnimKey};
 use crate::pokemons::Pokemon;
 use crate::GameState;
 
+use super::AssetsLoading;
+
+const POKEMONS_FOLDER: &str = "pokemons";
+
 pub struct PokemonAssetsPlugin;
 
 impl Plugin for PokemonAssetsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(PokemonAssetsFolder(default()))
             .init_resource::<PokemonAnimationAssets>()
+            .add_systems(OnEnter(GameState::Loading), load_assets_folder)
             .add_systems(OnEnter(GameState::AssetsLoaded), process_pokemon_assets);
     }
 }
@@ -23,7 +28,7 @@ impl Plugin for PokemonAssetsPlugin {
 pub struct PokemonAnimationAssets(pub HashMap<Pokemon, PokemonAnimation>);
 
 #[derive(Default, Resource)]
-pub struct PokemonAssetsFolder(pub HashMap<String, Handle<LoadedFolder>>);
+struct PokemonAssetsFolder(HashMap<String, Handle<LoadedFolder>>);
 
 #[derive(Debug, Hash, PartialEq, Eq, EnumString, EnumIter, Display, Copy, Clone)]
 #[strum()]
@@ -37,6 +42,24 @@ pub enum AnimTextureType {
 pub struct PokemonAnimation {
     pub textures: HashMap<AnimKey, HashMap<AnimTextureType, Handle<TextureAtlas>>>,
     pub anim_data: Handle<AnimData>,
+}
+
+fn load_assets_folder(
+    asset_server: Res<AssetServer>,
+    mut loading: ResMut<AssetsLoading>,
+    mut pokemon_assets_folder: ResMut<PokemonAssetsFolder>,
+) {
+    info!("pokemon assets loading...");
+
+    let pokemon_to_load_list = vec!["charmander", "rattata"];
+    for pokemon_to_load in pokemon_to_load_list {
+        let pokemon_folder =
+            asset_server.load_folder(format!("{POKEMONS_FOLDER}/{pokemon_to_load}"));
+        loading.0.push(pokemon_folder.clone().untyped());
+        pokemon_assets_folder
+            .0
+            .insert(pokemon_to_load.to_string(), pokemon_folder);
+    }
 }
 
 fn process_pokemon_assets(

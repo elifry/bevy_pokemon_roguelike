@@ -5,12 +5,17 @@ use bevy::utils::hashbrown::HashMap;
 use crate::utils::get_path_from_handle;
 use crate::GameState;
 
+use super::AssetsLoading;
+
+const VISUAL_EFFECTS_PATH: &str = "visual_effects";
+
 pub struct VisualEffectAssetsPlugin;
 
 impl Plugin for VisualEffectAssetsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<VisualEffectAssetsFolder>()
             .init_resource::<VisualEffectAssets>()
+            .add_systems(OnEnter(GameState::Loading), load_assets_folder)
             .add_systems(OnEnter(GameState::AssetsLoaded), process_effect_assets);
     }
 }
@@ -24,7 +29,7 @@ pub enum VisualEffectDirectionType {
 }
 
 #[derive(Default, Resource)]
-pub struct VisualEffectAssetsFolder(pub Handle<LoadedFolder>);
+struct VisualEffectAssetsFolder(Handle<LoadedFolder>);
 
 #[derive(Resource, Debug, Default)]
 pub struct VisualEffectAssets(pub HashMap<String, VisualEffectAsset>);
@@ -33,6 +38,19 @@ pub struct VisualEffectAssets(pub HashMap<String, VisualEffectAsset>);
 pub struct VisualEffectAsset {
     pub texture_atlas: Handle<TextureAtlas>,
     pub direction: VisualEffectDirectionType,
+}
+
+fn load_assets_folder(
+    asset_server: Res<AssetServer>,
+    mut loading: ResMut<AssetsLoading>,
+    mut visual_effect_assets_folder: ResMut<VisualEffectAssetsFolder>,
+) {
+    info!("visual effect assets loading...");
+
+    // Visual Effects
+    let visual_effect_folder = asset_server.load_folder(VISUAL_EFFECTS_PATH);
+    loading.0.push(visual_effect_folder.clone().untyped());
+    visual_effect_assets_folder.0 = visual_effect_folder;
 }
 
 fn process_effect_assets(

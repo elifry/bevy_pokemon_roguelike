@@ -9,6 +9,7 @@ use crate::effects::Effect;
 use crate::utils::get_path_from_handle;
 use crate::GameState;
 
+#[deprecated]
 pub struct EffectAssetsPlugin;
 
 impl Plugin for EffectAssetsPlugin {

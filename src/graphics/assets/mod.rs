@@ -5,13 +5,13 @@ use bevy_asset_loader::prelude::*;
 
 use crate::GameState;
 
+pub mod font_assets;
 pub mod pokemon_assets;
 pub mod visual_effect_assets;
 
+use self::font_assets::FontAssetsPlugin;
 pub use self::pokemon_assets::*;
-use self::visual_effect_assets::VisualEffectAssetsFolder;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
-
 
 pub struct AssetsPlugin;
 
@@ -19,11 +19,11 @@ impl Plugin for AssetsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             PokemonAssetsPlugin,
-            // EffectAssetsPlugin,
+            FontAssetsPlugin,
             VisualEffectAssetsPlugin,
         ))
         .init_collection::<TileAssets>()
-        .add_systems(OnEnter(GameState::Loading), load_assets)
+        .init_resource::<AssetsLoading>()
         .add_systems(OnEnter(GameState::Initializing), set_playing)
         .add_systems(
             Update,
@@ -32,6 +32,10 @@ impl Plugin for AssetsPlugin {
     }
 }
 
+#[derive(Resource, Default)]
+struct AssetsLoading(Vec<UntypedHandle>);
+
+// TODO: handle tile map loading in a separated plugin
 #[derive(AssetCollection, Resource)]
 pub struct TileAssets {
     #[asset(texture_atlas(
@@ -65,79 +69,32 @@ fn set_playing(mut next_state: ResMut<NextState<GameState>>) {
     next_state.set(GameState::Playing);
 }
 
-fn load_assets(
-    asset_server: Res<AssetServer>,
-    mut pokemon_assets_folder: ResMut<PokemonAssetsFolder>,
-    mut visual_effect_assets_folder: ResMut<VisualEffectAssetsFolder>,
-) {
-    println!("assets loading...");
-    // TODO: Move this part inside plugins
-
-    // Pokemons
-    let pokemon_to_load_list = vec!["charmander", "rattata"];
-    for pokemon_to_load in pokemon_to_load_list {
-        let pokemon_folder = asset_server.load_folder(format!("pokemons/{pokemon_to_load}"));
-        pokemon_assets_folder
-            .0
-            .insert(pokemon_to_load.to_string(), pokemon_folder);
-    }
-
-    // Effects
-    // let effect_to_load_list = vec!["0110"];
-    // for effect_to_load in effect_to_load_list {
-    //     let effect_folder = asset_server.load_folder(format!("effects/{effect_to_load}"));
-    //     effect_assets_folder
-    //         .0
-    //         .insert(effect_to_load.to_string(), effect_folder);
-    // }
-
-    // Visual Effects
-    let visual_effect_folder = asset_server.load_folder("visual_effects");
-    visual_effect_assets_folder.0 = visual_effect_folder;
-}
-
 fn check_assets_loading(
     mut next_state: ResMut<NextState<GameState>>,
+    loading: Res<AssetsLoading>,
     asset_server: Res<AssetServer>,
-    tile_assets: Res<TileAssets>,
-    pokemon_assets: Res<PokemonAssetsFolder>,
-    visual_effects_assets: Res<VisualEffectAssetsFolder>,
+    mut commands: Commands,
 ) {
     let mut is_loading: bool = false;
-    for (_pokemon, asset) in pokemon_assets.0.iter() {
+
+    for asset in loading.0.iter() {
         match asset_server.get_load_state(asset.id()) {
             Some(LoadState::Loading) => {
                 is_loading = true;
                 break;
             }
             Some(LoadState::Failed) => {
-                // error!("asset loading error");
+                error!("asset loading error");
             }
             _ => {}
         }
     }
 
-    match asset_server.get_load_state(visual_effects_assets.0.id()) {
-        Some(LoadState::Loading) => {
-            is_loading = true;
-        }
-        Some(LoadState::Failed) => {
-            error!("couldn't load visual effect")
-        }
-        _ => {}
-    }
-
-    match asset_server.get_load_state(tile_assets.forest_path.id()) {
-        Some(LoadState::Loading) => {
-            is_loading = true;
-        }
-        Some(LoadState::Failed) => {}
-        _ => {}
-    }
-
     if is_loading {
         return;
     }
+
     info!("Assets loaded");
+    commands.remove_resource::<AssetsLoading>();
     next_state.set(GameState::AssetsLoaded);
 }
