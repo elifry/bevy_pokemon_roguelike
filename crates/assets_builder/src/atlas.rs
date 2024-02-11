@@ -1,4 +1,4 @@
-use font_atlas::{FontSheet, GlyphData};
+use font_atlas::{FontSheetData, GlyphData};
 use std::{
     collections::HashMap,
     fs::{self, File},
@@ -38,7 +38,7 @@ pub fn create_font_atlas(source_directory: &str, output_filename: &str) {
         })
         .collect();
 
-    println!("packing {} images...", entries.len());
+    println!("packing {} glyph font images...", entries.len());
 
     // Try packing all the rectangles
 
@@ -48,7 +48,7 @@ pub fn create_font_atlas(source_directory: &str, output_filename: &str) {
             // Create a target atlas image to draw the packed images onto
             let mut atlas = RgbaImage::from_pixel(dest.w as u32, dest.h as u32, Rgba([0, 0, 0, 0]));
 
-            let mut characters: HashMap<u32, GlyphData> = HashMap::new();
+            let mut characters: HashMap<u32, GlyphData> = HashMap::with_capacity(all_packed.len());
             // Copy all the packed images onto the target atlas
             for (index, PackedItem { data, rect }) in all_packed.iter().enumerate() {
                 atlas
@@ -60,7 +60,7 @@ pub fn create_font_atlas(source_directory: &str, output_filename: &str) {
                     (rect.x + rect.w) as f32,
                     (rect.y + rect.h) as f32,
                 );
-                characters.insert(data.id, GlyphData { rect, index });
+                characters.insert(data.id, GlyphData { rect });
             }
 
             println!("exporting `{}`...", output_filename);
@@ -68,13 +68,14 @@ pub fn create_font_atlas(source_directory: &str, output_filename: &str) {
             // Export the packed atlas
             atlas.save(format!("{output_filename}.png")).unwrap();
 
-            let font_sheet = FontSheet {
+            let font_sheet_data = FontSheetData {
                 width: dest.w,
                 height: dest.h,
                 characters,
             };
-            let mut font_sheet_file = File::create(format!("{output_filename}.bin")).unwrap();
-            font_sheet.save(&mut font_sheet_file);
+            let mut font_sheet_file =
+                File::create(format!("{output_filename}.fontsheet.data")).unwrap();
+            let _ = font_sheet_data.save(&mut font_sheet_file);
         }
         Err(_) => {
             panic!("failed to pack images");

@@ -2,13 +2,16 @@ use bevy::asset::LoadState;
 use bevy::prelude::*;
 
 use bevy_asset_loader::prelude::*;
+use font_atlas::loader::FontSheetDataPlugin;
 
 use crate::GameState;
 
+pub mod binary_data;
 pub mod font_assets;
 pub mod pokemon_assets;
 pub mod visual_effect_assets;
 
+use self::binary_data::BinaryDataPlugin;
 use self::font_assets::FontAssetsPlugin;
 pub use self::pokemon_assets::*;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
@@ -21,6 +24,8 @@ impl Plugin for AssetsPlugin {
             PokemonAssetsPlugin,
             FontAssetsPlugin,
             VisualEffectAssetsPlugin,
+            BinaryDataPlugin,
+            FontSheetDataPlugin,
         ))
         .init_collection::<TileAssets>()
         .init_resource::<AssetsLoading>()

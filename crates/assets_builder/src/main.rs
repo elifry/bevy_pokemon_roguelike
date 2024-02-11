@@ -2,8 +2,6 @@ mod atlas;
 
 use std::fs;
 
-use font_atlas::FontSheet;
-
 use crate::atlas::create_font_atlas;
 
 const FONT_RAW_FOLDER_PATH: &str = "raw_assets/fonts/text";

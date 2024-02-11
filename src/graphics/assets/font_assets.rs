@@ -1,9 +1,9 @@
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashMap;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use font_atlas::FontSheetData;
 
-use crate::utils::get_path_from_handle;
+use crate::utils::find_first_handle_by_extension;
 use crate::GameState;
 
 use super::AssetsLoading;
@@ -22,23 +22,22 @@ impl Plugin for FontAssetsPlugin {
 }
 
 #[derive(Debug)]
-pub struct GlyphData {
+pub struct FontGlyph {
     pub index: usize,
     pub color_less: bool,
-    pub size: UVec2,
+}
+
+#[derive(Debug, Default)]
+pub struct FontAsset {
+    pub texture_atlas: Handle<TextureAtlas>,
+    pub glyphs: HashMap<u32, FontGlyph>,
 }
 
 #[derive(Resource, Debug, Default)]
-pub struct FontSheetAsset(pub FontSheet);
-
-#[derive(Debug, Default)]
-pub struct FontSheet {
-    pub texture_atlas: Handle<TextureAtlas>,
-    pub characters: HashMap<u32, GlyphData>,
-}
+pub struct FontSheetAsset(pub HashMap<String, FontAsset>);
 
 #[derive(Default, Resource)]
-struct FontAssetsFolder(Handle<LoadedFolder>);
+struct FontAssetsFolder(HashMap<String, Handle<LoadedFolder>>);
 
 fn load_assets_folder(
     asset_server: Res<AssetServer>,
@@ -48,9 +47,14 @@ fn load_assets_folder(
     info!("font assets loading...");
 
     // Fonts
-    let fonts_folder = asset_server.load_folder(FONTS_PATH);
-    loading.0.push(fonts_folder.clone().untyped());
-    font_assets_folder.0 = fonts_folder;
+    let font_to_load_list = vec!["text"];
+    for font_to_load in font_to_load_list {
+        let font_folder = asset_server.load_folder(format!("{FONTS_PATH}/{font_to_load}"));
+        loading.0.push(font_folder.clone().untyped());
+        font_assets_folder
+            .0
+            .insert(font_to_load.to_string(), font_folder);
+    }
 }
 
 fn process_font_assets(
@@ -58,68 +62,54 @@ fn process_font_assets(
     mut font_sheet_assets: ResMut<FontSheetAsset>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    mut textures: ResMut<Assets<Image>>,
+    font_sheets: Res<Assets<FontSheetData>>,
     mut commands: Commands,
 ) {
-    let folder: &LoadedFolder = match loaded_folder_assets.get(&font_assets_folder.0) {
-        Some(folder) => folder,
-        None => {
-            error!("Couldn't load the fonts folder");
-            return;
+    for (font, handle_folder) in font_assets_folder.0.iter() {
+        let Some::<&LoadedFolder>(folder) = loaded_folder_assets.get(handle_folder) else {
+            error!("Could'nt load the folder for {}", font);
+            continue;
+        };
+
+        let font_sheet_handle: Handle<FontSheetData> =
+            find_first_handle_by_extension(&folder.handles, "data")
+                .expect("No font sheet handle found");
+
+        let texture_handle: Handle<Image> = find_first_handle_by_extension(&folder.handles, "png")
+            .expect("No texture handle found");
+
+        let font_sheet = font_sheets.get(font_sheet_handle.id()).unwrap();
+
+        let mut texture_atlas = TextureAtlas::new_empty(
+            texture_handle,
+            Vec2 {
+                x: font_sheet.width as f32,
+                y: font_sheet.height as f32,
+            },
+        );
+
+        let mut glyphs = HashMap::with_capacity(font_sheet.characters.len());
+        for (id, glyph_data) in font_sheet.characters.iter() {
+            let index = texture_atlas.add_texture(glyph_data.rect);
+            glyphs.insert(
+                *id,
+                FontGlyph {
+                    index,
+                    color_less: false,
+                },
+            );
         }
-    };
 
-    // Build a vector containing all the individual font image with their ID
-    let mut texture_font_atlas_builder = TextureAtlasBuilder::default();
-    let mut glyph_images: Vec<_> = folder
-        .handles
-        .par_iter() // Use parallel iterator here
-        .filter_map(|handle| {
-            let path = get_path_from_handle(handle)?;
-            let file_stem = path.file_stem().and_then(|n| n.to_str())?;
-            let glyph_id = u32::from_str_radix(file_stem, 16).ok()?;
-            let glyph_handle = handle.to_owned().typed::<Image>();
+        let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
-            Some((glyph_id, glyph_handle))
-        })
-        .collect();
-
-    let glyph_images: Vec<_> = glyph_images
-        .drain(..)
-        .filter_map(|(glyph_id, glyph_handle)| {
-            let glyph_texture = textures.get(glyph_handle.id())?;
-            texture_font_atlas_builder.add_texture(glyph_handle.id(), glyph_texture);
-
-            Some((glyph_id, glyph_texture.size(), glyph_handle))
-        })
-        .collect();
-
-    // Build the atlas
-    let texture_atlas = texture_font_atlas_builder
-        .finish(&mut textures)
-        .expect("Unable to construct the font atlas");
-
-    let mut characters: HashMap<u32, GlyphData> = HashMap::new();
-    for (id, glyph_size, glyph_handle) in glyph_images.iter() {
-        let index = texture_atlas.get_texture_index(glyph_handle.id()).unwrap();
-        characters.insert(
-            id.to_owned(),
-            GlyphData {
-                index,
-                color_less: false, // TODO: read the data from the FontData.xml
-                size: glyph_size.to_owned(),
+        font_sheet_assets.0.insert(
+            font.to_owned(),
+            FontAsset {
+                texture_atlas: texture_atlas_handle,
+                glyphs,
             },
         );
     }
-
-    info!("{} glyph added to the font assets", characters.len());
-
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
-
-    font_sheet_assets.0 = FontSheet {
-        texture_atlas: texture_atlas_handle,
-        characters,
-    };
 
     // Clean up unused resources
     commands.remove_resource::<FontAssetsFolder>();

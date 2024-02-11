@@ -7,13 +7,14 @@ use bevy::{
     reflect::TypePath,
     utils::{hashbrown::HashMap, BoxedFuture},
 };
-use quick_xml::de::from_reader;
+use quick_xml::{de::from_reader, DeError};
 use serde::Deserialize;
 use strum::{Display, IntoEnumIterator, IntoStaticStr};
 use thiserror::Error;
 
 use crate::pieces::Orientation;
 
+// TODO: move this plugin into the assets folder
 pub struct AnimDataPlugin;
 
 impl Plugin for AnimDataPlugin {
@@ -242,7 +243,7 @@ impl std::convert::TryFrom<AnimsRaw> for Anims {
 }
 
 impl AnimData {
-    fn parse_from_xml(anim_data_content: &[u8]) -> Result<AnimData, Box<dyn Error>> {
+    fn parse_from_xml(anim_data_content: &[u8]) -> Result<AnimData, DeError> {
         let anim_data: AnimData = from_reader(anim_data_content)?;
         Ok(anim_data)
     }
@@ -254,8 +255,8 @@ pub enum AnimDataLoaderError {
     /// An [IO](std::io) Error
     #[error("Could not load asset: {0}")]
     Io(#[from] std::io::Error),
-    // #[error("Could not parse the asset {0}")]
-    // XmlParseError(#[from] std::error::Error),
+    #[error("Could not parse the asset {0}")]
+    ParseError(#[from] DeError),
 }
 
 #[derive(Default)]
@@ -276,7 +277,7 @@ impl AssetLoader for AnimDataLoader {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
 
-            let anim_data = AnimData::parse_from_xml(&bytes).unwrap();
+            let anim_data = AnimData::parse_from_xml(&bytes)?;
 
             Ok(anim_data)
         })
