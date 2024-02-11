@@ -44,6 +44,20 @@
       },
       "args": [],
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Run Assets Builder'",
+      "cargo": {
+        "args": ["build", "--bin=assets_builder", "--package=assets_builder"]
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "CARGO_MANIFEST_DIR": "${workspaceFolder}",
+        "DYLD_LIBRARY_PATH": "${userHome}/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/lib:${workspaceFolder}/target/debug/deps"
+      }
     }
   ]
 }
