@@ -1,3 +1,6 @@
 /target
 .DS_STORE
 visual_effects_ktx2
+
+# auto generated
+assets/fonts

@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashMap;

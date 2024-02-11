@@ -1,9 +1,11 @@
-workspace = { members = ["assets_builder"] }
 [package]
 name = "bevy_pokemon_roguelike"
 version = "0.1.0"
 edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
+
+[workspace]
+members = ["crates/assets_builder", "crates/font_atlas"]
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
