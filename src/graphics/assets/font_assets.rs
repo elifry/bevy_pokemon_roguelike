@@ -1,6 +1,9 @@
+use std::time::Instant;
+
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::hashbrown::HashMap;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::utils::get_path_from_handle;
 use crate::GameState;
@@ -60,6 +63,8 @@ fn process_font_assets(
     mut textures: ResMut<Assets<Image>>,
     mut commands: Commands,
 ) {
+    info!("font assets loading...");
+
     let folder: &LoadedFolder = match loaded_folder_assets.get(&font_assets_folder.0) {
         Some(folder) => folder,
         None => {
@@ -70,38 +75,28 @@ fn process_font_assets(
 
     // Build a vector containing all the individual font image with their ID
     let mut texture_font_atlas_builder = TextureAtlasBuilder::default();
-    let mut glyph_images = Vec::new();
-    for handle in folder.handles.iter() {
-        let Some(path) = get_path_from_handle(handle) else {
-            continue;
-        };
-        let Some(file_stem) = path.file_stem().and_then(|n| n.to_str()) else {
-            continue;
-        };
+    let mut glyph_images: Vec<_> = folder
+        .handles
+        .par_iter() // Use parallel iterator here
+        .filter_map(|handle| {
+            let path = get_path_from_handle(handle)?;
+            let file_stem = path.file_stem().and_then(|n| n.to_str())?;
+            let glyph_id = u32::from_str_radix(file_stem, 16).ok()?;
+            let glyph_handle = handle.to_owned().typed::<Image>();
 
-        if path.extension().and_then(|ext| ext.to_str()) != Some("png") {
-            continue;
-        }
+            Some((glyph_id, glyph_handle))
+        })
+        .collect();
 
-        let Ok(glyph_id) = u32::from_str_radix(file_stem, 16) else {
-            warn!("Unable to convert {} font into hexa id", file_stem);
-            continue;
-        };
+    let glyph_images: Vec<_> = glyph_images
+        .drain(..)
+        .filter_map(|(glyph_id, glyph_handle)| {
+            let glyph_texture = textures.get(glyph_handle.id())?;
+            texture_font_atlas_builder.add_texture(glyph_handle.id(), glyph_texture);
 
-        let glyph_handle = handle.to_owned().typed::<Image>();
-
-        let Some(glyph_texture) = textures.get(glyph_handle.id()) else {
-            warn!(
-                "{:?} did not resolve to an `Image` asset.",
-                glyph_handle.path().unwrap()
-            );
-            continue;
-        };
-
-        texture_font_atlas_builder.add_texture(glyph_handle.id(), glyph_texture);
-
-        glyph_images.push((glyph_id, glyph_texture.size(), glyph_handle))
-    }
+            Some((glyph_id, glyph_texture.size(), glyph_handle))
+        })
+        .collect();
 
     // Build the atlas
     let texture_atlas = texture_font_atlas_builder
