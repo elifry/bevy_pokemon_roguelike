@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy::sprite::SpriteSheetBundle;
 
-use crate::graphics::assets::font_assets::{FontAssets, FontSheet};
+use crate::graphics::assets::font_assets::FontAssets;
 use crate::graphics::sprite_text::{SpriteText, Text2DSpriteBundle};
 use crate::GameState;
 
@@ -13,31 +12,14 @@ impl Plugin for TestPlugin {
     }
 }
 
-fn spawn_test(
-    font_sheet_assets: Res<FontAssets>,
-    font_sheets: Res<Assets<FontSheet>>,
-    mut commands: Commands,
-) {
-    let font_asset = font_sheet_assets.0.get("text").unwrap();
-    let font_sheet = font_sheets.get(font_asset.font_sheet.id()).unwrap();
-    let character: u32 = 'A' as u32;
-    let glyph = font_sheet.glyphs.get(&character).unwrap();
-
-    // commands.spawn(SpriteSheetBundle {
-    //     texture_atlas: font_asset.texture_atlas.clone(),
-    //     transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
-    //     sprite: TextureAtlasSprite {
-    //         index: glyph.index,
-    //         ..default()
-    //     },
-    //     ..default()
-    // });
-    //let a = SpriteBundle;
+fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
+    let text_font = font_sheet_assets.0.get("text").unwrap();
 
     commands
         .spawn(Text2DSpriteBundle {
             transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
-            text: SpriteText::from_section("Hello world!", font_asset.clone()),
+            text_anchor: bevy::sprite::Anchor::BottomLeft,
+            text: SpriteText::from_section("Hello world!", text_font.clone()),
             ..default()
         })
         .insert(Name::new("TextSprite Test"));

@@ -24,6 +24,9 @@ pub struct Text2DSpriteBundle {
     pub inherited_visibility: InheritedVisibility,
     /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
     pub view_visibility: ViewVisibility,
+    // Internal rendering
+    pub sprite: Sprite,
+    pub texture: Handle<Image>,
 }
 
 #[derive(Component, Debug, Clone, Reflect)]
