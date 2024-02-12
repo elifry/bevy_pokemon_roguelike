@@ -25,7 +25,7 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
         })
         .insert(Name::new("TextSprite Test"));
 
-    let box_size = Vec2::new(200.0, 80.0);
+    let box_size = Vec2::new(150.0, 80.0);
     let box_position = Vec2::new(300., 35.0);
     commands
         .spawn(SpriteBundle {
@@ -38,14 +38,34 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
             ..default()
         })
         .insert(Name::new("Boxed SpriteText"))
+        // .with_children(|builder| {
+        //     builder.spawn(Text2dBundle {
+        //         text: Text {
+        //             sections: vec![TextSection::new(
+        //                 "this text wraps in the box\n(Unicode linebreaks)",
+        //                 TextStyle::default(),
+        //             )],
+        //             alignment: TextAlignment::Left,
+        //             linebreak_behavior: BreakLineOn::WordBoundary,
+        //         },
+        //         text_2d_bounds: Text2dBounds {
+        //             // Wrap text in the rectangle
+        //             size: box_size,
+        //         },
+        //         // ensure the text is drawn on top of the box
+        //         transform: Transform::from_translation(Vec3::Z),
+        //         ..default()
+        //     });
+        // });
         .with_children(|builder| {
             builder.spawn(Text2DSpriteBundle {
+                // text_anchor: bevy::sprite::Anchor::TopLeft,
                 text: SpriteText {
                     sections: vec![SpriteTextSection::new(
-                        "this text wraps in the box\n(Unicode linebreaks)",
+                        "this text wraps in the box (Unicode linebreaks) \nthis text wraps in the box (Unicode linebreaks)",
                         text_font.clone(),
                     )],
-                    alignment: TextAlignment::Left,
+                    alignment: TextAlignment::Center,
                     linebreak_behavior: BreakLineOn::WordBoundary,
                 },
                 text_2d_bounds: Text2dBounds {

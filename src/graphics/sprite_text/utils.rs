@@ -23,8 +23,6 @@ pub(crate) fn extract_sub_image(img: &Image, rect: &Rect) -> Option<RgbaImage> {
 
     let atlas_image_width = img.texture_descriptor.size.width;
 
-    info!("atlas width {}", atlas_image_width);
-
     // Calculate the number of bytes per row (assuming RGBA format, hence * 4)
     let bytes_per_row = atlas_image_width as usize * 4;
 
