@@ -938,6 +938,7 @@ dependencies = [
  "bevy_asset_loader",
  "dyn-clone",
  "font_atlas",
+ "image",
  "itertools",
  "leafwing-input-manager",
  "quick-xml",

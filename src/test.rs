@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::sprite::SpriteSheetBundle;
 
 use crate::graphics::assets::font_assets::{FontAssets, FontSheet};
+use crate::graphics::sprite_text::{SpriteText, Text2DSpriteBundle};
 use crate::GameState;
 
 pub struct TestPlugin;
@@ -22,13 +23,22 @@ fn spawn_test(
     let character: u32 = 'A' as u32;
     let glyph = font_sheet.glyphs.get(&character).unwrap();
 
-    commands.spawn(SpriteSheetBundle {
-        texture_atlas: font_asset.texture_atlas.clone(),
-        transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
-        sprite: TextureAtlasSprite {
-            index: glyph.index,
+    // commands.spawn(SpriteSheetBundle {
+    //     texture_atlas: font_asset.texture_atlas.clone(),
+    //     transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
+    //     sprite: TextureAtlasSprite {
+    //         index: glyph.index,
+    //         ..default()
+    //     },
+    //     ..default()
+    // });
+    //let a = SpriteBundle;
+
+    commands
+        .spawn(Text2DSpriteBundle {
+            transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
+            text: SpriteText::from_section("Test", font_asset.clone()),
             ..default()
-        },
-        ..default()
-    });
+        })
+        .insert(Name::new("TextSprite Test"));
 }
