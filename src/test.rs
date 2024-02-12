@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use bevy::sprite::{SpriteBundle, SpriteSheetBundle};
+use bevy::sprite::SpriteSheetBundle;
 
-use crate::graphics::assets::font_assets::FontSheetAsset;
+use crate::graphics::assets::font_assets::{FontAssets, FontSheet};
 use crate::GameState;
 
 pub struct TestPlugin;
@@ -12,13 +12,18 @@ impl Plugin for TestPlugin {
     }
 }
 
-fn spawn_test(font_sheets: Res<FontSheetAsset>, mut commands: Commands) {
-    let font_sheet = font_sheets.0.get("text").unwrap();
+fn spawn_test(
+    font_sheet_assets: Res<FontAssets>,
+    font_sheets: Res<Assets<FontSheet>>,
+    mut commands: Commands,
+) {
+    let font_asset = font_sheet_assets.0.get("text").unwrap();
+    let font_sheet = font_sheets.get(font_asset.font_sheet.id()).unwrap();
     let character: u32 = 'A' as u32;
     let glyph = font_sheet.glyphs.get(&character).unwrap();
 
     commands.spawn(SpriteSheetBundle {
-        texture_atlas: font_sheet.texture_atlas.clone(),
+        texture_atlas: font_asset.texture_atlas.clone(),
         transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
         sprite: TextureAtlasSprite {
             index: glyph.index,
