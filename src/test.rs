@@ -1,7 +1,8 @@
 use bevy::prelude::*;
+use bevy::text::{BreakLineOn, Text2dBounds};
 
 use crate::graphics::assets::font_assets::FontAssets;
-use crate::graphics::sprite_text::{SpriteText, Text2DSpriteBundle};
+use crate::graphics::sprite_text::{SpriteText, SpriteTextSection, Text2DSpriteBundle};
 use crate::GameState;
 
 pub struct TestPlugin;
@@ -23,4 +24,37 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
             ..default()
         })
         .insert(Name::new("TextSprite Test"));
+
+    let box_size = Vec2::new(200.0, 80.0);
+    let box_position = Vec2::new(300., 35.0);
+    commands
+        .spawn(SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgb(0.25, 0.25, 0.75),
+                custom_size: Some(Vec2::new(box_size.x, box_size.y)),
+                ..default()
+            },
+            transform: Transform::from_translation(box_position.extend(20.)),
+            ..default()
+        })
+        .insert(Name::new("Boxed SpriteText"))
+        .with_children(|builder| {
+            builder.spawn(Text2DSpriteBundle {
+                text: SpriteText {
+                    sections: vec![SpriteTextSection::new(
+                        "this text wraps in the box\n(Unicode linebreaks)",
+                        text_font.clone(),
+                    )],
+                    alignment: TextAlignment::Left,
+                    linebreak_behavior: BreakLineOn::WordBoundary,
+                },
+                text_2d_bounds: Text2dBounds {
+                    // Wrap text in the rectangle
+                    size: box_size,
+                },
+                // ensure the text is drawn on top of the box
+                transform: Transform::from_translation(Vec3::Z),
+                ..default()
+            });
+        });
 }

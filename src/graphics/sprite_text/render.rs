@@ -5,6 +5,21 @@ use crate::graphics::{assets::font_assets::FontSheet, sprite_text::utils::extrac
 
 use super::SpriteText;
 
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub enum SpriteTextRenderSet {
+    Setup,
+    Draw,
+}
+
+pub(crate) fn new_image_from_default(
+    mut query: Query<&mut Handle<Image>, Added<SpriteText>>,
+    mut images: ResMut<Assets<Image>>,
+) {
+    for mut canvas in query.iter_mut() {
+        *canvas = images.add(Image::default());
+    }
+}
+
 #[allow(clippy::type_complexity)]
 pub(crate) fn render_texture(
     mut query: Query<
@@ -51,7 +66,12 @@ pub(crate) fn render_texture(
                     }
 
                     // TODO: handle glyph not found
-                    let glyph = font_sheet.glyphs.get(&glyph_id).unwrap();
+                    let Some(glyph) = font_sheet.glyphs.get(&glyph_id) else {
+                        warn!("couldn't find the character '{}'", character);
+                        let space_image = ImageBuffer::new(5, 0);
+                        total_width += space_image.width() as f32;
+                        return (glyph_id, space_image);
+                    };
                     let glyph_rect = texture_atlas.textures[glyph.index];
 
                     total_width += glyph_rect.width();
