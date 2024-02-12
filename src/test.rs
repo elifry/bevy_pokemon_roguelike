@@ -37,7 +37,7 @@ fn spawn_test(
     commands
         .spawn(Text2DSpriteBundle {
             transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
-            text: SpriteText::from_section("Test", font_asset.clone()),
+            text: SpriteText::from_section("Hello world!", font_asset.clone()),
             ..default()
         })
         .insert(Name::new("TextSprite Test"));

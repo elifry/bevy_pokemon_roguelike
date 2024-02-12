@@ -79,6 +79,13 @@ pub(crate) fn render_texture(
                 .chars()
                 .map(|character| {
                     let glyph_id = character as u32;
+
+                    if character == ' ' {
+                        let space_image = ImageBuffer::new(5, 0);
+                        total_width += space_image.width() as f32;
+                        return (glyph_id, space_image);
+                    }
+
                     // TODO: handle glyph not found
                     let glyph = font_sheet.glyphs.get(&glyph_id).unwrap();
                     let glyph_rect = texture_atlas.textures[glyph.index];
@@ -89,7 +96,7 @@ pub(crate) fn render_texture(
                     let image = extract_sub_image(texture_image, &glyph_rect)
                         .expect("Failed to extract sub-image");
 
-                    (glyph_id, image, glyph_rect)
+                    (glyph_id, image)
                 })
                 .collect();
 
@@ -102,9 +109,9 @@ pub(crate) fn render_texture(
             // }
 
             let mut x_offset: i64 = 0;
-            for (_id, image, texture) in glyphs {
+            for (_id, image) in glyphs {
                 image::imageops::overlay(&mut combined, &image, x_offset, 0);
-                x_offset += texture.width() as i64;
+                x_offset += image.width() as i64;
             }
 
             let image = Image::from_dynamic(DynamicImage::ImageRgba8(combined), false);
@@ -117,6 +124,7 @@ pub(crate) fn render_texture(
                 image_handle,
                 Sprite {
                     custom_size: Some(Vec2::new(total_width, max_height)),
+                    anchor: Anchor::BottomLeft,
                     ..default()
                 },
             ));
