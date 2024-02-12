@@ -1,5 +1,6 @@
 mod render;
 pub mod text;
+mod utils;
 
 use bevy::prelude::*;
 
