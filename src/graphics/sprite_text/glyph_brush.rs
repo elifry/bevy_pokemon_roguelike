@@ -12,8 +12,7 @@ pub(crate) struct PositionedGlyph {
     pub image: RgbaImage,
 }
 
-// process_glyphs
-pub(crate) fn calculate_glyph_positions(
+pub(crate) fn process_glyph(
     text: &str,
     font_sheet: &FontSheet,
     texture_atlas: &TextureAtlas,
@@ -23,7 +22,6 @@ pub(crate) fn calculate_glyph_positions(
 ) -> (Vec<PositionedGlyph>, u32, u32) {
     let start_position = start_position.unwrap_or(UVec2::ZERO);
 
-    let mut line_number = 1;
     let mut max_width: u32 = 0;
 
     let mut dx: u32 = start_position.x;
@@ -43,8 +41,6 @@ pub(crate) fn calculate_glyph_positions(
             dy += line_height;
             max_width = max_width.max(current_line_width);
             current_line_width = 0;
-            line_height = 0; // Reset max height for the next line
-            line_number += 1;
             continue;
         }
 
@@ -67,7 +63,6 @@ pub(crate) fn calculate_glyph_positions(
         if bounds.x < (dx + glyph_width) as f32 {
             dx = 0; // Reset dx for the new line
             dy += line_height; // Move dy to the next line
-            line_number += 1;
             max_width = max_width.max(current_line_width);
             current_line_width = 0; // Reset current line width
             line_height = glyph_image.height(); // Reset max height for the new line

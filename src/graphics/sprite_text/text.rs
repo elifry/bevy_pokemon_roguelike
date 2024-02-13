@@ -43,9 +43,14 @@ pub struct SpriteText {
 }
 
 impl SpriteText {
-    pub fn from_section(value: impl Into<String>, font: FontAsset) -> Self {
+    pub fn from_section(
+        value: impl Into<String>,
+        font: FontAsset,
+        background: Option<Color>,
+    ) -> Self {
         Self {
             sections: vec![SpriteTextSection::new(value, font)],
+            background,
             ..default()
         }
     }

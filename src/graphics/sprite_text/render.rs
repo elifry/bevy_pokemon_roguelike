@@ -3,7 +3,7 @@ use image::{Rgba, RgbaImage};
 
 use crate::graphics::assets::font_assets::FontSheet;
 
-use super::{glyph_brush::calculate_glyph_positions, SpriteText};
+use super::{glyph_brush::process_glyph, SpriteText};
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum SpriteTextRenderSet {
@@ -62,15 +62,14 @@ pub(crate) fn render_texture(
 
         for (index, section_data) in sections_data.iter().enumerate() {
             let section = &sprite_text.sections[index];
-            let (positioned_glyphs, section_max_width, section_line_height) =
-                calculate_glyph_positions(
-                    &section.value,
-                    section_data.0,
-                    section_data.1,
-                    section_data.2,
-                    &bounds.size,
-                    Some(last_glyph_position),
-                );
+            let (positioned_glyphs, section_max_width, section_line_height) = process_glyph(
+                &section.value,
+                section_data.0,
+                section_data.1,
+                section_data.2,
+                &bounds.size,
+                Some(last_glyph_position),
+            );
 
             glyphs.extend_from_slice(&positioned_glyphs);
 
@@ -82,7 +81,6 @@ pub(crate) fn render_texture(
                 .map(|glyph| glyph.position + UVec2::new(glyph.image.width(), 0))
                 .unwrap_or(UVec2::ZERO);
         }
-        info!("Line height : {line_height}");
         let height = last_glyph_position.y + line_height;
 
         let mut combined = RgbaImage::new(width, height);

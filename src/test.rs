@@ -21,7 +21,7 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
         .spawn(Text2DSpriteBundle {
             transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
             text_anchor: bevy::sprite::Anchor::BottomLeft,
-            text: SpriteText::from_section("Hello world!", text_font.clone()),
+            text: SpriteText::from_section("Hello world!", text_font.clone(), Some(Color::RED)),
             ..default()
         })
         .insert(Name::new("TextSprite Test"));
@@ -68,7 +68,7 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
                             text_font.clone(),
                         ),
                         SpriteTextSection::new(
-                            "Another text section",
+                            " Another text section",
                             text_font.clone(),
                         ),
                     ],
