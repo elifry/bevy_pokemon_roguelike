@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::text::{BreakLineOn, Text2dBounds};
+use bevy_inspector_egui::egui::style::default_text_styles;
 
 use crate::graphics::assets::font_assets::FontAssets;
 use crate::graphics::sprite_text::{SpriteText, SpriteTextSection, Text2DSpriteBundle};
@@ -73,6 +74,7 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
                     ],
                     alignment: TextAlignment::Center,
                     linebreak_behavior: BreakLineOn::WordBoundary,
+                    ..default()
                 },
                 text_2d_bounds: Text2dBounds {
                     // Wrap text in the rectangle

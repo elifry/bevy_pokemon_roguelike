@@ -24,7 +24,7 @@ impl Plugin for FontAssetsPlugin {
 }
 
 /// Store glyph information
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, PartialEq, PartialOrd, Clone)]
 pub struct FontGlyph {
     pub index: usize,
     pub color_less: bool,

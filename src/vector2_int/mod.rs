@@ -8,6 +8,7 @@ pub struct Vector2Int {
     pub y: i32,
 }
 
+// TODO: maybe use directly IVec2
 impl Vector2Int {
     pub const UP: Vector2Int = Vector2Int { x: 0, y: 1 };
     pub const DOWN: Vector2Int = Vector2Int { x: 0, y: -1 };

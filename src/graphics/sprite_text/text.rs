@@ -1,7 +1,7 @@
 use bevy::{
     prelude::*,
     sprite::Anchor,
-    text::{BreakLineOn, Text2dBounds, TextLayoutInfo},
+    text::{BreakLineOn, Text2dBounds},
 };
 
 use crate::graphics::assets::font_assets::FontAsset;
@@ -38,6 +38,8 @@ pub struct SpriteText {
     pub alignment: TextAlignment,
     /// How the text should linebreak when running out of the bounds determined by max_size
     pub linebreak_behavior: BreakLineOn,
+    /// Background color
+    pub background: Option<Color>,
 }
 
 impl SpriteText {
@@ -67,6 +69,13 @@ impl SpriteText {
         self.linebreak_behavior = BreakLineOn::NoWrap;
         self
     }
+
+    /// Returns the total number of chars in all [`SpriteTextSection`]
+    pub fn total_chars_count(&self) -> usize {
+        self.sections
+            .iter()
+            .fold(0, |sum, section| sum + section.value.chars().count())
+    }
 }
 
 impl Default for SpriteText {
@@ -75,6 +84,7 @@ impl Default for SpriteText {
             sections: Default::default(),
             alignment: TextAlignment::Left,
             linebreak_behavior: BreakLineOn::WordBoundary,
+            background: None,
         }
     }
 }
