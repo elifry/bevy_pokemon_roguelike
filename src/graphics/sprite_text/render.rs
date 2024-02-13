@@ -3,7 +3,7 @@ use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 
 use crate::graphics::{assets::font_assets::FontSheet, sprite_text::utils::extract_sub_image};
 
-use super::{utils::calculate_glyph_positions, SpriteText};
+use super::{glyph_brush::calculate_glyph_positions, SpriteText};
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum SpriteTextRenderSet {
@@ -63,8 +63,13 @@ pub(crate) fn render_texture(
             for pixel in combined.pixels_mut() {
                 *pixel = red;
             }
-            for (_id, image, x, y) in glyphs {
-                image::imageops::overlay(&mut combined, &image, x.into(), y.into());
+            for positioned_glyph in glyphs {
+                image::imageops::overlay(
+                    &mut combined,
+                    &positioned_glyph.image,
+                    positioned_glyph.position.x.into(),
+                    positioned_glyph.position.y.into(),
+                );
             }
 
             sprite.custom_size = Some(Vec2::new(combined.width() as f32, combined.height() as f32));

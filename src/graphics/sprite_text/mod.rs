@@ -1,3 +1,4 @@
+mod glyph_brush;
 mod render;
 pub mod text;
 mod utils;

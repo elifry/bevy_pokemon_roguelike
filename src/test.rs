@@ -61,10 +61,16 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
             builder.spawn(Text2DSpriteBundle {
                 // text_anchor: bevy::sprite::Anchor::TopLeft,
                 text: SpriteText {
-                    sections: vec![SpriteTextSection::new(
-                        "this text wraps in the box (Unicode linebreaks) \nthis text wraps in the box (Unicode linebreaks)",
-                        text_font.clone(),
-                    )],
+                    sections: vec![
+                        SpriteTextSection::new(
+                            "this text wraps in the box (Unicode linebreaks) \nthis text wraps in the box (Unicode linebreaks)",
+                            text_font.clone(),
+                        ),
+                        SpriteTextSection::new(
+                            "Another text section",
+                            text_font.clone(),
+                        ),
+                    ],
                     alignment: TextAlignment::Center,
                     linebreak_behavior: BreakLineOn::WordBoundary,
                 },
