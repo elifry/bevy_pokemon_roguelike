@@ -38,6 +38,7 @@ pub struct FontSheet {
 
 /// Store the font sheet and the texture atlas for a font
 #[derive(Debug, Default, Reflect, Clone)]
+#[reflect(Default)]
 pub struct FontAsset {
     pub texture_atlas: Handle<TextureAtlas>,
     pub font_sheet: Handle<FontSheet>,

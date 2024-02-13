@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::*,
+    prelude::{default, *},
     sprite::Anchor,
     text::{BreakLineOn, Text2dBounds},
 };
@@ -38,19 +38,18 @@ pub struct SpriteText {
     pub alignment: TextAlignment,
     /// How the text should linebreak when running out of the bounds determined by max_size
     pub linebreak_behavior: BreakLineOn,
-    /// Background color
-    pub background: Option<Color>,
+}
+
+#[derive(Debug, Default, Clone, Reflect)]
+pub struct SpriteTextStyle {
+    pub font: FontAsset,
+    pub background_color: Option<Color>,
 }
 
 impl SpriteText {
-    pub fn from_section(
-        value: impl Into<String>,
-        font: FontAsset,
-        background: Option<Color>,
-    ) -> Self {
+    pub fn from_section(value: impl Into<String>, style: SpriteTextStyle) -> Self {
         Self {
-            sections: vec![SpriteTextSection::new(value, font)],
-            background,
+            sections: vec![SpriteTextSection::new(value, style)],
             ..default()
         }
     }
@@ -89,7 +88,6 @@ impl Default for SpriteText {
             sections: Default::default(),
             alignment: TextAlignment::Left,
             linebreak_behavior: BreakLineOn::WordBoundary,
-            background: None,
         }
     }
 }
@@ -97,23 +95,23 @@ impl Default for SpriteText {
 #[derive(Debug, Default, Clone, Reflect)]
 pub struct SpriteTextSection {
     pub value: String,
-    pub font: FontAsset,
+    pub style: SpriteTextStyle,
 }
 
 impl SpriteTextSection {
     /// Create a new [`SpriteTextSection`].
-    pub fn new(value: impl Into<String>, font: FontAsset) -> Self {
+    pub fn new(value: impl Into<String>, style: SpriteTextStyle) -> Self {
         Self {
             value: value.into(),
-            font,
+            style,
         }
     }
 
     /// Create an empty [`SpriteTextSection`] from a style. Useful when the value will be set dynamically.
-    pub const fn from_style(font: FontAsset) -> Self {
+    pub const fn from_style(style: SpriteTextStyle) -> Self {
         Self {
             value: String::new(),
-            font,
+            style,
         }
     }
 }

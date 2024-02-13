@@ -42,11 +42,11 @@ pub(crate) fn render_texture(
             .iter()
             .map(|section| {
                 let font_sheet = font_sheets
-                    .get(section.font.font_sheet.id())
+                    .get(section.style.font.font_sheet.id())
                     .expect("Unable to load the fontsheet for the font");
 
                 let texture_atlas = texture_atlases
-                    .get(section.font.texture_atlas.id())
+                    .get(section.style.font.texture_atlas.id())
                     .expect("Unable to load the texture atlas for the font");
 
                 let texture_image = images.get(texture_atlas.texture.id()).unwrap();
@@ -86,11 +86,12 @@ pub(crate) fn render_texture(
         let mut combined = RgbaImage::new(width, height);
 
         // Draw the background
-        if let Some(background) = sprite_text.background {
-            for pixel in combined.pixels_mut() {
-                *pixel = Rgba(background.as_rgba_u8());
-            }
-        }
+        // TODO draw the background for text section
+        // if let Some(background) = sprite_text.background_color {
+        //     for pixel in combined.pixels_mut() {
+        //         *pixel = Rgba(background.as_rgba_u8());
+        //     }
+        // }
 
         // Draw the glyphs
         for positioned_glyph in glyphs {

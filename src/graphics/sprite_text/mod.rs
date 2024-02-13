@@ -1,10 +1,12 @@
 mod glyph_brush;
+pub mod node;
 mod render;
 pub mod text;
 mod utils;
 
 use bevy::{prelude::*, transform::TransformSystem};
 
+pub use node::*;
 pub use text::*;
 
 use self::render::{new_image_from_default, render_texture, SpriteTextRenderSet};
