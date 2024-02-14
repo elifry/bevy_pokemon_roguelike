@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use bevy_inspector_egui::egui::style::default_text_styles;
 
 use crate::graphics::assets::font_assets::FontAssets;
-use crate::graphics::sprite_text::{SpriteTextBundle, SpriteTextStyle};
+use crate::graphics::sprite_text::{
+    SpriteText, SpriteTextBundle, SpriteTextStyle, Text2DSpriteBundle,
+};
 use crate::GameState;
 
 pub struct TestPlugin;
@@ -13,14 +15,17 @@ impl Plugin for TestPlugin {
     }
 }
 
-fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
+fn spawn_test(
+    font_sheet_assets: Res<FontAssets>,
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
+) {
     let text_font = font_sheet_assets.0.get("text").unwrap();
 
     let text_style = SpriteTextStyle {
         font: text_font.clone(),
         ..default()
     };
-
     // commands
     //     .spawn(Text2DSpriteBundle {
     //         transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
@@ -91,21 +96,59 @@ fn spawn_test(font_sheet_assets: Res<FontAssets>, mut commands: Commands) {
     //     });
 
     // Text with one section
-    commands.spawn((
-        Name::new("Node Text"),
-        // Create a TextBundle that has a Text with a single section.
-        SpriteTextBundle::from_section(
-            // Accepts a `String` or any type that converts into a `String`, such as `&str`
-            "hello\nbevy!",
-            text_style.clone(),
-        ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Center)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(5.0),
-            right: Val::Px(5.0),
+    // ImageBundle
+    // UI test
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::SpaceBetween,
+                ..default()
+            },
             ..default()
-        }),
-    ));
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                Name::new("Node Text"),
+                // Create a TextBundle that has a Text with a single section.
+                SpriteTextBundle {
+                    text: SpriteText::from_section("hello\nbevy!", text_style.clone()),
+                    style: Style {
+                        // width: Val::Px(500.0),
+                        // height: Val::Px(125.0),
+                        ..default()
+                    },
+                    ..default()
+                },
+            ));
+
+            // Set the alignment of the Text
+            // .with_text_alignment(TextAlignment::Center)
+            // // Set the style of the TextBundle itself.
+            // .with_style(Style {
+            //     position_type: PositionType::Absolute,
+            //     bottom: Val::Px(5.0),
+            //     right: Val::Px(5.0),
+            //     ..default()
+
+            // parent.spawn((
+            //     ImageBundle {
+            //         image: UiImage::new(asset_server.load("logo.png")),
+            //         ..default()
+            //     },
+            //     // NodeBundle {
+            //     //     style: Style {
+            //     //         // width: Val::Px(500.0),
+            //     //         // height: Val::Px(125.0),
+            //     //         margin: UiRect::top(Val::VMin(5.)),
+            //     //         ..default()
+            //     //     },
+            //     //     // a `NodeBundle` is transparent by default, so to see the image we have to its color to `WHITE`
+            //     //     background_color: Color::WHITE.into(),
+            //     //     ..default()
+            //     // },
+            //     // UiImage::new(asset_server.load("logo.png")),
+            // ));
+        });
 }

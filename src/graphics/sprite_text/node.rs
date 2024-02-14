@@ -2,26 +2,39 @@ use bevy::{
     prelude::*,
     sprite::Anchor,
     text::{BreakLineOn, Text2dBounds},
-    ui::ContentSize,
+    ui::{widget::UiImageSize, ContentSize, FocusPolicy},
 };
+use bevy_inspector_egui::egui::ImageSize;
 
 use super::{SpriteText, SpriteTextSection, SpriteTextStyle};
 
 #[derive(Bundle, Debug)]
 pub struct SpriteTextBundle {
+    /// Contains the text.
+    pub text: SpriteText,
     /// Describes the logical size of the node
     pub node: Node,
     /// Styles which control the layout (size and position) of the node and it's children
     /// In some cases these styles also affect how the node drawn/painted.
     pub style: Style,
-    /// Contains the text of the node
-    pub text: SpriteText,
     /// The calculated size based on the given image
     pub calculated_size: ContentSize,
+    /// The background color, which serves as a "fill" for this node
+    ///
+    /// Combines with `UiImage` to tint the provided image.
+    pub background_color: BackgroundColor,
+    /// The image of the node
+    pub image: UiImage,
+    /// The size of the image in pixels
+    ///
+    /// This component is set automatically
+    pub image_size: UiImageSize,
+    /// Whether this node should block interaction with lower nodes
+    pub focus_policy: FocusPolicy,
     /// The transform of the node
     ///
     /// This component is automatically managed by the UI layout system.
-    /// To alter the position of the `TextBundle`, use the properties of the [`Style`] component.
+    /// To alter the position of the `ImageBundle`, use the properties of the [`Style`] component.
     pub transform: Transform,
     /// The global transform of the node
     ///
@@ -35,14 +48,6 @@ pub struct SpriteTextBundle {
     pub view_visibility: ViewVisibility,
     /// Indicates the depth at which the node should appear in the UI
     pub z_index: ZIndex,
-    /// The background color that will fill the containing node
-    pub background_color: BackgroundColor,
-
-    // Internal rendering
-    pub sprite: Sprite,
-    pub texture: Handle<Image>,
-    pub text_2d_bounds: Text2dBounds,
-    pub text_anchor: Anchor,
 }
 
 impl Default for SpriteTextBundle {
@@ -59,11 +64,10 @@ impl Default for SpriteTextBundle {
             view_visibility: Default::default(),
             z_index: Default::default(),
             // Transparent background
-            background_color: BackgroundColor(Color::NONE),
-            sprite: Default::default(),
-            texture: Default::default(),
-            text_2d_bounds: Default::default(),
-            text_anchor: Default::default(),
+            background_color: BackgroundColor(Color::WHITE),
+            image: Default::default(),
+            image_size: Default::default(),
+            focus_policy: Default::default(),
         }
     }
 }
