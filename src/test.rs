@@ -1,10 +1,7 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::egui::style::default_text_styles;
 
 use crate::graphics::assets::font_assets::FontAssets;
-use crate::graphics::sprite_text::{
-    SpriteText, SpriteTextBundle, SpriteTextStyle, Text2DSpriteBundle,
-};
+use crate::graphics::sprite_text::{SpriteText, SpriteTextBundle, SpriteTextStyle};
 use crate::GameState;
 
 pub struct TestPlugin;
@@ -113,15 +110,37 @@ fn spawn_test(
                 Name::new("Node Text"),
                 // Create a TextBundle that has a Text with a single section.
                 SpriteTextBundle {
-                    text: SpriteText::from_section("hello\nbevy!", text_style.clone()),
+                    text: SpriteText::from_section("hello hello hello bevy!", text_style.clone()),
                     style: Style {
-                        // width: Val::Px(500.0),
-                        // height: Val::Px(125.0),
+                        margin: UiRect::all(Val::VMin(3.)),
+                        align_self: AlignSelf::FlexStart,
                         ..default()
                     },
                     ..default()
                 },
             ));
+
+            // parent.spawn(ImageBundle {
+            //     image: UiImage::new(asset_server.load("test.png")),
+            //     background_color: Color::WHITE.into(),
+            //     ..default()
+            // });
+
+            // parent.spawn((
+            //     NodeBundle {
+            //         style: Style {
+            //             width: Val::Px(16.0),
+            //             height: Val::Px(17.0),
+            //             left: Val::Px(100.),
+            //             margin: UiRect::top(Val::VMin(5.)),
+            //             ..default()
+            //         },
+            //         // a `NodeBundle` is transparent by default, so to see the image we have to its color to `WHITE`
+            //         background_color: Color::WHITE.into(),
+            //         ..default()
+            //     },
+            //     UiImage::new(asset_server.load("test.png")),
+            // ));
 
             // Set the alignment of the Text
             // .with_text_alignment(TextAlignment::Center)
