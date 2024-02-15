@@ -23,12 +23,8 @@ pub struct SpriteTextBundle {
     ///
     /// Combines with `UiImage` to tint the provided image.
     pub background_color: BackgroundColor,
-    /// The image of the node
+    /// The image sur for rendering the text
     pub image: UiImage,
-    /// The size of the image in pixels
-    ///
-    /// This component is set automatically
-    pub image_size: UiImageSize,
     /// Whether this node should block interaction with lower nodes
     pub focus_policy: FocusPolicy,
     /// The transform of the node
@@ -66,7 +62,6 @@ impl Default for SpriteTextBundle {
             // Transparent background
             background_color: BackgroundColor(Color::WHITE),
             image: Default::default(),
-            image_size: Default::default(),
             focus_policy: Default::default(),
         }
     }

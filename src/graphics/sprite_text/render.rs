@@ -3,7 +3,11 @@ use bevy::{
     render::{render_resource::Extent3d, Extract},
     sprite::Anchor,
     text::Text2dBounds,
-    ui::{widget::UiImageSize, ContentSize, ExtractedUiNode, ExtractedUiNodes},
+    ui::{
+        widget::{ImageMeasure, UiImageSize},
+        ContentSize, ExtractedUiNode, ExtractedUiNodes, FixedMeasure,
+    },
+    window::PrimaryWindow,
 };
 use bevy_inspector_egui::egui::ImageSize;
 use image::{Rgba, RgbaImage};
@@ -137,6 +141,52 @@ pub(crate) fn render_texture(
     }
 }
 
+#[inline]
+fn create_text_measure(
+    fonts: &Assets<Font>,
+    scale_factor: f32,
+    text: Ref<SpriteText>,
+    mut content_size: Mut<ContentSize>,
+) {
+    // TODO: calculated the text size according to spritetext content
+    info!("create_text_measure {scale_factor}");
+    content_size.set(ImageMeasure {
+        size: Vec2::new(50., 30.) * scale_factor,
+    });
+}
+
+pub fn measure_sprite_text_system(
+    mut last_scale_factor: Local<f32>,
+    fonts: Res<Assets<Font>>,
+    windows: Query<&Window, With<PrimaryWindow>>,
+    ui_scale: Res<UiScale>,
+    mut text_query: Query<(Ref<SpriteText>, &mut ContentSize), With<Node>>,
+) {
+    let window_scale_factor = windows
+        .get_single()
+        .map(|window| window.resolution.scale_factor())
+        .unwrap_or(1.);
+
+    let scale_factor = (ui_scale.0 * window_scale_factor) as f32;
+
+    #[allow(clippy::float_cmp)]
+    if *last_scale_factor == scale_factor {
+        // scale factor unchanged, only create new measure funcs for modified text
+        for (text, content_size) in &mut text_query {
+            if text.is_changed() || content_size.is_added() {
+                create_text_measure(&fonts, scale_factor, text, content_size);
+            }
+        }
+    } else {
+        // scale factor changed, create new measure funcs for all text
+        *last_scale_factor = scale_factor;
+
+        for (text, content_size) in &mut text_query {
+            create_text_measure(&fonts, scale_factor, text, content_size);
+        }
+    }
+}
+
 #[allow(clippy::type_complexity)]
 pub(crate) fn render_ui_texture(
     mut query: Query<
@@ -168,8 +218,10 @@ pub(crate) fn render_ui_texture(
 
         let mut last_glyph_position = UVec2::ZERO;
         let mut glyphs = Vec::with_capacity(sprite_text.total_chars_count());
-        let mut width = 0;
+        // let mut width = 0;
         let mut line_height = 0;
+
+        info!("Node size {:?}", node.size());
 
         for (index, section_data) in sections_data.iter().enumerate() {
             let section = &sprite_text.sections[index];
@@ -184,7 +236,7 @@ pub(crate) fn render_ui_texture(
 
             glyphs.extend_from_slice(&positioned_glyphs);
 
-            width = width.max(section_max_width);
+            // width = width.max(section_max_width);
             line_height = line_height.max(section_line_height);
 
             last_glyph_position = glyphs
@@ -192,7 +244,9 @@ pub(crate) fn render_ui_texture(
                 .map(|glyph| glyph.position + UVec2::new(glyph.image.width(), 0))
                 .unwrap_or(UVec2::ZERO);
         }
-        let height = last_glyph_position.y + line_height;
+        // let height = last_glyph_position.y + line_height;
+        let width = node.size().x as u32;
+        let height = node.size().y as u32;
 
         info!("Creating ui image of {width}x{height}");
 
