@@ -31,7 +31,7 @@ pub struct FontGlyph {
 }
 
 /// Store all glyph information for a font
-#[derive(Asset, TypePath, Debug, Deserialize, Default)]
+#[derive(Asset, TypePath, Debug, Deserialize, Default, Clone)]
 pub struct FontSheet {
     pub glyphs: HashMap<u32, FontGlyph>,
 }
@@ -44,7 +44,7 @@ pub struct FontAsset {
     pub font_sheet: Handle<FontSheet>,
 }
 
-#[derive(Resource, Debug, Default)]
+#[derive(Resource, Debug, Default, Clone)]
 pub struct FontAssets(pub HashMap<String, FontAsset>);
 
 #[derive(Default, Resource)]

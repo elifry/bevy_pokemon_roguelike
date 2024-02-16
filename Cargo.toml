@@ -43,6 +43,7 @@ strum = { version = "0.25.0", features = ["derive"] }
 # serde-xml-rs = "0.6.0"
 thiserror = "1.0.56"
 image = "0.24.8"
+glyph_brush_layout = "0.2.3"
 
 [features]
 dev = ["bevy/dynamic_linking"]

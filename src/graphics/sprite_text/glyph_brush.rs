@@ -3,7 +3,9 @@ use image::{ImageBuffer, RgbaImage};
 
 use crate::graphics::assets::font_assets::FontSheet;
 
-use super::utils::extract_sub_image;
+use super::{utils::extract_sub_image, SpriteText};
+
+pub const SPACE_WIDTH: u32 = 5;
 
 #[derive(Debug, Clone)]
 pub(crate) struct PositionedGlyph {
@@ -30,8 +32,6 @@ pub(crate) fn process_glyph(
     let mut current_line_width: u32 = 0;
     let mut line_height: u32 = 0;
 
-    let space_width = 5; // Assuming a fixed width for spaces
-
     let mut glyphs = Vec::new();
 
     for character in text.chars() {
@@ -46,7 +46,7 @@ pub(crate) fn process_glyph(
 
         let glyph_id = character as u32;
         let (glyph_width, glyph_image) = if character == ' ' {
-            (space_width, ImageBuffer::new(space_width, line_height)) // Use max_height for consistent line height
+            (SPACE_WIDTH, ImageBuffer::new(SPACE_WIDTH, line_height)) // Use max_height for consistent line height
         } else if let Some(glyph) = font_sheet.glyphs.get(&glyph_id) {
             let glyph_rect = texture_atlas.textures[glyph.index];
             let glyph_image =
@@ -54,7 +54,7 @@ pub(crate) fn process_glyph(
             (glyph_image.width(), glyph_image)
         } else {
             warn!("couldn't find the character '{}'", character);
-            (space_width, ImageBuffer::new(space_width, 0))
+            (SPACE_WIDTH, ImageBuffer::new(SPACE_WIDTH, 0))
         };
 
         line_height = line_height.max(glyph_image.height());
@@ -84,3 +84,5 @@ pub(crate) fn process_glyph(
 
     (glyphs, max_width, line_height)
 }
+
+// pub fn calculate_glyphs()

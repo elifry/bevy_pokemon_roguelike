@@ -43,6 +43,7 @@ pub struct SpriteText {
 #[derive(Debug, Default, Clone, Reflect)]
 pub struct SpriteTextStyle {
     pub font: FontAsset,
+    pub font_size: f32,
     pub background_color: Option<Color>,
 }
 

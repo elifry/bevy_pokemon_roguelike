@@ -2,17 +2,20 @@ use bevy::{
     prelude::*,
     render::{render_resource::Extent3d, Extract},
     sprite::Anchor,
-    text::Text2dBounds,
+    text::{BreakLineOn, Text2dBounds},
     ui::{
         widget::{ImageMeasure, UiImageSize},
-        ContentSize, ExtractedUiNode, ExtractedUiNodes, FixedMeasure,
+        AvailableSpace, ContentSize, ExtractedUiNode, ExtractedUiNodes, FixedMeasure, Measure,
     },
     window::PrimaryWindow,
 };
 use bevy_inspector_egui::egui::ImageSize;
 use image::{Rgba, RgbaImage};
 
-use crate::graphics::assets::font_assets::FontSheet;
+use crate::graphics::{
+    assets::font_assets::{FontAssets, FontSheet},
+    sprite_text::pipeline::SpriteTextMeasureInfo,
+};
 
 use super::{glyph_brush::process_glyph, SpriteText};
 
@@ -141,13 +144,71 @@ pub(crate) fn render_texture(
     }
 }
 
+#[derive(Clone)]
+pub struct SpriteTextMeasure {
+    pub info: SpriteTextMeasureInfo,
+}
+
+impl Measure for SpriteTextMeasure {
+    fn measure(
+        &self,
+        width: Option<f32>,
+        height: Option<f32>,
+        available_width: AvailableSpace,
+        _available_height: AvailableSpace,
+    ) -> Vec2 {
+        let x = width.unwrap_or_else(|| match available_width {
+            AvailableSpace::Definite(x) => {
+                // It is possible for the "min content width" to be larger than
+                // the "max content width" when soft-wrapping right-aligned text
+                // and possibly other situations.
+
+                x.max(self.info.min.x).min(self.info.max.x)
+            }
+            AvailableSpace::MinContent => self.info.min.x,
+            AvailableSpace::MaxContent => self.info.max.x,
+        });
+
+        height
+            .map_or_else(
+                || match available_width {
+                    AvailableSpace::Definite(_) => self.info.compute_size(Vec2::new(x, f32::MAX)),
+                    AvailableSpace::MinContent => Vec2::new(x, self.info.min.y),
+                    AvailableSpace::MaxContent => Vec2::new(x, self.info.max.y),
+                },
+                |y| Vec2::new(x, y),
+            )
+            .ceil()
+    }
+}
+
 #[inline]
-fn create_text_measure(
-    fonts: &Assets<Font>,
+fn create_sprite_text_measure(
+    font_sheets: &Assets<FontSheet>,
     scale_factor: f32,
     text: Ref<SpriteText>,
     mut content_size: Mut<ContentSize>,
 ) {
+    match SpriteTextMeasureInfo::from_text(&text, font_sheets, scale_factor) {
+        Ok(measure) => {
+            if text.linebreak_behavior == BreakLineOn::NoWrap {
+                content_size.set(FixedMeasure { size: measure.max });
+            } else {
+                content_size.set(SpriteTextMeasure { info: measure });
+            }
+
+            // Text measure func created successfully, so set `TextFlags` to schedule a recompute
+            // text_flags.needs_new_measure_func = false;
+            // text_flags.needs_recompute = true;
+        }
+        Err(TextError::NoSuchFont) => {
+            // Try again next frame
+            // text_flags.needs_new_measure_func = true;
+        }
+        Err(e @ TextError::FailedToAddGlyph(_)) => {
+            panic!("Fatal error when processing text: {e}.");
+        }
+    };
     // TODO: calculated the text size according to spritetext content
     info!("create_text_measure {scale_factor}");
     content_size.set(ImageMeasure {
@@ -157,7 +218,7 @@ fn create_text_measure(
 
 pub fn measure_sprite_text_system(
     mut last_scale_factor: Local<f32>,
-    fonts: Res<Assets<Font>>,
+    font_sheets: Res<Assets<FontSheet>>,
     windows: Query<&Window, With<PrimaryWindow>>,
     ui_scale: Res<UiScale>,
     mut text_query: Query<(Ref<SpriteText>, &mut ContentSize), With<Node>>,
@@ -174,7 +235,7 @@ pub fn measure_sprite_text_system(
         // scale factor unchanged, only create new measure funcs for modified text
         for (text, content_size) in &mut text_query {
             if text.is_changed() || content_size.is_added() {
-                create_text_measure(&fonts, scale_factor, text, content_size);
+                create_sprite_text_measure(&font_sheets, scale_factor, text, content_size);
             }
         }
     } else {
@@ -182,7 +243,7 @@ pub fn measure_sprite_text_system(
         *last_scale_factor = scale_factor;
 
         for (text, content_size) in &mut text_query {
-            create_text_measure(&fonts, scale_factor, text, content_size);
+            create_sprite_text_measure(&font_sheets, scale_factor, text, content_size);
         }
     }
 }

@@ -1,6 +1,9 @@
 mod glyph_brush;
+mod glyph_brush_layout;
 pub mod node;
+mod pipeline;
 mod render;
+mod section;
 pub mod text;
 mod utils;
 
