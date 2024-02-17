@@ -1,5 +1,4 @@
-use bitmap_font::{BitmapFont, BoundingBox, Glyph};
-use font_atlas::{FontSheetData, GlyphData};
+use bitmap_font::bfn::{BoundingBox, Font, Glyph};
 use image::{DynamicImage, GenericImage, ImageOutputFormat, Rgba, RgbaImage};
 use std::{collections::HashMap, fs::File, io::Cursor, path::Path};
 
@@ -83,7 +82,7 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
                 .write_to(&mut Cursor::new(&mut texture_bytes), ImageOutputFormat::Png)
                 .expect("Failed to compress atlas image");
 
-            let font_sheet_data = BitmapFont {
+            let font_sheet_data = Font {
                 size: (dest.w, dest.h),
                 name: font_name.to_string(),
                 glyph_count: glyphs.len(),
