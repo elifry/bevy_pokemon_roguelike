@@ -1,4 +1,8 @@
-use bevy::{asset::Asset, reflect::TypePath};
+use bevy::{
+    asset::Asset,
+    math::{Rect, Vec2},
+    reflect::TypePath,
+};
 pub use bincode::error::DecodeError;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -13,9 +17,10 @@ pub struct Font {
     pub name: String,
     pub glyph_count: usize,
     pub size: (usize, usize),
-    pub char_space: u8,
-    pub char_height: u8,
-    pub line_space: u8,
+    pub char_space: u32,
+    pub space_width: u32,
+    pub char_height: u32,
+    pub line_space: u32,
     pub glyphs: HashMap<u16, Glyph>,
     pub texture: Vec<u8>,
 }

@@ -24,5 +24,5 @@ fn build_font_atlases() {
     // create_font_atlas(FONT_RAW_FOLDER_PATH, "assets/fonts/text/font");
 
     fs::create_dir_all("assets/fonts/text").unwrap();
-    create_bitmap_font(FONT_RAW_FOLDER_PATH, "assets/fonts/text/font.bfn")
+    create_bitmap_font(FONT_RAW_FOLDER_PATH, "assets/fonts/text/text.bfn")
 }

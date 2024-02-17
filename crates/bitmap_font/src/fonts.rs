@@ -85,6 +85,6 @@ impl AssetLoader for BitmapFontLoader {
     }
 
     fn extensions(&self) -> &[&str] {
-        &[".bfn"]
+        &["bfn"]
     }
 }

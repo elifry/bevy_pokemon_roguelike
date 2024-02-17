@@ -2,7 +2,6 @@ use bevy::asset::LoadState;
 use bevy::prelude::*;
 
 use bevy_asset_loader::prelude::*;
-use font_atlas::loader::FontSheetDataPlugin;
 
 use crate::GameState;
 
@@ -25,7 +24,6 @@ impl Plugin for AssetsPlugin {
             FontAssetsPlugin,
             VisualEffectAssetsPlugin,
             BinaryDataPlugin,
-            FontSheetDataPlugin,
         ))
         .init_collection::<TileAssets>()
         .init_resource::<AssetsLoading>()

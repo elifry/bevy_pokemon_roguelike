@@ -1,21 +1,6 @@
-use bevy::{
-    prelude::*,
-    render::{render_resource::Extent3d, Extract},
-    sprite::Anchor,
-    text::{BreakLineOn, Text2dBounds},
-    ui::{
-        widget::{ImageMeasure, UiImageSize},
-        AvailableSpace, ContentSize, ExtractedUiNode, ExtractedUiNodes, FixedMeasure, Measure,
-    },
-    window::PrimaryWindow,
-};
-use bevy_inspector_egui::egui::ImageSize;
+use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::Text2dBounds};
+use bitmap_font::fonts::BitmapFont;
 use image::{Rgba, RgbaImage};
-
-use crate::graphics::{
-    assets::font_assets::{FontAssets, FontSheet},
-    sprite_text::pipeline::SpriteTextMeasureInfo,
-};
 
 use super::{glyph_brush::process_glyph, SpriteText};
 
@@ -56,7 +41,7 @@ pub(crate) fn render_texture(
         Or<(Changed<SpriteText>, Changed<Anchor>, Changed<Text2dBounds>)>,
     >,
     texture_atlases: Res<Assets<TextureAtlas>>,
-    font_sheets: Res<Assets<FontSheet>>,
+    font_assets: Res<Assets<BitmapFont>>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (sprite_text, bounds, image, text_anchor, mut sprite) in query.iter_mut() {
@@ -64,17 +49,13 @@ pub(crate) fn render_texture(
             .sections
             .iter()
             .map(|section| {
-                let font_sheet = font_sheets
-                    .get(section.style.font.font_sheet.id())
+                let font_asset = font_assets
+                    .get(section.style.font.id())
                     .expect("Unable to load the fontsheet for the font");
 
-                let texture_atlas = texture_atlases
-                    .get(section.style.font.texture_atlas.id())
-                    .expect("Unable to load the texture atlas for the font");
+                let texture_image = images.get(font_asset.data.texture.id()).unwrap();
 
-                let texture_image = images.get(texture_atlas.texture.id()).unwrap();
-
-                (font_sheet, texture_atlas, texture_image)
+                (font_asset, texture_image)
             })
             .collect();
 
@@ -85,27 +66,23 @@ pub(crate) fn render_texture(
 
         for (index, section_data) in sections_data.iter().enumerate() {
             let section = &sprite_text.sections[index];
-            let (positioned_glyphs, section_max_width, section_line_height) = process_glyph(
+            let (positioned_glyphs, section_max_width) = process_glyph(
                 &section.value,
-                section_data.0,
+                &section_data.0.data.font,
                 section_data.1,
-                section_data.2,
                 &bounds.size,
                 Some(last_glyph_position),
             );
 
             glyphs.extend_from_slice(&positioned_glyphs);
-
             width = width.max(section_max_width);
-            line_height = line_height.max(section_line_height);
 
             last_glyph_position = glyphs
                 .last()
                 .map(|glyph| glyph.position + UVec2::new(glyph.image.width(), 0))
                 .unwrap_or(UVec2::ZERO);
         }
-        let height = last_glyph_position.y + line_height;
-
+        let height = 12; // TODO calculate this corretctly
         info!("Creating image of {width}x{height}");
         let mut combined = RgbaImage::new(width, height);
 
@@ -133,206 +110,6 @@ pub(crate) fn render_texture(
 
         // Update the texture
         if let Some(prev_image) = images.get_mut(image.id()) {
-            prev_image.data.clear();
-            prev_image.data.extend_from_slice(&combined);
-            prev_image.resize(Extent3d {
-                width: combined.width(),
-                height: combined.height(),
-                depth_or_array_layers: 1,
-            });
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct SpriteTextMeasure {
-    pub info: SpriteTextMeasureInfo,
-}
-
-impl Measure for SpriteTextMeasure {
-    fn measure(
-        &self,
-        width: Option<f32>,
-        height: Option<f32>,
-        available_width: AvailableSpace,
-        _available_height: AvailableSpace,
-    ) -> Vec2 {
-        let x = width.unwrap_or_else(|| match available_width {
-            AvailableSpace::Definite(x) => {
-                // It is possible for the "min content width" to be larger than
-                // the "max content width" when soft-wrapping right-aligned text
-                // and possibly other situations.
-
-                x.max(self.info.min.x).min(self.info.max.x)
-            }
-            AvailableSpace::MinContent => self.info.min.x,
-            AvailableSpace::MaxContent => self.info.max.x,
-        });
-
-        height
-            .map_or_else(
-                || match available_width {
-                    AvailableSpace::Definite(_) => self.info.compute_size(Vec2::new(x, f32::MAX)),
-                    AvailableSpace::MinContent => Vec2::new(x, self.info.min.y),
-                    AvailableSpace::MaxContent => Vec2::new(x, self.info.max.y),
-                },
-                |y| Vec2::new(x, y),
-            )
-            .ceil()
-    }
-}
-
-#[inline]
-fn create_sprite_text_measure(
-    font_sheets: &Assets<FontSheet>,
-    scale_factor: f32,
-    text: Ref<SpriteText>,
-    mut content_size: Mut<ContentSize>,
-) {
-    match SpriteTextMeasureInfo::from_text(&text, font_sheets, scale_factor) {
-        Ok(measure) => {
-            if text.linebreak_behavior == BreakLineOn::NoWrap {
-                content_size.set(FixedMeasure { size: measure.max });
-            } else {
-                content_size.set(SpriteTextMeasure { info: measure });
-            }
-
-            // Text measure func created successfully, so set `TextFlags` to schedule a recompute
-            // text_flags.needs_new_measure_func = false;
-            // text_flags.needs_recompute = true;
-        }
-        Err(TextError::NoSuchFont) => {
-            // Try again next frame
-            // text_flags.needs_new_measure_func = true;
-        }
-        Err(e @ TextError::FailedToAddGlyph(_)) => {
-            panic!("Fatal error when processing text: {e}.");
-        }
-    };
-    // TODO: calculated the text size according to spritetext content
-    info!("create_text_measure {scale_factor}");
-    content_size.set(ImageMeasure {
-        size: Vec2::new(50., 30.) * scale_factor,
-    });
-}
-
-pub fn measure_sprite_text_system(
-    mut last_scale_factor: Local<f32>,
-    font_sheets: Res<Assets<FontSheet>>,
-    windows: Query<&Window, With<PrimaryWindow>>,
-    ui_scale: Res<UiScale>,
-    mut text_query: Query<(Ref<SpriteText>, &mut ContentSize), With<Node>>,
-) {
-    let window_scale_factor = windows
-        .get_single()
-        .map(|window| window.resolution.scale_factor())
-        .unwrap_or(1.);
-
-    let scale_factor = (ui_scale.0 * window_scale_factor) as f32;
-
-    #[allow(clippy::float_cmp)]
-    if *last_scale_factor == scale_factor {
-        // scale factor unchanged, only create new measure funcs for modified text
-        for (text, content_size) in &mut text_query {
-            if text.is_changed() || content_size.is_added() {
-                create_sprite_text_measure(&font_sheets, scale_factor, text, content_size);
-            }
-        }
-    } else {
-        // scale factor changed, create new measure funcs for all text
-        *last_scale_factor = scale_factor;
-
-        for (text, content_size) in &mut text_query {
-            create_sprite_text_measure(&font_sheets, scale_factor, text, content_size);
-        }
-    }
-}
-
-#[allow(clippy::type_complexity)]
-pub(crate) fn render_ui_texture(
-    mut query: Query<
-        (&SpriteText, &Node, &mut UiImage),
-        Or<(Changed<SpriteText>, Changed<Anchor>, Changed<Text2dBounds>)>,
-    >,
-    texture_atlases: Res<Assets<TextureAtlas>>,
-    font_sheets: Res<Assets<FontSheet>>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    for (sprite_text, node, image) in query.iter_mut() {
-        let sections_data: Vec<_> = sprite_text
-            .sections
-            .iter()
-            .map(|section| {
-                let font_sheet = font_sheets
-                    .get(section.style.font.font_sheet.id())
-                    .expect("Unable to load the fontsheet for the font");
-
-                let texture_atlas = texture_atlases
-                    .get(section.style.font.texture_atlas.id())
-                    .expect("Unable to load the texture atlas for the font");
-
-                let texture_image = images.get(texture_atlas.texture.id()).unwrap();
-
-                (font_sheet, texture_atlas, texture_image)
-            })
-            .collect();
-
-        let mut last_glyph_position = UVec2::ZERO;
-        let mut glyphs = Vec::with_capacity(sprite_text.total_chars_count());
-        // let mut width = 0;
-        let mut line_height = 0;
-
-        info!("Node size {:?}", node.size());
-
-        for (index, section_data) in sections_data.iter().enumerate() {
-            let section = &sprite_text.sections[index];
-            let (positioned_glyphs, section_max_width, section_line_height) = process_glyph(
-                &section.value,
-                section_data.0,
-                section_data.1,
-                section_data.2,
-                &node.size(),
-                Some(last_glyph_position),
-            );
-
-            glyphs.extend_from_slice(&positioned_glyphs);
-
-            // width = width.max(section_max_width);
-            line_height = line_height.max(section_line_height);
-
-            last_glyph_position = glyphs
-                .last()
-                .map(|glyph| glyph.position + UVec2::new(glyph.image.width(), 0))
-                .unwrap_or(UVec2::ZERO);
-        }
-        // let height = last_glyph_position.y + line_height;
-        let width = node.size().x as u32;
-        let height = node.size().y as u32;
-
-        info!("Creating ui image of {width}x{height}");
-
-        let mut combined = RgbaImage::new(width, height);
-
-        // Draw the background
-        // TODO draw the background for text section
-        // if let Some(background) = sprite_text.background_color {
-        //     for pixel in combined.pixels_mut() {
-        //         *pixel = Rgba(background.as_rgba_u8());
-        //     }
-        // }
-
-        // Draw the glyphs
-        for positioned_glyph in glyphs {
-            image::imageops::overlay(
-                &mut combined,
-                &positioned_glyph.image,
-                positioned_glyph.position.x.into(),
-                positioned_glyph.position.y.into(),
-            );
-        }
-
-        // Update the texture
-        if let Some(prev_image) = images.get_mut(image.texture.id()) {
             prev_image.data.clear();
             prev_image.data.extend_from_slice(&combined);
             prev_image.resize(Extent3d {

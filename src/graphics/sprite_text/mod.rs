@@ -1,7 +1,5 @@
 mod glyph_brush;
-mod glyph_brush_layout;
 pub mod node;
-mod pipeline;
 mod render;
 mod section;
 pub mod text;
@@ -13,8 +11,7 @@ pub use node::*;
 pub use text::*;
 
 use self::render::{
-    measure_sprite_text_system, new_image_from_default, new_ui_image_from_default, render_texture,
-    render_ui_texture, SpriteTextRenderSet,
+    new_image_from_default, new_ui_image_from_default, render_texture, SpriteTextRenderSet,
 };
 
 pub struct SpriteTextPlugin;
@@ -39,11 +36,11 @@ impl Plugin for SpriteTextPlugin {
                     .in_set(SpriteTextRenderSet::Setup),
                 (render_texture).in_set(SpriteTextRenderSet::Draw),
             ),
-        )
-        .add_systems(PostUpdate, render_ui_texture.after(UiSystem::Layout))
-        .add_systems(
-            PostUpdate,
-            measure_sprite_text_system.before(UiSystem::Layout),
         );
+        // .add_systems(PostUpdate, render_ui_texture.after(UiSystem::Layout))
+        // .add_systems(
+        //     PostUpdate,
+        //     measure_sprite_text_system.before(UiSystem::Layout),
+        // );
     }
 }

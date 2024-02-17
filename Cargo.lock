@@ -235,6 +235,7 @@ name = "assets_builder"
 version = "0.1.0"
 dependencies = [
  "bevy_math",
+ "bitmap_font",
  "crunch",
  "font_atlas",
  "image",
@@ -936,8 +937,9 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset_loader",
+ "bevy_egui",
+ "bitmap_font",
  "dyn-clone",
- "font_atlas",
  "glyph_brush_layout",
  "image",
  "itertools",
@@ -1334,6 +1336,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "bitmap_font"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_egui",
+ "bincode",
+ "image",
+ "postcard",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

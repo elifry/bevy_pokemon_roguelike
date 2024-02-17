@@ -3,8 +3,10 @@ use ai::AIPlugin;
 use bevy::app::App;
 
 use bevy::prelude::*;
+use bevy_egui::EguiPlugin;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bitmap_font::BitmapFontPlugin;
 use camera::CameraPlugin;
 use graphics::GraphicsPlugin;
 use test::TestPlugin;
@@ -82,6 +84,8 @@ impl Plugin for GamePlugin {
             )
             .add_plugins((
                 // LoadingPlugin, // custom assets loading system can't use for now
+                BitmapFontPlugin,
+                EguiPlugin,
                 MenuPlugin,
                 MapPlugin,
                 PiecesPlugin,

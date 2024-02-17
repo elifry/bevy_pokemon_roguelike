@@ -75,7 +75,7 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
             println!("exporting `{}`...", output_filename);
 
             // Export the packed atlas
-            atlas.save(format!("{output_filename}-debug.png")).unwrap();
+            // atlas.save(format!("{output_filename}-debug.png")).unwrap();
 
             let mut texture_bytes: Vec<u8> = Vec::new();
             DynamicImage::ImageRgba8(atlas)
@@ -87,8 +87,9 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
                 name: font_name.to_string(),
                 glyph_count: glyphs.len(),
                 char_space: 0,
-                char_height: 0,
-                line_space: 0,
+                char_height: 12,
+                space_width: 4,
+                line_space: 1,
                 glyphs,
                 texture: texture_bytes,
             };

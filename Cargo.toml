@@ -19,7 +19,8 @@ opt-level = 3
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-font_atlas = { path = "crates/font_atlas" }
+# font_atlas = { path = "crates/font_atlas" }
+bitmap_font = { path = "crates/bitmap_font" }
 bevy = { version = "0.12.1", features = [
   "asset_processor",
   "basis-universal",
@@ -44,6 +45,7 @@ strum = { version = "0.25.0", features = ["derive"] }
 thiserror = "1.0.56"
 image = "0.24.8"
 glyph_brush_layout = "0.2.3"
+bevy_egui = "0.24.0"
 
 [features]
 dev = ["bevy/dynamic_linking"]

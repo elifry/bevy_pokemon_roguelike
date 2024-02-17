@@ -1,7 +1,6 @@
 use bevy::asset::AssetId;
+use bitmap_font::fonts::BitmapFont;
 use glyph_brush_layout::ab_glyph::{Glyph, PxScale};
-
-use crate::graphics::assets::font_assets::FontSheet;
 
 /// Text to layout together using a font & scale.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -14,7 +13,7 @@ pub struct SectionSpriteText<'a> {
     ///
     /// It must be a valid id in the `FontMap` used for layout calls.
     /// The default `FontId(0)` should always be valid.
-    pub font_sheet_id: AssetId<FontSheet>,
+    pub font_sheet_id: AssetId<BitmapFont>,
 }
 
 pub trait ToSectionSpriteText {
@@ -30,5 +29,5 @@ pub struct SectionSpriteGlyph {
     /// A positioned glyph.
     pub glyph: Glyph,
     /// Font id.
-    pub font_sheet_id: AssetId<FontSheet>,
+    pub font_sheet_id: AssetId<BitmapFont>,
 }

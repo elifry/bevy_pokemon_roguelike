@@ -3,8 +3,7 @@ use bevy::{
     sprite::Anchor,
     text::{BreakLineOn, Text2dBounds},
 };
-
-use crate::graphics::assets::font_assets::FontAsset;
+use bitmap_font::fonts::BitmapFont;
 
 #[derive(Bundle, Default, Clone, Debug)]
 pub struct Text2DSpriteBundle {
@@ -42,7 +41,7 @@ pub struct SpriteText {
 
 #[derive(Debug, Default, Clone, Reflect)]
 pub struct SpriteTextStyle {
-    pub font: FontAsset,
+    pub font: Handle<BitmapFont>,
     pub font_size: f32,
     pub background_color: Option<Color>,
 }
