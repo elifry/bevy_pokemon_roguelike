@@ -21,13 +21,13 @@ pub struct Font {
     pub space_width: u32,
     pub char_height: u32,
     pub line_space: u32,
-    pub glyphs: HashMap<u16, Glyph>,
+    pub glyphs: HashMap<u32, Glyph>,
     pub texture: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Glyph {
-    pub code_point: u16,
+    pub code_point: u32,
     pub bounds: BoundingBox,
     pub colorless: bool,
 }

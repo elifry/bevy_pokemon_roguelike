@@ -18,7 +18,7 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
 
             let path = Path::new(file);
             let file_stem = path.file_stem().and_then(|n| n.to_str())?;
-            let id = u16::from_str_radix(file_stem, 16).ok()?;
+            let id = u32::from_str_radix(file_stem, 16).ok()?;
 
             Some(Item::new(
                 TextureAtlasEntry { texture, id },
@@ -44,7 +44,7 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
             // Create a target atlas image to draw the packed images onto
             let mut atlas = RgbaImage::from_pixel(dest.w as u32, dest.h as u32, Rgba([0, 0, 0, 0]));
 
-            let mut glyphs: HashMap<u16, Glyph> = HashMap::with_capacity(all_packed.len());
+            let mut glyphs: HashMap<u32, Glyph> = HashMap::with_capacity(all_packed.len());
 
             // Copy all the packed images onto the target atlas
             for PackedItem { data, rect } in all_packed.iter() {

@@ -2,6 +2,7 @@ mod glyph_brush;
 pub mod node;
 mod render;
 mod section;
+pub mod sprite_label;
 pub mod text;
 mod utils;
 

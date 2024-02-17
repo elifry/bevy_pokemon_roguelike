@@ -6,7 +6,7 @@ use super::utils::extract_sub_image;
 
 #[derive(Debug, Clone)]
 pub(crate) struct PositionedGlyph {
-    pub glyph_id: u16,
+    pub glyph_id: u32,
     pub position: UVec2,
     pub image: RgbaImage,
 }
@@ -39,7 +39,7 @@ pub(crate) fn process_glyph(
             continue;
         }
 
-        let glyph_id = character as u16;
+        let glyph_id = character as u32;
         let (glyph_width, glyph_image) = if character == ' ' {
             (
                 font.space_width,
