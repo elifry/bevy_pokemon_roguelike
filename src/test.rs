@@ -1,7 +1,9 @@
 use bevy::prelude::*;
+use bevy_egui::{egui, EguiContexts};
 use bitmap_font::fonts::BitmapFont;
 
 use crate::graphics::assets::font_assets::FontAssets;
+use crate::graphics::sprite_text::sprite_label::SpriteLabelEguiUiExt;
 use crate::graphics::sprite_text::{
     SpriteText, SpriteTextBundle, SpriteTextStyle, Text2DSpriteBundle,
 };
@@ -11,8 +13,36 @@ pub struct TestPlugin;
 
 impl Plugin for TestPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Initializing), spawn_test);
+        app.add_systems(OnEnter(GameState::Initializing), spawn_test)
+            .add_systems(Update, ui.run_if(in_state(GameState::Playing)));
     }
+}
+
+fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>) {
+    let ctx = ctx.ctx_mut();
+    egui::CentralPanel::default()
+        // Because it covers the whole screen, make sure that it doesn't overlay the egui background frame
+        .frame(egui::Frame::none())
+        .show(ctx, |ui| {
+            // Get the screen rect
+            let screen_rect = ui.max_rect();
+            // Calculate a margin of 15% of the screen size
+            let outer_margin = screen_rect.size() * 0.15;
+            let outer_margin = UiRect {
+                left: Val::Px(outer_margin.x),
+                right: Val::Px(outer_margin.x),
+                // Make top and bottom margins smaller
+                top: Val::Px(outer_margin.y / 2.0),
+                bottom: Val::Px(outer_margin.y / 2.0),
+            };
+
+            // ui.label("world");
+            ui.retro_label("QWERTZUIOPSDFGHJKLYXCVBNM", &font_assets.text);
+
+            // ui.vertical_centered(|ui| {
+            //     ui.retro_label("Hello World UI", &font_assets.text);
+            // });
+        });
 }
 
 fn spawn_test(font_assets: Res<FontAssets>, mut commands: Commands) {

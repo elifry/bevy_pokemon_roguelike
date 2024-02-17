@@ -1,7 +1,7 @@
 //! Bitmap font label widget
 
-use bevy::prelude::Handle;
-use bevy_egui::egui::{self, Widget};
+use bevy::{log::info, prelude::Handle};
+use bevy_egui::egui::{self, Mesh, Widget};
 use bitmap_font::{bfn, fonts::BitmapFont, BitmapFontCache, BitmapFontCacheItem};
 use unicode_linebreak::BreakOpportunity;
 
@@ -176,9 +176,15 @@ impl<'a> SpriteLabel<'a> {
     pub fn paint_at(
         &self,
         ui: &mut egui::Ui,
-        pos: egui::Pos2,
+        rect: egui::Rect,
         layout: SpriteLabelCalculatedLayout,
     ) {
+        let mut mesh = Mesh::default();
+        mesh.add_colored_rect(rect, egui::Color32::WHITE);
+        ui.painter().add(mesh);
+
+        let pos = rect.min;
+
         // Aliase
         let font = &layout.font_cache.font_data.font;
 
@@ -206,23 +212,28 @@ impl<'a> SpriteLabel<'a> {
                 }
 
                 // Create mesh for glyph
-                let mut mesh = egui::Mesh {
-                    texture_id: layout.font_cache.texture_id,
-                    ..Default::default()
-                };
+                let mut mesh = egui::Mesh::with_texture(layout.font_cache.texture_id);
 
                 // Calculate glyph position and size
-                let char_y_offset = glyph.bounds.height as f32 - glyph.bounds.y as f32;
+                // let char_y_offset = (glyph.bounds.height as f32) + glyph.bounds.y as f32;
                 let glyph_pos = egui::Vec2::new(
                     current_x + line_x_offset,
-                    line_idx as f32 * layout.line_height + char_y_offset,
+                    line_idx as f32 * layout.line_height,
                 );
                 let glyph_size =
                     egui::Vec2::new(glyph.bounds.width as f32, glyph.bounds.height as f32);
                 let glyph_rect = egui::Rect::from_min_size(pos + glyph_pos, glyph_size);
 
+                let glyph_uv = egui::Rect::from_min_size(
+                    egui::Pos2::new(glyph.bounds.x as f32 / 1856., glyph.bounds.y as f32 / 1856.),
+                    egui::Vec2::new(
+                        glyph.bounds.width as f32 / 1856.,
+                        glyph.bounds.height as f32 / 1856.,
+                    ),
+                );
+
                 // Add the glyph to the mesh and render it
-                mesh.add_rect_with_uv(glyph_rect, glyph_rect, self.color);
+                mesh.add_rect_with_uv(glyph_rect, glyph_uv, self.color);
                 ui.painter().add(mesh);
 
                 // Update the x position
@@ -250,9 +261,10 @@ impl<'a> Widget for SpriteLabel<'a> {
 
         // Allocate a rect and response for the label
         let (rect, response) = ui.allocate_exact_size(layout.size, egui::Sense::hover());
+        info!("Allocated rect {:?}", rect);
 
         // Paint the label
-        self.paint_at(ui, rect.min, layout);
+        self.paint_at(ui, rect, layout);
 
         response
     }

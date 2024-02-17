@@ -72,10 +72,24 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
                 );
             }
 
+            glyphs.insert(
+                ' ' as u32,
+                Glyph {
+                    code_point: ' ' as u32,
+                    bounds: BoundingBox {
+                        width: 4,
+                        height: 12,
+                        x: 0,
+                        y: 0,
+                    },
+                    colorless: false,
+                },
+            );
+
             println!("exporting `{}`...", output_filename);
 
             // Export the packed atlas
-            // atlas.save(format!("{output_filename}-debug.png")).unwrap();
+            atlas.save(format!("{output_filename}-debug.png")).unwrap();
 
             let mut texture_bytes: Vec<u8> = Vec::new();
             DynamicImage::ImageRgba8(atlas)
