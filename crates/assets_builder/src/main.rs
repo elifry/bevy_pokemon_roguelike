@@ -1,8 +1,10 @@
 mod atlas;
+mod bitmap_fonts;
+mod utils;
 
 use std::fs;
 
-use crate::atlas::create_font_atlas;
+use crate::bitmap_fonts::create_bitmap_font;
 
 const FONT_RAW_FOLDER_PATH: &str = "raw_assets/fonts/text";
 
@@ -18,6 +20,9 @@ fn build_font_atlases() {
     //     println!("{}", font_sheet.width);
     // };
 
+    // fs::create_dir_all("assets/fonts/text").unwrap();
+    // create_font_atlas(FONT_RAW_FOLDER_PATH, "assets/fonts/text/font");
+
     fs::create_dir_all("assets/fonts/text").unwrap();
-    create_font_atlas(FONT_RAW_FOLDER_PATH, "assets/fonts/text/font");
+    create_bitmap_font(FONT_RAW_FOLDER_PATH, "assets/fonts/text/font.bfn")
 }
