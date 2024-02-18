@@ -1,11 +1,13 @@
 use bevy::prelude::*;
+use bevy::text::Text2dBounds;
+use bevy_egui::egui::Color32;
 use bevy_egui::{egui, EguiContexts};
 use bitmap_font::fonts::BitmapFont;
 
 use crate::graphics::assets::font_assets::FontAssets;
 use crate::graphics::sprite_text::sprite_label::SpriteLabelEguiUiExt;
 use crate::graphics::sprite_text::{
-    SpriteText, SpriteTextBundle, SpriteTextStyle, Text2DSpriteBundle,
+    SpriteText, SpriteTextBundle, SpriteTextSection, SpriteTextStyle, Text2DSpriteBundle,
 };
 use crate::GameState;
 
@@ -37,7 +39,22 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>) {
             };
 
             // ui.label("world");
-            ui.retro_label("Hello world!", &font_assets.text);
+            egui::SidePanel::left("SidePanel").default_width(300.).show(ctx, |ui| {
+                ui.style_mut().spacing.item_spacing = egui::Vec2::ZERO;
+                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                    ui.sprite_label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
+                    ui.sprite_label("Hello", &font_assets.text);
+                    ui.sprite_colored_label("World!", Color32::BLUE, &font_assets.text);
+                    // ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.");
+                    // ui.label("World!");
+                });
+            });
+            // egui::Grid::new("some_unique_id").show(ui, |ui| {
+            //     ui.sprite_label("Hello ", &font_assets.text);
+            //     ui.sprite_colored_label("World!", Color32::BLUE, &font_assets.text);
+            //     ui.end_row();
+            // });
+
             // ui.vertical_centered(|ui| {
             //     ui.retro_label("Hello world!", &font_assets.text);
             // });
@@ -57,7 +74,15 @@ fn spawn_test(font_assets: Res<FontAssets>, mut commands: Commands) {
         .spawn(Text2DSpriteBundle {
             transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
             text_anchor: bevy::sprite::Anchor::BottomLeft,
-            text: SpriteText::from_section("Hello world!", text_style.clone()),
+            text: SpriteText {
+                sections: [
+                    SpriteTextSection::new("Lorem ipsum dolor sit amet, ", text_style.clone()),
+                    SpriteTextSection::new("consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", text_style.clone())
+                ].to_vec(),
+                ..default()
+            },
+            // text: SpriteText::from_section("Lorem ipsum dolor sit amet, ", text_style.clone()),
+            text_2d_bounds: Text2dBounds {size: Vec2::new(200., 300.)},
             ..default()
         })
         .insert(Name::new("TextSprite Test"));

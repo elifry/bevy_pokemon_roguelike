@@ -11,9 +11,7 @@ use bevy::{prelude::*, transform::TransformSystem, ui::UiSystem};
 pub use node::*;
 pub use text::*;
 
-use self::render::{
-    new_image_from_default, new_ui_image_from_default, render_texture, SpriteTextRenderSet,
-};
+use self::render::{new_image_from_default, render_texture, SpriteTextRenderSet};
 
 pub struct SpriteTextPlugin;
 
@@ -33,8 +31,7 @@ impl Plugin for SpriteTextPlugin {
         .add_systems(
             PostUpdate,
             (
-                (new_image_from_default, new_ui_image_from_default)
-                    .in_set(SpriteTextRenderSet::Setup),
+                (new_image_from_default).in_set(SpriteTextRenderSet::Setup),
                 (render_texture).in_set(SpriteTextRenderSet::Draw),
             ),
         );

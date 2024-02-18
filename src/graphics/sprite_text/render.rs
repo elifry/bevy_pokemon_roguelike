@@ -1,8 +1,10 @@
 use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::Text2dBounds};
-use bitmap_font::fonts::BitmapFont;
-use image::{Rgba, RgbaImage};
+use bitmap_font::{bfn, fonts::BitmapFont};
+use image::{ImageBuffer, Rgba, RgbaImage};
 
-use super::{glyph_brush::process_glyph, SpriteText};
+use crate::graphics::sprite_text::{glyph_brush::process_glyph_layout, utils::extract_sub_image};
+
+use super::SpriteText;
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum SpriteTextRenderSet {
@@ -19,15 +21,6 @@ pub(crate) fn new_image_from_default(
     }
 }
 
-pub(crate) fn new_ui_image_from_default(
-    mut query: Query<&mut UiImage, Added<SpriteText>>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    for mut image in query.iter_mut() {
-        image.texture = images.add(Image::default());
-    }
-}
-
 #[allow(clippy::type_complexity)]
 pub(crate) fn render_texture(
     mut query: Query<
@@ -40,7 +33,6 @@ pub(crate) fn render_texture(
         ),
         Or<(Changed<SpriteText>, Changed<Anchor>, Changed<Text2dBounds>)>,
     >,
-    texture_atlases: Res<Assets<TextureAtlas>>,
     font_assets: Res<Assets<BitmapFont>>,
     mut images: ResMut<Assets<Image>>,
 ) {
@@ -59,32 +51,57 @@ pub(crate) fn render_texture(
             })
             .collect();
 
-        let mut last_glyph_position = UVec2::ZERO;
-        let mut glyphs = Vec::with_capacity(sprite_text.total_chars_count());
-        let mut width = 0;
-        let mut line_height = 0;
+        let text_sections = sections_data
+            .iter()
+            .enumerate()
+            .map(|(index, section)| super::glyph_brush::TextSection {
+                text: &sprite_text.sections[index].value,
+                font: &section.0.data.font,
+            })
+            .collect::<Vec<_>>();
 
-        for (index, section_data) in sections_data.iter().enumerate() {
-            let section = &sprite_text.sections[index];
-            let (positioned_glyphs, section_max_width) = process_glyph(
-                &section.value,
-                &section_data.0.data.font,
-                section_data.1,
-                &bounds.size,
-                Some(last_glyph_position),
-            );
+        let Some(layout) = process_glyph_layout(&text_sections, Some(bounds.size.x as usize))
+        else {
+            warn!("Failed to calculated glyph layout");
+            continue;
+        };
 
-            glyphs.extend_from_slice(&positioned_glyphs);
-            width = width.max(section_max_width);
+        let mut combined = RgbaImage::new(layout.width as u32, layout.height as u32);
 
-            last_glyph_position = glyphs
-                .last()
-                .map(|glyph| glyph.position + UVec2::new(glyph.image.width(), 0))
-                .unwrap_or(UVec2::ZERO);
+        for (line_idx, line) in layout.lines.iter().enumerate() {
+            let line_width =
+                line.iter()
+                    .fold(0, |width, gl| width + gl.glyph.bounds.width) as f32;
+            let mut current_x = 0.0;
+
+            // Calculate horizontal offset to match alignment
+            let line_x_offset = 0.; // TODO: handle correctly the horizontal alignment
+
+            for glyph_line in line {
+                let glyph: &bfn::Glyph = glyph_line.glyph;
+                let font: &bfn::Font = glyph_line.font;
+                let line_height = font.char_height;
+                let texture_image = sections_data[glyph_line.section_index].1;
+
+                // Skip whitespace chars
+                if char::from_u32(glyph.code_point).unwrap().is_whitespace() {
+                    current_x += font.space_width as f32;
+                    continue;
+                }
+
+                let glyph_image: ImageBuffer<image::Rgba<u8>, Vec<u8>> =
+                    extract_sub_image(texture_image, &glyph.bounds)
+                        .expect("Failed to extract sub-image");
+
+                let pos_x: i64 = (current_x + line_x_offset) as i64;
+                let pos_y: i64 = (line_idx * line_height as usize) as i64;
+
+                image::imageops::overlay(&mut combined, &glyph_image, pos_x, pos_y);
+
+                // Update the x position
+                current_x += glyph.bounds.width as f32;
+            }
         }
-        let height = 12; // TODO calculate this corretctly
-        info!("Creating image of {width}x{height}");
-        let mut combined = RgbaImage::new(width, height);
 
         // Draw the background
         // TODO draw the background for text section
@@ -93,16 +110,6 @@ pub(crate) fn render_texture(
         //         *pixel = Rgba(background.as_rgba_u8());
         //     }
         // }
-
-        // Draw the glyphs
-        for positioned_glyph in glyphs {
-            image::imageops::overlay(
-                &mut combined,
-                &positioned_glyph.image,
-                positioned_glyph.position.x.into(),
-                positioned_glyph.position.y.into(),
-            );
-        }
 
         // Update the sprite size / anchor
         sprite.custom_size = Some(Vec2::new(combined.width() as f32, combined.height() as f32));
