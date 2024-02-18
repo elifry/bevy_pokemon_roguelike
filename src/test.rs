@@ -44,7 +44,7 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>) {
                 ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
                     ui.sprite_label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
                     ui.sprite_label("Hello", &font_assets.text);
-                    ui.sprite_colored_label("World!", Color32::BLUE, &font_assets.text);
+                    ui.sprite_colored_label("World!", Color32::RED, &font_assets.text);
                     // ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.");
                     // ui.label("World!");
                 });
@@ -70,14 +70,26 @@ fn spawn_test(font_assets: Res<FontAssets>, mut commands: Commands) {
         font: font_assets.text.clone(),
         ..default()
     };
+    let text_red_style = SpriteTextStyle {
+        font: font_assets.text.clone(),
+        color: Color::RED,
+        ..default()
+    };
+    let text_blue_style = SpriteTextStyle {
+        font: font_assets.text.clone(),
+        color: Color::hex("7098e3").unwrap(),
+        ..default()
+    };
+
     commands
         .spawn(Text2DSpriteBundle {
             transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
             text_anchor: bevy::sprite::Anchor::BottomLeft,
             text: SpriteText {
                 sections: [
-                    SpriteTextSection::new("Lorem ipsum dolor sit amet, ", text_style.clone()),
-                    SpriteTextSection::new("consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", text_style.clone())
+                    SpriteTextSection::new("Lorem ipsum dolor sit amet, ", text_red_style.clone()),
+                    SpriteTextSection::new("consectetur ", text_blue_style.clone()),
+                    SpriteTextSection::new("adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", text_style.clone())
                 ].to_vec(),
                 ..default()
             },

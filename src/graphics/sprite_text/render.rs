@@ -1,10 +1,13 @@
 use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::Text2dBounds};
 use bitmap_font::{bfn, fonts::BitmapFont};
-use image::{ImageBuffer, Rgba, RgbaImage};
+use image::{GenericImage, ImageBuffer, Pixel, Rgba, RgbaImage};
 
 use crate::graphics::sprite_text::{glyph_brush::process_glyph_layout, utils::extract_sub_image};
 
-use super::SpriteText;
+use super::{
+    utils::{add_color_to_pixel, blend_pixel, subtract_color_from_pixel},
+    SpriteText,
+};
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum SpriteTextRenderSet {
@@ -82,6 +85,7 @@ pub(crate) fn render_texture(
                 let font: &bfn::Font = glyph_line.font;
                 let line_height = font.char_height;
                 let texture_image = sections_data[glyph_line.section_index].1;
+                let color = sprite_text.sections[glyph_line.section_index].style.color;
 
                 // Skip whitespace chars
                 if char::from_u32(glyph.code_point).unwrap().is_whitespace() {
@@ -93,10 +97,24 @@ pub(crate) fn render_texture(
                     extract_sub_image(texture_image, &glyph.bounds)
                         .expect("Failed to extract sub-image");
 
+                let mut color = Rgba(color.as_rgba_u8()); // Example: Red with 50% opacity
+                color.invert();
+
+                // Create a new image buffer to hold the tinted image
+                let mut colored_glyph_img: RgbaImage =
+                    RgbaImage::new(glyph_image.width(), glyph_image.height());
+
+                // Iterate over each pixel in the image
+                for (x, y, pixel) in glyph_image.enumerate_pixels() {
+                    // Blend the current pixel with the blend_color
+                    let colored_pixel = subtract_color_from_pixel(*pixel, color);
+                    colored_glyph_img.put_pixel(x, y, colored_pixel);
+                }
+
                 let pos_x: i64 = (current_x + line_x_offset) as i64;
                 let pos_y: i64 = (line_idx * line_height as usize) as i64;
 
-                image::imageops::overlay(&mut combined, &glyph_image, pos_x, pos_y);
+                image::imageops::overlay(&mut combined, &colored_glyph_img, pos_x, pos_y);
 
                 // Update the x position
                 current_x += glyph.bounds.width as f32;

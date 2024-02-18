@@ -17,7 +17,7 @@ pub struct Orthographic2DCamera;
 
 fn spawn_2d_camera(mut commands: Commands) {
     let orthographic_projection = OrthographicProjection {
-        scale: 1.,
+        scale: 0.5,
         near: -30.,
         scaling_mode: ScalingMode::FixedVertical(640.),
         ..default()

@@ -39,11 +39,23 @@ pub struct SpriteText {
     pub linebreak_behavior: BreakLineOn,
 }
 
-#[derive(Debug, Default, Clone, Reflect)]
+#[derive(Debug, Clone, Reflect)]
 pub struct SpriteTextStyle {
     pub font: Handle<BitmapFont>,
     pub font_size: f32,
+    pub color: Color,
     pub background_color: Option<Color>,
+}
+
+impl Default for SpriteTextStyle {
+    fn default() -> Self {
+        Self {
+            font: Default::default(),
+            font_size: Default::default(),
+            color: Color::WHITE,
+            background_color: Default::default(),
+        }
+    }
 }
 
 impl SpriteText {
