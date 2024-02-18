@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::bfn;
 use bevy::{
@@ -7,6 +7,7 @@ use bevy::{
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
     utils::BoxedFuture,
 };
+use bevy_egui::egui;
 use bincode::error::DecodeError;
 use thiserror::Error;
 
@@ -14,6 +15,7 @@ use thiserror::Error;
 pub struct BitmapFontData {
     pub texture: Handle<Image>,
     pub font: bfn::Font,
+    pub glyph_uvs: HashMap<u32, egui::Rect>,
 }
 
 /// A bitmap font asset that can be loaded from .bfn files
@@ -51,6 +53,32 @@ impl AssetLoader for BitmapFontLoader {
             reader.read_to_end(&mut bytes).await?;
             let font = bfn::Font::load(&bytes)?;
 
+            // Build glyph uvs
+            let mut glyph_uvs = HashMap::default();
+            for glyph in font.glyphs.values() {
+                let bounds = &glyph.bounds;
+                let width = font.size.0 as f32;
+                let height = font.size.1 as f32;
+
+                // Skip white space
+                if char::from_u32(glyph.code_point).unwrap().is_whitespace() {
+                    continue;
+                }
+
+                let glyph_uv = egui::Rect::from_min_size(
+                    egui::Pos2::new(
+                        (glyph.bounds.x as f32 / width),
+                        glyph.bounds.y as f32 / height,
+                    ),
+                    egui::Vec2::new(
+                        glyph.bounds.width as f32 / width,
+                        glyph.bounds.height as f32 / height,
+                    ),
+                );
+
+                glyph_uvs.insert(glyph.code_point, glyph_uv);
+            }
+
             let texture_buffer = image::load_from_memory(&font.texture)
                 .expect("Failed to decompress font bitmap texture")
                 .to_rgba8();
@@ -77,6 +105,7 @@ impl AssetLoader for BitmapFontLoader {
                 data: Arc::new(BitmapFontData {
                     font,
                     texture: texture_handle,
+                    glyph_uvs,
                 }),
             };
 

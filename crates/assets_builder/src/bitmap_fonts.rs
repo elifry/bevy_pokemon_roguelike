@@ -1,14 +1,23 @@
 use bitmap_font::bfn::{BoundingBox, Font, Glyph};
 use image::{DynamicImage, GenericImage, ImageOutputFormat, Rgba, RgbaImage};
-use std::{collections::HashMap, fs::File, io::Cursor, path::Path};
+use std::{
+    collections::HashMap,
+    fs::{self, File},
+    io::Cursor,
+    path::Path,
+};
 
 use crunch::{Item, PackedItem, Rect, Rotation};
 
 use crate::{atlas::TextureAtlasEntry, utils::list_png_files_in_folder};
 
 pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
+    println!("Start packing font {}", output_filename);
     let font_texture_files = list_png_files_in_folder(source_directory)
         .unwrap_or_else(|_| panic!("Unable to list texture files in {:?}", source_directory));
+
+    let output_path = Path::new(output_filename);
+    fs::create_dir_all(output_path.parent().unwrap().to_str().unwrap()).unwrap();
 
     let entries: Vec<_> = font_texture_files
         .iter()

@@ -1,7 +1,7 @@
 //! Bitmap font label widget
 
 use bevy::{log::info, prelude::Handle};
-use bevy_egui::egui::{self, Mesh, Widget};
+use bevy_egui::egui::{self, Color32, Mesh, Widget};
 use bitmap_font::{bfn, fonts::BitmapFont, BitmapFontCache, BitmapFontCacheItem};
 use unicode_linebreak::BreakOpportunity;
 
@@ -188,6 +188,7 @@ impl<'a> SpriteLabel<'a> {
 
         // Aliase
         let font = &layout.font_cache.font_data.font;
+        let glyph_uvs = &layout.font_cache.font_data.glyph_uvs;
 
         // Render the meshes for all of the glyphs in our label
         for (line_idx, line) in layout.lines.iter().enumerate() {
@@ -225,16 +226,12 @@ impl<'a> SpriteLabel<'a> {
                     egui::Vec2::new(glyph.bounds.width as f32, glyph.bounds.height as f32);
                 let glyph_rect = egui::Rect::from_min_size(pos + glyph_pos, glyph_size);
 
-                let glyph_uv = egui::Rect::from_min_size(
-                    egui::Pos2::new(glyph.bounds.x as f32 / 1856., glyph.bounds.y as f32 / 1856.),
-                    egui::Vec2::new(
-                        glyph.bounds.width as f32 / 1856.,
-                        glyph.bounds.height as f32 / 1856.,
-                    ),
-                );
+                let glyph_uv = glyph_uvs
+                    .get(&glyph.code_point)
+                    .unwrap_or(&egui::Rect::NOTHING);
 
                 // Add the glyph to the mesh and render it
-                mesh.add_rect_with_uv(glyph_rect, glyph_uv, self.color);
+                mesh.add_rect_with_uv(glyph_rect, *glyph_uv, self.color);
                 ui.painter().add(mesh);
 
                 // Update the x position
@@ -272,11 +269,26 @@ impl<'a> Widget for SpriteLabel<'a> {
 
 /// Extra functions on top of [`egui::Ui`] for retro widgets
 pub trait SpriteLabelEguiUiExt {
-    fn retro_label(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response;
+    fn sprite_label(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response;
+    fn sprite_colored_label(
+        self,
+        text: &str,
+        color: Color32,
+        font: &Handle<BitmapFont>,
+    ) -> egui::Response;
 }
 
 impl SpriteLabelEguiUiExt for &mut egui::Ui {
-    fn retro_label(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response {
+    fn sprite_label(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response {
         SpriteLabel::new(text, font).show(self)
+    }
+
+    fn sprite_colored_label(
+        self,
+        text: &str,
+        color: Color32,
+        font: &Handle<BitmapFont>,
+    ) -> egui::Response {
+        SpriteLabel::new(text, font).color(color).show(self)
     }
 }
