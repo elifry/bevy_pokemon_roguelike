@@ -179,9 +179,10 @@ impl<'a> SpriteLabel<'a> {
         rect: egui::Rect,
         layout: SpriteLabelCalculatedLayout,
     ) {
-        let mut mesh = Mesh::default();
-        mesh.add_colored_rect(rect, egui::Color32::WHITE);
-        ui.painter().add(mesh);
+        // background
+        // let mut mesh = Mesh::default();
+        // mesh.add_colored_rect(rect, egui::Color32::WHITE);
+        // ui.painter().add(mesh);
 
         let pos = rect.min;
 
@@ -207,7 +208,7 @@ impl<'a> SpriteLabel<'a> {
 
                 // Skip whitespace chars
                 if char::from_u32(glyph.code_point).unwrap().is_whitespace() {
-                    current_x += font.char_space as f32;
+                    current_x += font.space_width as f32;
                     continue;
                 }
 
@@ -261,7 +262,6 @@ impl<'a> Widget for SpriteLabel<'a> {
 
         // Allocate a rect and response for the label
         let (rect, response) = ui.allocate_exact_size(layout.size, egui::Sense::hover());
-        info!("Allocated rect {:?}", rect);
 
         // Paint the label
         self.paint_at(ui, rect, layout);

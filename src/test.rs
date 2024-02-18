@@ -37,7 +37,10 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>) {
             };
 
             // ui.label("world");
-            ui.retro_label("QWERTZUIOPSDFGHJKLYXCVBNM", &font_assets.text);
+            ui.retro_label("Hello world!", &font_assets.text);
+            // ui.vertical_centered(|ui| {
+            //     ui.retro_label("Hello world!", &font_assets.text);
+            // });
 
             // ui.vertical_centered(|ui| {
             //     ui.retro_label("Hello World UI", &font_assets.text);

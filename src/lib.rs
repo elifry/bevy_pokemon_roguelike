@@ -1,11 +1,12 @@
 use actions::ActionsPlugin;
 use ai::AIPlugin;
-use bevy::app::App;
+use bevy::{app::App, window::PrimaryWindow};
 
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bitmap_font::BitmapFontPlugin;
 use camera::CameraPlugin;
 use graphics::GraphicsPlugin;
@@ -98,13 +99,38 @@ impl Plugin for GamePlugin {
                 VisualEffectsPlugin,
                 //Only for testing purposes
                 TestPlugin,
-            ));
+            ))
+            .add_systems(Update, update_ui_scale.run_if(in_state(GameState::Playing)));
 
         #[cfg(debug_assertions)]
         {
             app
                 //.add_plugins((FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin::default()))
                 .add_plugins(WorldInspectorPlugin::new());
+        }
+    }
+}
+
+fn update_ui_scale(
+    mut egui_settings: ResMut<EguiSettings>,
+    windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
+    projection: Query<&OrthographicProjection, With<Camera>>,
+) {
+    if let Ok(window) = windows.get_single() {
+        if let Ok(projection) = projection.get_single() {
+            match projection.scaling_mode {
+                bevy::render::camera::ScalingMode::FixedVertical(fixed_ratio) => {
+                    let window_height = window.height();
+                    let scale = window_height / fixed_ratio / (projection.scale);
+                    egui_settings.scale_factor = scale as f64;
+                }
+                bevy::render::camera::ScalingMode::FixedHorizontal(fixed_ratio) => {
+                    let window_width = window.width();
+                    let scale = window_width / fixed_ratio / (projection.scale);
+                    egui_settings.scale_factor = scale as f64;
+                }
+                _ => {}
+            }
         }
     }
 }
