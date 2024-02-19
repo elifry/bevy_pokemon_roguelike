@@ -18,6 +18,16 @@ impl<'a> UISpriteText<'a> {
         }
     }
 
+    pub fn from_section_colored(
+        value: impl Into<String>,
+        font: &'a Handle<BitmapFont>,
+        color: Color32,
+    ) -> Self {
+        Self {
+            sections: vec![UISpriteTextSection::new(value, font).with_color(color)],
+        }
+    }
+
     pub fn from_sections(sections: impl IntoIterator<Item = UISpriteTextSection<'a>>) -> Self {
         Self {
             sections: sections.into_iter().collect(),
@@ -47,6 +57,12 @@ impl<'a> UISpriteTextSection<'a> {
             font,
             color: Color32::WHITE,
         }
+    }
+
+    pub const fn with_color(mut self, color: Color32) -> Self {
+        self.color = color;
+
+        self
     }
 }
 
@@ -120,7 +136,12 @@ impl<'a> UISpriteText<'a> {
             .lines
             .drain(..)
             .map(|l| {
-               l.iter().map(|gl| LayoutGlyph{ glyph: gl.glyph.to_owned(), section_index: gl.section_index }).collect::<Vec<_>>()
+                l.iter()
+                    .map(|gl| LayoutGlyph {
+                        glyph: gl.glyph.to_owned(),
+                        section_index: gl.section_index,
+                    })
+                    .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
 
@@ -164,6 +185,7 @@ impl<'a> UISpriteText<'a> {
                 let font = &font_cache.font_data.font;
                 let line_height = font.char_height as f32;
                 let glyph: &bfn::Glyph = &layout_glyph.glyph;
+                let color = self.sections[layout_glyph.section_index].color;
 
                 // Skip whitespace chars
                 if char::from_u32(glyph.code_point).unwrap().is_whitespace() {
@@ -188,7 +210,7 @@ impl<'a> UISpriteText<'a> {
 
                 let color = match glyph.colorless {
                     true => Color32::WHITE,
-                    false => Color32::WHITE, // TODO handle color
+                    false => color,
                 };
 
                 // Add the glyph to the mesh and render it
@@ -250,6 +272,6 @@ impl SpriteTextEguiUiExt for &mut egui::Ui {
         color: Color32,
         font: &Handle<BitmapFont>,
     ) -> egui::Response {
-        UISpriteText::from_section(text, font).show(self)
+        UISpriteText::from_section_colored(text, font, color).show(self)
     }
 }

@@ -5,7 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 use bitmap_font::fonts::BitmapFont;
 
 use crate::graphics::assets::font_assets::FontAssets;
-use crate::graphics::sprite_text::ui::SpriteTextEguiUiExt;
+use crate::graphics::sprite_text::ui::{SpriteTextEguiUiExt, UISpriteText, UISpriteTextSection};
 use crate::graphics::sprite_text::{
     SpriteText, SpriteTextBundle, SpriteTextSection, SpriteTextStyle, Text2DSpriteBundle,
 };
@@ -42,9 +42,24 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>) {
             egui::SidePanel::left("SidePanel").default_width(300.).show(ctx, |ui| {
                 ui.style_mut().spacing.item_spacing = egui::Vec2::ZERO;
                 ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                    UISpriteText::from_sections([
+                        UISpriteTextSection{
+                            value: "Lorem ipsum".to_string(),
+                            color: Color32::RED,
+                            font: &font_assets.text
+                        },
+                        UISpriteTextSection{
+                            value: " dolor sit amet,".to_string(),
+                            color: Color32::WHITE,
+                            font: &font_assets.text
+                        },
+                        UISpriteTextSection{
+                            value: " consectetur adipiscing elit.".to_string(),
+                            color: Color32::BLUE,
+                            font: &font_assets.text
+                        }
+                    ]).show(ui);
                     ui.sprite_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
-                    ui.sprite_text("Hello", &font_assets.text);
-                    ui.sprite_text_colored("World!", Color32::RED, &font_assets.text);
                     // ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.");
                     // ui.label("World!");
                 });
