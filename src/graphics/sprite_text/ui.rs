@@ -4,7 +4,7 @@ use bevy::prelude::Handle;
 use bevy_egui::egui::{self, Color32, Widget};
 use bitmap_font::{bfn, fonts::BitmapFont, BitmapFontCache, BitmapFontCacheItem};
 
-use super::glyph_brush::{process_glyph_layout, TextSection};
+use super::layout::{process_glyph_layout, TextSection};
 
 #[derive(Debug, Clone)]
 pub struct UISpriteText<'a> {
@@ -219,6 +219,9 @@ impl<'a> UISpriteText<'a> {
 
                 // Update the x position
                 current_x += glyph.bounds.width as f32;
+
+                // Space between char
+                current_x += font.char_space as f32;
             }
         }
     }

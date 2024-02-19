@@ -2,7 +2,7 @@ use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::
 use bitmap_font::{bfn, fonts::BitmapFont};
 use image::{GenericImage, ImageBuffer, Pixel, Rgba, RgbaImage};
 
-use crate::graphics::sprite_text::{glyph_brush::process_glyph_layout, utils::extract_sub_image};
+use crate::graphics::sprite_text::{layout::process_glyph_layout, utils::extract_sub_image};
 
 use super::{
     utils::{add_color_to_pixel, blend_pixel, subtract_color_from_pixel},
@@ -57,7 +57,7 @@ pub(crate) fn render_texture(
         let text_sections = sections_data
             .iter()
             .enumerate()
-            .map(|(index, section)| super::glyph_brush::TextSection {
+            .map(|(index, section)| super::layout::TextSection {
                 text: &sprite_text.sections[index].value,
                 font: &section.0.data.font,
             })
@@ -126,8 +126,11 @@ pub(crate) fn render_texture(
 
                 image::imageops::overlay(&mut combined, &glyph_image, pos_x, pos_y);
 
-                // Update the x position
+                // Update the x position by the width size
                 current_x += glyph.bounds.width as f32;
+
+                // Space between char
+                current_x += font.char_space as f32;
             }
         }
 

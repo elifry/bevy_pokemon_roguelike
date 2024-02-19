@@ -1,4 +1,4 @@
-mod glyph_brush;
+mod layout;
 pub mod node;
 mod render;
 mod section;

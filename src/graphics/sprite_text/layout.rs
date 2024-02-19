@@ -1,27 +1,13 @@
-use bevy::prelude::*;
-use bitmap_font::{
-    bfn,
-    fonts::{BitmapFont, BitmapFontData},
-};
-use image::{ImageBuffer, RgbaImage};
+use bitmap_font::bfn;
 use unicode_linebreak::BreakOpportunity;
-
-use super::utils::extract_sub_image;
-
-#[derive(Debug, Clone)]
-pub(crate) struct PositionedGlyph {
-    pub glyph_id: u32,
-    pub position: UVec2,
-    pub image: RgbaImage,
-}
 
 pub struct GlyphCalculatedLayout<'a> {
     pub height: f32,
     pub width: f32,
-    pub lines: Vec<Vec<GlyphLine<'a>>>,
+    pub lines: Vec<Vec<GlyphLayout<'a>>>,
 }
 
-pub struct GlyphLine<'a> {
+pub struct GlyphLayout<'a> {
     pub font: &'a bfn::Font,
     pub glyph: &'a bfn::Glyph,
     pub section_index: usize,
@@ -48,7 +34,7 @@ pub(crate) fn process_glyph_layout<'a>(
     let line_breaks = line_breaks; // Make immutable
 
     // Create a vector that holds all of the lines of the text and the glyphs in each line
-    let mut lines: Vec<Vec<GlyphLine>> = Default::default();
+    let mut lines: Vec<Vec<GlyphLayout>> = Default::default();
 
     // Start glyph layout
     let mut current_line = Vec::new();
@@ -68,9 +54,9 @@ pub(crate) fn process_glyph_layout<'a>(
                 .unwrap_or_else(|| panic!("Font does not contain glyph for character: {:?}", char));
 
             // Add the next glyph to the current line
-            current_line.push(GlyphLine {
+            current_line.push(GlyphLayout {
                 font,
-                glyph: glyph,
+                glyph,
                 section_index,
             });
 
@@ -78,6 +64,8 @@ pub(crate) fn process_glyph_layout<'a>(
             if let Some(max_width) = max_width {
                 // Calculate the new x position of the line after adding this glyph
                 line_x += glyph.bounds.width;
+                // Add space between char
+                line_x += font.char_space as usize;
 
                 // If this character must break the line
                 if line_breaks
@@ -114,9 +102,9 @@ pub(crate) fn process_glyph_layout<'a>(
                                 current_line = next_line;
                                 // Reset our current line x counter to the length of the new
                                 // current line
-                                line_x = current_line
-                                    .iter()
-                                    .fold(0, |width, gl| width + gl.glyph.bounds.width);
+                                line_x = current_line.iter().fold(0, |width, gl| {
+                                    width + gl.glyph.bounds.width + font.char_space as usize
+                                });
                                 break;
                             }
                             _ => (),
