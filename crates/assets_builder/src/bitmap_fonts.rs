@@ -1,3 +1,4 @@
+use bevy_math::UVec2;
 use bitmap_font::bfn::{BoundingBox, Font, Glyph};
 use image::{DynamicImage, GenericImage, ImageOutputFormat, Rgba, RgbaImage};
 use std::{
@@ -11,7 +12,7 @@ use crunch::{Item, PackedItem, Rect, Rotation};
 
 use crate::{atlas::TextureAtlasEntry, font_data::FontData, utils::list_png_files_in_folder};
 
-pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
+pub fn create_bitmap_font(source_directory: &str, output_filename: &str, atlas_size: UVec2) {
     println!("Start packing font {}", output_filename);
     let font_texture_files = list_png_files_in_folder(source_directory)
         .unwrap_or_else(|_| panic!("Unable to list texture files in {:?}", source_directory));
@@ -53,7 +54,9 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
         .to_str()
         .unwrap();
 
-    let dest = Rect::new(0, 0, 64 * 29, 64 * 29);
+    let dest = Rect::new(0, 0, atlas_size.x as usize, atlas_size.y as usize);
+    println!("Packing font into {:?}", dest);
+
     match crunch::pack(dest, entries) {
         Ok(all_packed) => {
             // Create a target atlas image to draw the packed images onto

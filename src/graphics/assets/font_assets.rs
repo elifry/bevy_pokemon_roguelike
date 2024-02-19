@@ -1,11 +1,6 @@
-use bevy::asset::LoadedFolder;
-use bevy::prelude::*;
-use bevy::utils::hashbrown::HashMap;
-use bitmap_font::fonts::BitmapFont;
-use serde::Deserialize;
-
-use crate::utils::find_first_handle_by_extension;
 use crate::GameState;
+use bevy::prelude::*;
+use bitmap_font::fonts::BitmapFont;
 
 use super::AssetsLoading;
 
@@ -15,8 +10,7 @@ pub struct FontAssetsPlugin;
 
 impl Plugin for FontAssetsPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(FontAssetsFolder(default()))
-            .init_resource::<FontAssets>()
+        app.init_resource::<FontAssets>()
             // .init_asset::<FontSheet>()
             .add_systems(OnEnter(GameState::Loading), load_assets_folder);
         //.add_systems(OnEnter(GameState::AssetsLoaded), process_font_assets);
@@ -26,7 +20,11 @@ impl Plugin for FontAssetsPlugin {
 /// Store the font sheet and the texture atlas for a font
 #[derive(Resource, Debug, Default, Clone)]
 pub struct FontAssets {
-    pub text: Handle<BitmapFont>,
+    pub text: Handle<BitmapFont>,    // Text
+    pub dungeon: Handle<BitmapFont>, // Banner
+    pub damage: Handle<BitmapFont>,  // Yellow
+    pub heal: Handle<BitmapFont>,    // Green
+    pub exp: Handle<BitmapFont>,     // Blue
 }
 
 // /// Store glyph information
@@ -53,20 +51,28 @@ pub struct FontAssets {
 // #[derive(Resource, Debug, Default, Clone)]
 // pub struct FontAssets(pub HashMap<String, FontAsset>);
 
-#[derive(Default, Resource)]
-struct FontAssetsFolder(HashMap<String, Handle<LoadedFolder>>);
-
 fn load_assets_folder(
     asset_server: Res<AssetServer>,
     mut loading: ResMut<AssetsLoading>,
-    mut font_assets_folder: ResMut<FontAssetsFolder>,
     mut font_assets: ResMut<FontAssets>,
 ) {
     info!("font assets loading...");
 
     // Fonts
-    font_assets.text = asset_server.load(format!("{FONTS_PATH}/text/text.bfn"));
+    font_assets.text = asset_server.load(format!("{FONTS_PATH}/text.bfn"));
     loading.0.push(font_assets.text.clone().untyped());
+
+    font_assets.dungeon = asset_server.load(format!("{FONTS_PATH}/banner.bfn"));
+    loading.0.push(font_assets.dungeon.clone().untyped());
+
+    font_assets.damage = asset_server.load(format!("{FONTS_PATH}/yellow.bfn"));
+    loading.0.push(font_assets.damage.clone().untyped());
+
+    font_assets.heal = asset_server.load(format!("{FONTS_PATH}/green.bfn"));
+    loading.0.push(font_assets.heal.clone().untyped());
+
+    font_assets.exp = asset_server.load(format!("{FONTS_PATH}/blue.bfn"));
+    loading.0.push(font_assets.exp.clone().untyped());
 }
 
 // fn process_font_assets(

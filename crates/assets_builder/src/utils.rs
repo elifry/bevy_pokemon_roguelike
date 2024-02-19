@@ -1,4 +1,7 @@
-use std::fs;
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 pub fn list_png_files_in_folder(folder_path: &str) -> std::io::Result<Vec<String>> {
     let mut png_files = Vec::new();
@@ -20,4 +23,20 @@ pub fn list_png_files_in_folder(folder_path: &str) -> std::io::Result<Vec<String
     }
 
     Ok(png_files)
+}
+
+pub fn list_directories(path: &Path) -> io::Result<impl Iterator<Item = PathBuf>> {
+    // Read the directory specified by `path`
+    let entries = fs::read_dir(path)?;
+
+    Ok(entries.filter_map(|entry| {
+        let entry = entry.ok()?;
+        let path = entry.path();
+
+        // Check if the entry is a directory
+        if path.is_dir() {
+            return Some(path);
+        }
+        None
+    }))
 }

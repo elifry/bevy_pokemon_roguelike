@@ -1,10 +1,5 @@
 use font_atlas::{FontSheetData, GlyphData};
-use std::{
-    collections::HashMap,
-    fs::{self, File},
-    io::Write,
-    path::Path,
-};
+use std::{collections::HashMap, fs::File, path::Path};
 
 use crunch::{Item, PackedItem, Rect, Rotation};
 use image::{GenericImage, Rgba, RgbaImage};
@@ -52,7 +47,7 @@ pub fn create_font_atlas(source_directory: &str, output_filename: &str) {
 
             let mut characters: HashMap<u32, GlyphData> = HashMap::with_capacity(all_packed.len());
             // Copy all the packed images onto the target atlas
-            for (index, PackedItem { data, rect }) in all_packed.iter().enumerate() {
+            for PackedItem { data, rect } in all_packed.iter() {
                 atlas
                     .copy_from(&data.texture, rect.x as u32, rect.y as u32)
                     .unwrap();
