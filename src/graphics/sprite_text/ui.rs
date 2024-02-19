@@ -1,43 +1,62 @@
 //! Bitmap font label widget
 
-use bevy::{log::info, prelude::Handle};
-use bevy_egui::egui::{self, Color32, Mesh, Widget};
+use bevy::prelude::Handle;
+use bevy_egui::egui::{self, Color32, Widget};
 use bitmap_font::{bfn, fonts::BitmapFont, BitmapFontCache, BitmapFontCacheItem};
-use unicode_linebreak::BreakOpportunity;
 
 use super::glyph_brush::{process_glyph_layout, TextSection};
 
-pub struct SpriteText<'a> {
-    pub text: &'a str,
+#[derive(Debug, Clone)]
+pub struct UISpriteText<'a> {
+    pub sections: Vec<UISpriteTextSection<'a>>,
+}
+
+impl<'a> UISpriteText<'a> {
+    pub fn from_section(value: impl Into<String>, font: &'a Handle<BitmapFont>) -> Self {
+        Self {
+            sections: vec![UISpriteTextSection::new(value, font)],
+        }
+    }
+
+    pub fn from_sections(sections: impl IntoIterator<Item = UISpriteTextSection<'a>>) -> Self {
+        Self {
+            sections: sections.into_iter().collect(),
+        }
+    }
+
+    /// Returns the total number of chars in all [`SpriteTextSection`]
+    pub fn total_chars_count(&self) -> usize {
+        self.sections
+            .iter()
+            .fold(0, |sum, section| sum + section.value.chars().count())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UISpriteTextSection<'a> {
+    pub value: String,
     pub font: &'a Handle<BitmapFont>,
     pub color: egui::Color32,
 }
 
+impl<'a> UISpriteTextSection<'a> {
+    /// Create a new [`SpriteTextSection`].
+    pub fn new(value: impl Into<String>, font: &'a Handle<BitmapFont>) -> Self {
+        Self {
+            value: value.into(),
+            font,
+            color: Color32::WHITE,
+        }
+    }
+}
+
 pub struct SpriteTextCalculatedLayout {
-    pub font_cache: BitmapFontCacheItem,
+    pub font_cache_sections: Vec<BitmapFontCacheItem>,
     pub lines: Vec<Vec<bfn::Glyph>>,
     pub size: egui::Vec2,
 }
 
-impl<'a> SpriteText<'a> {
-    /// Create a label
-    #[must_use = "You must call .show() to render the label"]
-    pub fn new(text: &'a str, font: &'a Handle<BitmapFont>) -> Self {
-        Self {
-            text,
-            font,
-            color: egui::Color32::WHITE,
-        }
-    }
-
-    /// Set the text color
-    #[must_use = "You must call .show() to render the label"]
-    pub fn color(mut self, color: egui::Color32) -> Self {
-        self.color = color;
-
-        self
-    }
-
+impl<'a> UISpriteText<'a> {
     /// Render the label
     pub fn show(self, ui: &mut egui::Ui) -> egui::Response {
         self.ui(ui)
@@ -53,28 +72,41 @@ impl<'a> SpriteText<'a> {
     ) -> Option<SpriteTextCalculatedLayout> {
         let max_width = max_width.map(|x| x.floor() as usize);
 
-        // Load font data and texture id
-        let retro_font_cache_item = {
-            let ctx = ui.ctx();
-            let Some(val) = ctx.memory_mut(|memory| {
-                let retro_font_cache = memory
-                    .data
-                    .get_temp_mut_or_default::<BitmapFontCache>(egui::Id::NULL)
-                    .lock();
-                retro_font_cache.get(self.font).cloned()
-            }) else {
-                return None;
-            };
-            val
-        };
-        let font_data = &retro_font_cache_item.font_data;
+        let font_cache_sections: Vec<_> = self
+            .sections
+            .iter()
+            .map(|section| {
+                let font_cache_item = {
+                    let ctx = ui.ctx();
+                    let val = ctx
+                        .memory_mut(|memory| {
+                            let retro_font_cache = memory
+                                .data
+                                .get_temp_mut_or_default::<BitmapFontCache>(egui::Id::NULL)
+                                .lock();
+                            retro_font_cache.get(section.font).cloned()
+                        })
+                        .expect("Failed to load font cache");
+                    val
+                };
+                font_cache_item
+            })
+            .collect();
 
-        let text_section = TextSection {
-            text: self.text,
-            font: &font_data.font,
-        };
-        let text_sections = &[text_section];
-        let Some(mut calculated_layout) = process_glyph_layout(text_sections, max_width) else {
+        let text_sections = self
+            .sections
+            .iter()
+            .enumerate()
+            .map(|(section_index, section)| {
+                let text_section = TextSection {
+                    text: &section.value,
+                    font: &font_cache_sections[section_index].font_data.font,
+                };
+                text_section
+            })
+            .collect::<Vec<_>>();
+
+        let Some(mut calculated_layout) = process_glyph_layout(&text_sections, max_width) else {
             return None;
         };
 
@@ -88,7 +120,7 @@ impl<'a> SpriteText<'a> {
         Some(SpriteTextCalculatedLayout {
             lines,
             size,
-            font_cache: retro_font_cache_item,
+            font_cache_sections,
         })
     }
 
@@ -150,7 +182,7 @@ impl<'a> SpriteText<'a> {
 
                 let color = match glyph.colorless {
                     true => Color32::WHITE,
-                    false => self.color,
+                    false => todo!(),
                 };
 
                 // Add the glyph to the mesh and render it
@@ -164,7 +196,7 @@ impl<'a> SpriteText<'a> {
     }
 }
 
-impl<'a> Widget for SpriteText<'a> {
+impl<'a> Widget for UISpriteText<'a> {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let empty_response = ui.allocate_response(egui::Vec2::ZERO, egui::Sense::hover());
 
@@ -203,7 +235,7 @@ pub trait SpriteTextEguiUiExt {
 
 impl SpriteTextEguiUiExt for &mut egui::Ui {
     fn sprite_text(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response {
-        SpriteText::new(text, font).show(self)
+        UISpriteText::from_section(text, font).show(self)
     }
 
     fn sprite_text_colored(
@@ -212,6 +244,6 @@ impl SpriteTextEguiUiExt for &mut egui::Ui {
         color: Color32,
         font: &Handle<BitmapFont>,
     ) -> egui::Response {
-        SpriteText::new(text, font).color(color).show(self)
+        UISpriteText::from_section(text, font).show(self)
     }
 }

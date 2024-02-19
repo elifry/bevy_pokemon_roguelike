@@ -11,7 +11,7 @@ use bevy_egui::egui;
 use bincode::error::DecodeError;
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BitmapFontData {
     pub texture: Handle<Image>,
     pub font: bfn::Font,

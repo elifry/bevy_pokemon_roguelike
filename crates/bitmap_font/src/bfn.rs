@@ -12,7 +12,7 @@ use std::{
     usize,
 };
 
-#[derive(Asset, TypePath, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Asset, TypePath, Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Font {
     pub name: String,
     pub glyph_count: usize,
