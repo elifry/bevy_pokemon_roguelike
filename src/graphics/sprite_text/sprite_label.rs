@@ -148,8 +148,13 @@ impl<'a> SpriteLabel<'a> {
                     .get(&glyph.code_point)
                     .unwrap_or(&egui::Rect::NOTHING);
 
+                let color = match glyph.colorless {
+                    true => Color32::WHITE,
+                    false => self.color,
+                };
+
                 // Add the glyph to the mesh and render it
-                mesh.add_rect_with_uv(glyph_rect, *glyph_uv, self.color);
+                mesh.add_rect_with_uv(glyph_rect, *glyph_uv, color);
                 ui.painter().add(mesh);
 
                 // Update the x position

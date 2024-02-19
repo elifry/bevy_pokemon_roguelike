@@ -97,24 +97,34 @@ pub(crate) fn render_texture(
                     extract_sub_image(texture_image, &glyph.bounds)
                         .expect("Failed to extract sub-image");
 
-                let mut color = Rgba(color.as_rgba_u8()); // Example: Red with 50% opacity
-                color.invert();
+                let color = match glyph.colorless {
+                    true => Color::WHITE,
+                    false => color,
+                };
 
-                // Create a new image buffer to hold the tinted image
-                let mut colored_glyph_img: RgbaImage =
-                    RgbaImage::new(glyph_image.width(), glyph_image.height());
+                let glyph_image = if color == Color::WHITE {
+                    glyph_image
+                } else {
+                    let mut color = Rgba(color.as_rgba_u8());
+                    color.invert();
 
-                // Iterate over each pixel in the image
-                for (x, y, pixel) in glyph_image.enumerate_pixels() {
-                    // Blend the current pixel with the blend_color
-                    let colored_pixel = subtract_color_from_pixel(*pixel, color);
-                    colored_glyph_img.put_pixel(x, y, colored_pixel);
-                }
+                    // Create a new image buffer to hold the tinted image
+                    let mut colored_glyph_img: RgbaImage =
+                        RgbaImage::new(glyph_image.width(), glyph_image.height());
+
+                    // Iterate over each pixel in the image
+                    for (x, y, pixel) in glyph_image.enumerate_pixels() {
+                        // Blend the current pixel with the blend_color
+                        let colored_pixel = subtract_color_from_pixel(*pixel, color);
+                        colored_glyph_img.put_pixel(x, y, colored_pixel);
+                    }
+                    colored_glyph_img
+                };
 
                 let pos_x: i64 = (current_x + line_x_offset) as i64;
                 let pos_y: i64 = (line_idx * line_height as usize) as i64;
 
-                image::imageops::overlay(&mut combined, &colored_glyph_img, pos_x, pos_y);
+                image::imageops::overlay(&mut combined, &glyph_image, pos_x, pos_y);
 
                 // Update the x position
                 current_x += glyph.bounds.width as f32;

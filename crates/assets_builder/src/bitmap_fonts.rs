@@ -9,12 +9,18 @@ use std::{
 
 use crunch::{Item, PackedItem, Rect, Rotation};
 
-use crate::{atlas::TextureAtlasEntry, utils::list_png_files_in_folder};
+use crate::{atlas::TextureAtlasEntry, font_data::FontData, utils::list_png_files_in_folder};
 
 pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
     println!("Start packing font {}", output_filename);
     let font_texture_files = list_png_files_in_folder(source_directory)
         .unwrap_or_else(|_| panic!("Unable to list texture files in {:?}", source_directory));
+
+    let font_data_file = format!("{source_directory}/FontData.xml");
+    let font_data_path = Path::new(&font_data_file);
+    let font_data_content = fs::read(font_data_path).expect("Failed to read FontData.xml");
+    let font_data =
+        FontData::parse_from_xml(&font_data_content).expect("Failed to parse FontData.xml");
 
     let output_path = Path::new(output_filename);
     fs::create_dir_all(output_path.parent().unwrap().to_str().unwrap()).unwrap();
@@ -60,12 +66,11 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
                 atlas
                     .copy_from(&data.texture, rect.x as u32, rect.y as u32)
                     .unwrap();
-                // let rect = bevy_math::Rect::new(
-                //     rect.x as f32,
-                //     rect.y as f32,
-                //     (rect.x + rect.w) as f32,
-                //     (rect.y + rect.h) as f32,
-                // );
+
+                if font_data.colorless.glyphs.contains(&data.id) {
+                    println!("{:X} is colorless", data.id);
+                }
+
                 glyphs.insert(
                     data.id,
                     Glyph {
@@ -76,7 +81,7 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
                             x: rect.x,
                             y: rect.y,
                         },
-                        colorless: false,
+                        colorless: font_data.colorless.glyphs.contains(&data.id),
                     },
                 );
             }
@@ -109,10 +114,10 @@ pub fn create_bitmap_font(source_directory: &str, output_filename: &str) {
                 size: (dest.w, dest.h),
                 name: font_name.to_string(),
                 glyph_count: glyphs.len(),
-                char_space: 0,
-                char_height: 12,
-                space_width: 4,
-                line_space: 1,
+                char_space: font_data.char_space,
+                char_height: font_data.char_height,
+                space_width: font_data.space_width,
+                line_space: font_data.line_space,
                 glyphs,
                 texture: texture_bytes,
             };
