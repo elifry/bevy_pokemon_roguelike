@@ -5,7 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 use bitmap_font::fonts::BitmapFont;
 
 use crate::graphics::assets::font_assets::FontAssets;
-use crate::graphics::sprite_text::sprite_label::SpriteLabelEguiUiExt;
+use crate::graphics::sprite_text::ui::SpriteTextEguiUiExt;
 use crate::graphics::sprite_text::{
     SpriteText, SpriteTextBundle, SpriteTextSection, SpriteTextStyle, Text2DSpriteBundle,
 };
@@ -42,15 +42,15 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>) {
             egui::SidePanel::left("SidePanel").default_width(300.).show(ctx, |ui| {
                 ui.style_mut().spacing.item_spacing = egui::Vec2::ZERO;
                 ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                    ui.sprite_label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
-                    ui.sprite_label("Hello", &font_assets.text);
-                    ui.sprite_colored_label("World!", Color32::RED, &font_assets.text);
+                    ui.sprite_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
+                    ui.sprite_text("Hello", &font_assets.text);
+                    ui.sprite_text_colored("World!", Color32::RED, &font_assets.text);
                     // ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.");
                     // ui.label("World!");
                 });
             });
             // egui::Grid::new("some_unique_id").show(ui, |ui| {
-            //     ui.sprite_label("Hello ", &font_assets.text);
+            //     ui.sprite_text("Hello ", &font_assets.text);
             //     ui.sprite_colored_label("World!", Color32::BLUE, &font_assets.text);
             //     ui.end_row();
             // });

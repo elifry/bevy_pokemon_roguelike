@@ -2,8 +2,8 @@ mod glyph_brush;
 pub mod node;
 mod render;
 mod section;
-pub mod sprite_label;
 pub mod text;
+pub mod ui;
 mod utils;
 
 use bevy::{prelude::*, transform::TransformSystem, ui::UiSystem};

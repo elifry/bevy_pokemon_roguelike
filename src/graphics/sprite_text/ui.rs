@@ -7,19 +7,19 @@ use unicode_linebreak::BreakOpportunity;
 
 use super::glyph_brush::{process_glyph_layout, TextSection};
 
-pub struct SpriteLabel<'a> {
+pub struct SpriteText<'a> {
     pub text: &'a str,
     pub font: &'a Handle<BitmapFont>,
     pub color: egui::Color32,
 }
 
-pub struct SpriteLabelCalculatedLayout {
+pub struct SpriteTextCalculatedLayout {
     pub font_cache: BitmapFontCacheItem,
     pub lines: Vec<Vec<bfn::Glyph>>,
     pub size: egui::Vec2,
 }
 
-impl<'a> SpriteLabel<'a> {
+impl<'a> SpriteText<'a> {
     /// Create a label
     #[must_use = "You must call .show() to render the label"]
     pub fn new(text: &'a str, font: &'a Handle<BitmapFont>) -> Self {
@@ -50,7 +50,7 @@ impl<'a> SpriteLabel<'a> {
         &self,
         ui: &mut egui::Ui,
         max_width: Option<f32>,
-    ) -> Option<SpriteLabelCalculatedLayout> {
+    ) -> Option<SpriteTextCalculatedLayout> {
         let max_width = max_width.map(|x| x.floor() as usize);
 
         // Load font data and texture id
@@ -85,7 +85,7 @@ impl<'a> SpriteLabel<'a> {
             .map(|l| l.iter().map(|gl| gl.glyph.to_owned()).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
-        Some(SpriteLabelCalculatedLayout {
+        Some(SpriteTextCalculatedLayout {
             lines,
             size,
             font_cache: retro_font_cache_item,
@@ -96,7 +96,7 @@ impl<'a> SpriteLabel<'a> {
         &self,
         ui: &mut egui::Ui,
         rect: egui::Rect,
-        layout: SpriteLabelCalculatedLayout,
+        layout: SpriteTextCalculatedLayout,
     ) {
         // background
         // let mut mesh = Mesh::default();
@@ -164,7 +164,7 @@ impl<'a> SpriteLabel<'a> {
     }
 }
 
-impl<'a> Widget for SpriteLabel<'a> {
+impl<'a> Widget for SpriteText<'a> {
     fn ui(self, ui: &mut egui::Ui) -> egui::Response {
         let empty_response = ui.allocate_response(egui::Vec2::ZERO, egui::Sense::hover());
 
@@ -191,9 +191,9 @@ impl<'a> Widget for SpriteLabel<'a> {
 }
 
 /// Extra functions on top of [`egui::Ui`] for retro widgets
-pub trait SpriteLabelEguiUiExt {
-    fn sprite_label(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response;
-    fn sprite_colored_label(
+pub trait SpriteTextEguiUiExt {
+    fn sprite_text(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response;
+    fn sprite_text_colored(
         self,
         text: &str,
         color: Color32,
@@ -201,17 +201,17 @@ pub trait SpriteLabelEguiUiExt {
     ) -> egui::Response;
 }
 
-impl SpriteLabelEguiUiExt for &mut egui::Ui {
-    fn sprite_label(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response {
-        SpriteLabel::new(text, font).show(self)
+impl SpriteTextEguiUiExt for &mut egui::Ui {
+    fn sprite_text(self, text: &str, font: &Handle<BitmapFont>) -> egui::Response {
+        SpriteText::new(text, font).show(self)
     }
 
-    fn sprite_colored_label(
+    fn sprite_text_colored(
         self,
         text: &str,
         color: Color32,
         font: &Handle<BitmapFont>,
     ) -> egui::Response {
-        SpriteLabel::new(text, font).color(color).show(self)
+        SpriteText::new(text, font).color(color).show(self)
     }
 }
