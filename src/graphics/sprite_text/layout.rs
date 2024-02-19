@@ -119,8 +119,10 @@ pub(crate) fn process_glyph_layout<'a>(
     lines.push(current_line);
 
     // Determine the size of the label
-    let line_height = (text_sections[0].font.char_height) as f32; // TODO: calculate the real line height
-    let height = line_height * lines.len() as f32;
+    // TODO: calculate the real line height
+    let line_height = (text_sections[0].font.char_height) as f32;
+    let line_space = (text_sections[0].font.line_space) as f32;
+    let height = line_height * lines.len() as f32 + line_space * (lines.len() - 1) as f32;
     let width = lines.iter().fold(0, |width, line| {
         let line_width = line
             .iter()

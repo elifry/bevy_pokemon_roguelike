@@ -84,6 +84,7 @@ pub(crate) fn render_texture(
                 let glyph: &bfn::Glyph = glyph_line.glyph;
                 let font: &bfn::Font = glyph_line.font;
                 let line_height = font.char_height;
+                let line_space = font.line_space;
                 let texture_image = sections_data[glyph_line.section_index].1;
                 let color = sprite_text.sections[glyph_line.section_index].style.color;
 
@@ -122,7 +123,9 @@ pub(crate) fn render_texture(
                 };
 
                 let pos_x: i64 = (current_x + line_x_offset) as i64;
-                let pos_y: i64 = (line_idx * line_height as usize) as i64;
+                let pos_y: i64 = (line_idx * line_height as usize
+                    + (line_idx as i32 - 1).max(0) as usize * line_space as usize)
+                    as i64;
 
                 image::imageops::overlay(&mut combined, &glyph_image, pos_x, pos_y);
 

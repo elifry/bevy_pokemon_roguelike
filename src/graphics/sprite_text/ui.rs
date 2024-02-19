@@ -184,6 +184,7 @@ impl<'a> UISpriteText<'a> {
                 let glyph_uvs = &font_cache.font_data.glyph_uvs;
                 let font = &font_cache.font_data.font;
                 let line_height = font.char_height as f32;
+                let line_space = font.line_space as f32;
                 let glyph: &bfn::Glyph = &layout_glyph.glyph;
                 let color = self.sections[layout_glyph.section_index].color;
 
@@ -198,8 +199,11 @@ impl<'a> UISpriteText<'a> {
 
                 // Calculate glyph position and size
                 // let char_y_offset = (glyph.bounds.height as f32) + glyph.bounds.y as f32;
-                let glyph_pos =
-                    egui::Vec2::new(current_x + line_x_offset, line_idx as f32 * line_height);
+                let glyph_pos = egui::Vec2::new(
+                    current_x + line_x_offset,
+                    line_idx as f32 * line_height
+                        + (line_idx as i32 - 1).max(0) as f32 * line_space,
+                );
                 let glyph_size =
                     egui::Vec2::new(glyph.bounds.width as f32, glyph.bounds.height as f32);
                 let glyph_rect = egui::Rect::from_min_size(pos + glyph_pos, glyph_size);
