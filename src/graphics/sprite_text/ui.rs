@@ -52,8 +52,13 @@ impl<'a> UISpriteTextSection<'a> {
 
 pub struct SpriteTextCalculatedLayout {
     pub font_cache_sections: Vec<BitmapFontCacheItem>,
-    pub lines: Vec<Vec<bfn::Glyph>>,
+    pub lines: Vec<Vec<LayoutGlyph>>,
     pub size: egui::Vec2,
+}
+
+pub struct LayoutGlyph {
+    pub glyph: bfn::Glyph,
+    pub section_index: usize,
 }
 
 impl<'a> UISpriteText<'a> {
@@ -114,7 +119,9 @@ impl<'a> UISpriteText<'a> {
         let lines = calculated_layout
             .lines
             .drain(..)
-            .map(|l| l.iter().map(|gl| gl.glyph.to_owned()).collect::<Vec<_>>())
+            .map(|l| {
+               l.iter().map(|gl| LayoutGlyph{ glyph: gl.glyph.to_owned(), section_index: gl.section_index }).collect::<Vec<_>>()
+            })
             .collect::<Vec<_>>();
 
         Some(SpriteTextCalculatedLayout {
@@ -137,16 +144,11 @@ impl<'a> UISpriteText<'a> {
 
         let pos = rect.min;
 
-        // Aliase
-        let font = &layout.font_cache.font_data.font;
-        let line_height = font.char_height as f32;
-        let glyph_uvs = &layout.font_cache.font_data.glyph_uvs;
-
         // Render the meshes for all of the glyphs in our label
         for (line_idx, line) in layout.lines.iter().enumerate() {
             let line_width =
                 line.iter()
-                    .fold(0, |width, glyph| width + glyph.bounds.width) as f32;
+                    .fold(0, |width, lg| width + lg.glyph.bounds.width) as f32;
             let mut current_x = 0.0;
 
             // Calculate horizontal offset to match alignment
@@ -156,8 +158,12 @@ impl<'a> UISpriteText<'a> {
                 egui::Align::Max => layout.size.x - line_width,
             };
 
-            for glyph in line {
-                let glyph: &bfn::Glyph = glyph;
+            for layout_glyph in line {
+                let font_cache = &layout.font_cache_sections[layout_glyph.section_index];
+                let glyph_uvs = &font_cache.font_data.glyph_uvs;
+                let font = &font_cache.font_data.font;
+                let line_height = font.char_height as f32;
+                let glyph: &bfn::Glyph = &layout_glyph.glyph;
 
                 // Skip whitespace chars
                 if char::from_u32(glyph.code_point).unwrap().is_whitespace() {
@@ -166,7 +172,7 @@ impl<'a> UISpriteText<'a> {
                 }
 
                 // Create mesh for glyph
-                let mut mesh = egui::Mesh::with_texture(layout.font_cache.texture_id);
+                let mut mesh = egui::Mesh::with_texture(font_cache.texture_id);
 
                 // Calculate glyph position and size
                 // let char_y_offset = (glyph.bounds.height as f32) + glyph.bounds.y as f32;
@@ -182,7 +188,7 @@ impl<'a> UISpriteText<'a> {
 
                 let color = match glyph.colorless {
                     true => Color32::WHITE,
-                    false => todo!(),
+                    false => Color32::WHITE, // TODO handle color
                 };
 
                 // Add the glyph to the mesh and render it
