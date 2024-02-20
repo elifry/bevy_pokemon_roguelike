@@ -4,6 +4,7 @@ use bevy_egui::egui;
 pub use ui::*;
 
 pub mod ui;
+mod utils;
 
 #[derive(Debug, Clone)]
 pub struct BorderImage {
@@ -23,7 +24,7 @@ impl BorderImage {
     pub fn load_from_world<'a, P: Into<AssetPath<'a>>>(
         world: &mut World,
         path: P,
-        image_size: URect,
+        texture_size: URect,
         border_size: UiRect,
         atlas_size: Option<UVec2>,
     ) -> Self {
@@ -33,13 +34,46 @@ impl BorderImage {
 
         let mut ctx = world.resource_mut::<bevy_egui::EguiUserTextures>();
 
-        let atlas_size = atlas_size.unwrap_or(image_size.max);
+        let atlas_size = atlas_size.unwrap_or(texture_size.max);
 
         Self {
             egui_texture: ctx.add_image(handle.clone()),
             handle,
             texture_border_size: border_size,
-            texture_size: image_size,
+            texture_size,
+            atlas_size,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BorderImageBackground {
+    pub handle: Handle<Image>,
+    pub egui_texture: egui::TextureId,
+    pub texture_size: URect,
+    pub atlas_size: UVec2,
+}
+
+impl BorderImageBackground {
+    /// Load a border image from the Bevy world
+    pub fn load_from_world<'a, P: Into<AssetPath<'a>>>(
+        world: &mut World,
+        path: P,
+        texture_size: URect,
+        atlas_size: Option<UVec2>,
+    ) -> Self {
+        let world = world.cell();
+        let asset_server = world.resource::<AssetServer>();
+        let handle = asset_server.load(path);
+
+        let mut ctx = world.resource_mut::<bevy_egui::EguiUserTextures>();
+
+        let atlas_size = atlas_size.unwrap_or(texture_size.max);
+
+        Self {
+            egui_texture: ctx.add_image(handle.clone()),
+            handle,
+            texture_size,
             atlas_size,
         }
     }

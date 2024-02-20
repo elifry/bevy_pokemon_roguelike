@@ -39,48 +39,42 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>, ui_assets: Res<UIAsse
             };
 
             // ui.label("world");
-            egui::SidePanel::left("SidePanel").default_width(300.).show(ctx, |ui| {
-                ui.style_mut().spacing.item_spacing = egui::Vec2::ZERO;
-                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                    UISpriteText::from_sections([
-                        UISpriteTextSection{
-                            value: "Lorem ipsum".to_string(),
-                            color: Color32::RED,
-                            font: &font_assets.text
-                        },
-                        UISpriteTextSection{
-                            value: " dolor sit amet,".to_string(),
-                            color: Color32::WHITE,
-                            font: &font_assets.text
-                        },
-                        UISpriteTextSection{
-                            value: " consectetur adipiscing elit.".to_string(),
-                            color: Color32::BLUE,
-                            font: &font_assets.text
-                        }
-                    ]).show(ui);
-                    ui.sprite_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
-                    // ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.");
-                    // ui.label("World!");
-                });
-            });
-
-
-            // egui::Grid::new("some_unique_id").show(ui, |ui| {
-            //     ui.sprite_text("Hello ", &font_assets.text);
-            //     ui.sprite_colored_label("World!", Color32::BLUE, &font_assets.text);
-            //     ui.end_row();
+            // egui::SidePanel::left("SidePanel").default_width(300.).show(ctx, |ui| {
+            //     ui.style_mut().spacing.item_spacing = egui::Vec2::ZERO;
+            //     ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            //         UISpriteText::from_sections([
+            //             UISpriteTextSection{
+            //                 value: "Lorem ipsum".to_string(),
+            //                 color: Color32::RED,
+            //                 font: &font_assets.text
+            //             },
+            //             UISpriteTextSection{
+            //                 value: " dolor sit amet,".to_string(),
+            //                 color: Color32::WHITE,
+            //                 font: &font_assets.text
+            //             },
+            //             UISpriteTextSection{
+            //                 value: " consectetur adipiscing elit.".to_string(),
+            //                 color: Color32::BLUE,
+            //                 font: &font_assets.text
+            //             }
+            //         ]).show(ui);
+            //         ui.sprite_text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", &font_assets.text);
+            //         // ui.label("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.");
+            //         // ui.label("World!");
+            //     });
             // });
 
-            ui.vertical_centered(|ui| {
-                BorderedFrame::new(&ui_assets.menu).padding(UiRect::all(Val::Px(7.))).show(ui, |ui| {
-                    ui.sprite_text("Hello world!", &font_assets.text);
-                });
+            // 0.33333334 0.6666666 0.125 0.375
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+                BorderedFrame::new(&ui_assets.panel_pink)
+                    .background(&ui_assets.transparent_panel_bg)
+                    .padding(UiRect::all(Val::Px(7.)))
+                    .show(ui, |ui| {
+                        ui.sprite_text("Hello world!", &font_assets.text);
+                        ui.sprite_text("Hello world! 2", &font_assets.text);
+                    });
             });
-
-            // ui.vertical_centered(|ui| {
-            //     ui.retro_label("Hello World UI", &font_assets.text);
-            // });
         });
 }
 
