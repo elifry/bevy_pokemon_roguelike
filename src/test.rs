@@ -5,10 +5,10 @@ use bevy_egui::{egui, EguiContexts};
 use bitmap_font::fonts::BitmapFont;
 
 use crate::graphics::assets::font_assets::FontAssets;
-use crate::graphics::sprite_text::ui::{SpriteTextEguiUiExt, UISpriteText, UISpriteTextSection};
-use crate::graphics::sprite_text::{
+use crate::graphics::ui::sprite_text::{
     SpriteText, SpriteTextBundle, SpriteTextSection, SpriteTextStyle, Text2DSpriteBundle,
 };
+use crate::graphics::ui::{SpriteTextEguiUiExt, UISpriteText, UISpriteTextSection};
 use crate::GameState;
 
 pub struct TestPlugin;

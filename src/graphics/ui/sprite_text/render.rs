@@ -2,10 +2,9 @@ use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::
 use bitmap_font::{bfn, fonts::BitmapFont};
 use image::{GenericImage, ImageBuffer, Pixel, Rgba, RgbaImage};
 
-use crate::graphics::sprite_text::{layout::process_glyph_layout, utils::extract_sub_image};
-
 use super::{
-    utils::{add_color_to_pixel, blend_pixel, subtract_color_from_pixel},
+    layout::process_glyph_layout,
+    utils::{extract_sub_image, subtract_color_from_pixel},
     SpriteText,
 };
 

@@ -8,11 +8,13 @@ use crate::GameState;
 pub mod binary_data;
 pub mod font_assets;
 pub mod pokemon_assets;
+pub mod ui_assets;
 pub mod visual_effect_assets;
 
 use self::binary_data::BinaryDataPlugin;
 use self::font_assets::FontAssetsPlugin;
 pub use self::pokemon_assets::*;
+use self::ui_assets::UIAssetsPlugin;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
 
 pub struct AssetsPlugin;
@@ -24,6 +26,7 @@ impl Plugin for AssetsPlugin {
             FontAssetsPlugin,
             VisualEffectAssetsPlugin,
             BinaryDataPlugin,
+            UIAssetsPlugin,
         ))
         .init_collection::<TileAssets>()
         .init_resource::<AssetsLoading>()

@@ -10,6 +10,7 @@ use bevy::{prelude::*, transform::TransformSystem, ui::UiSystem};
 
 pub use node::*;
 pub use text::*;
+pub use ui::*;
 
 use self::render::{new_image_from_default, render_texture, SpriteTextRenderSet};
 
