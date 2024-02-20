@@ -1,5 +1,6 @@
 use crate::{graphics::ui::BorderImage, GameState};
 use bevy::prelude::*;
+use bevy_egui::egui::emath;
 
 pub struct UIAssetsPlugin;
 
@@ -20,8 +21,9 @@ fn load_ui_assets(world: &mut World) {
     let menu = BorderImage::load_from_world(
         world,
         "ui/MenuBorder.png",
-        UVec2::new(24, 24),
-        UiRect::axes(Val::Px(7.0), Val::Px(5.0)),
+        URect::from_corners(UVec2::new(0, 0), UVec2::new(24, 24)),
+        UiRect::axes(Val::Px(8.0), Val::Px(8.0)),
+        Some(UVec2::new(120, 72)),
     );
 
     world.insert_resource(UIAssets { menu })

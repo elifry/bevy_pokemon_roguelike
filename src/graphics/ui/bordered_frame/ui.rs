@@ -2,7 +2,7 @@
 // Adapted from <https://docs.rs/egui/0.18.1/src/egui/containers/frame.rs.html>
 
 use bevy::prelude::*;
-use bevy_egui::egui;
+use bevy_egui::egui::{self, Pos2};
 
 use super::BorderImage;
 
@@ -13,8 +13,9 @@ use super::BorderImage;
 /// - [`UiBorderImage`]
 pub struct BorderedFrame {
     bg_texture: egui::TextureId,
-    texture_size: egui::Vec2,
+    texture_size: egui::Rect,
     texture_border_size: egui::style::Margin,
+    atlas_size: egui::Pos2,
     padding: egui::style::Margin,
     margin: egui::style::Margin,
     border_only: bool,
@@ -28,13 +29,17 @@ impl BorderedFrame {
         let b = style.texture_border_size;
         Self {
             bg_texture: style.egui_texture,
-            texture_size: egui::Vec2::new(s.x as f32, s.y as f32),
+            texture_size: egui::Rect::from_min_max(
+                egui::Pos2::new(s.min.x as f32, s.min.y as f32),
+                egui::Pos2::new(s.max.x as f32, s.max.y as f32),
+            ),
             texture_border_size: egui::style::Margin {
                 left: if let Val::Px(px) = b.left { px } else { 0. },
                 right: if let Val::Px(px) = b.right { px } else { 0. },
                 top: if let Val::Px(px) = b.top { px } else { 0. },
                 bottom: if let Val::Px(px) = b.bottom { px } else { 0. },
             },
+            atlas_size: egui::Pos2::new(style.atlas_size.x as f32, style.atlas_size.y as f32),
             padding: Default::default(),
             margin: Default::default(),
             border_only: false,
@@ -153,74 +158,79 @@ impl BorderedFrame {
             ..Default::default()
         };
 
-        let s = self.texture_size;
-        let b = self.texture_border_size;
-        let pr = paint_rect;
-        // UV border
+        // Texture coordinates for the sub-image within the atlas
+        let tx0 = self.texture_size.min.x / self.atlas_size.x;
+        let ty0 = self.texture_size.min.y / self.atlas_size.y;
+        let tx1 = (self.texture_size.min.x + self.texture_size.width()) / self.atlas_size.x;
+        let ty1 = (self.texture_size.min.y + self.texture_size.height()) / self.atlas_size.y;
+
+        // UV coordinates for the 9-patch borders, relative to the sub-image
         let buv = egui::style::Margin {
-            left: b.left / s.x,
-            right: b.right / s.x,
-            top: b.top / s.y,
-            bottom: b.bottom / s.y,
+            left: self.texture_border_size.left / self.texture_size.width(),
+            right: self.texture_border_size.right / self.texture_size.width(),
+            top: self.texture_border_size.top / self.texture_size.height(),
+            bottom: self.texture_border_size.bottom / self.texture_size.height(),
         };
+
+        // Convert UV border margins to texture UV coordinates
+        let uv_left = tx0 + buv.left * (tx1 - tx0);
+        let uv_right = tx1 - buv.right * (tx1 - tx0);
+        let uv_top = ty0 + buv.top * (ty1 - ty0);
+        let uv_bottom = ty1 - buv.bottom * (ty1 - ty0);
+
+        let b = self.texture_border_size;
 
         // Build the 9-patches
 
         // Top left
         mesh.add_rect_with_uv(
-            Rect::from_min_size(pr.min, Vec2::new(b.left, b.top)),
-            egui::Rect::from_min_size(Pos2::ZERO, Vec2::new(buv.left, buv.top)),
+            Rect::from_min_size(paint_rect.min, Vec2::new(b.left, b.top)),
+            egui::Rect::from_min_size(Pos2::new(tx0, ty0), Vec2::new(uv_left, uv_top)),
             white,
         );
         // Top center
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.min + Vec2::new(b.left, 0.0),
-                Vec2::new(pr.width() - b.left - b.right, b.top),
+                paint_rect.min + Vec2::new(b.left, 0.0),
+                Vec2::new(paint_rect.width() - b.left - b.right, b.top),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(buv.left, 0.0),
-                Vec2::new(1.0 - buv.left - buv.right, buv.top),
-            ),
+            egui::Rect::from_min_size(Pos2::new(uv_left, ty0), Vec2::new(uv_left, uv_top)),
             white,
         );
         // Top right
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.right_top() - Vec2::new(b.right, 0.0),
+                Pos2::new(paint_rect.max.x - b.right, paint_rect.min.y),
                 Vec2::new(b.right, b.top),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(1.0 - buv.right, 0.0),
-                Vec2::new(buv.right, buv.top),
+            Rect::from_min_max(
+                Pos2::new(uv_right, ty0), // Start right before the right border, top aligned
+                Pos2::new(tx1, uv_top), // End at the extreme right of the texture portion, bottom aligned to top border's bottom
             ),
             white,
         );
         // Middle left
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.min + Vec2::new(0.0, b.top),
-                Vec2::new(b.left, pr.height() - b.top - b.bottom),
+                paint_rect.min + Vec2::new(0.0, b.top),
+                Vec2::new(b.left, paint_rect.height() - b.top - b.bottom),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(0.0, buv.top),
-                Vec2::new(buv.left, 1.0 - buv.top - buv.bottom),
-            ),
+            egui::Rect::from_min_max(Pos2::new(tx0, uv_top), Pos2::new(uv_left, uv_bottom)),
             white,
         );
         // Middle center
         if !self.border_only {
             mesh.add_rect_with_uv(
                 Rect::from_min_size(
-                    pr.min + Vec2::new(b.left, b.top),
+                    paint_rect.min + Vec2::new(b.left, b.top),
                     Vec2::new(
-                        pr.width() - b.left - b.right,
-                        pr.height() - b.top - b.bottom,
+                        paint_rect.width() - b.left - b.right,
+                        paint_rect.height() - b.top - b.bottom,
                     ),
                 ),
-                egui::Rect::from_min_size(
-                    Pos2::new(buv.left, buv.top),
-                    Vec2::new(1.0 - buv.left - buv.top, 1.0 - buv.top - buv.bottom),
+                egui::Rect::from_min_max(
+                    Pos2::new(uv_left, uv_top),
+                    Pos2::new(uv_right, uv_bottom),
                 ),
                 white,
             );
@@ -228,49 +238,38 @@ impl BorderedFrame {
         // Middle right
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.min + Vec2::new(pr.width() - b.right, b.top),
-                Vec2::new(b.right, pr.height() - b.top - b.bottom),
+                paint_rect.min + Vec2::new(paint_rect.width() - b.right, b.top),
+                Vec2::new(b.right, paint_rect.height() - b.top - b.bottom),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(1.0 - buv.right, buv.top),
-                Vec2::new(buv.right, 1.0 - buv.top - buv.bottom),
-            ),
+            egui::Rect::from_min_max(Pos2::new(uv_right, uv_top), Pos2::new(tx1, uv_bottom)),
             white,
         );
-        // Bottom left
+        // // Bottom left
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.min + Vec2::new(0.0, pr.height() - b.bottom),
+                paint_rect.min + Vec2::new(0.0, paint_rect.height() - b.bottom),
                 Vec2::new(b.left, b.bottom),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(0.0, 1.0 - buv.bottom),
-                Vec2::new(buv.left, buv.bottom),
-            ),
+            egui::Rect::from_min_max(Pos2::new(tx0, uv_bottom), Pos2::new(uv_left, ty1)),
             white,
         );
         // Bottom center
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.min + Vec2::new(b.left, pr.height() - b.bottom),
-                Vec2::new(pr.width() - b.left - b.right, b.bottom),
+                paint_rect.min + Vec2::new(b.left, paint_rect.height() - b.bottom),
+                Vec2::new(paint_rect.width() - b.left - b.right, b.bottom),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(buv.left, 1.0 - buv.bottom),
-                Vec2::new(1.0 - buv.left - buv.right, buv.bottom),
-            ),
+            egui::Rect::from_min_max(Pos2::new(uv_left, uv_bottom), Pos2::new(uv_right, ty1)),
             white,
         );
         // Bottom right
         mesh.add_rect_with_uv(
             Rect::from_min_size(
-                pr.min + Vec2::new(pr.width() - b.right, pr.height() - b.bottom),
+                paint_rect.min
+                    + Vec2::new(paint_rect.width() - b.right, paint_rect.height() - b.bottom),
                 Vec2::new(b.right, b.bottom),
             ),
-            egui::Rect::from_min_size(
-                Pos2::new(1.0 - buv.right, 1.0 - buv.bottom),
-                Vec2::new(buv.right, buv.bottom),
-            ),
+            egui::Rect::from_min_max(Pos2::new(uv_right, uv_bottom), Pos2::new(tx1, ty1)),
             white,
         );
 

@@ -1,6 +1,8 @@
 use bevy::{asset::AssetPath, prelude::*};
 use bevy_egui::egui;
 
+pub use ui::*;
+
 pub mod ui;
 
 #[derive(Debug, Clone)]
@@ -12,7 +14,8 @@ pub struct BorderImage {
     /// This is the size of the frame
     pub texture_border_size: UiRect,
     /// This is the size of the texture in pixels
-    pub texture_size: UVec2,
+    pub texture_size: URect,
+    pub atlas_size: UVec2,
 }
 
 impl BorderImage {
@@ -20,8 +23,9 @@ impl BorderImage {
     pub fn load_from_world<'a, P: Into<AssetPath<'a>>>(
         world: &mut World,
         path: P,
-        image_size: UVec2,
+        image_size: URect,
         border_size: UiRect,
+        atlas_size: Option<UVec2>,
     ) -> Self {
         let world = world.cell();
         let asset_server = world.resource::<AssetServer>();
@@ -29,11 +33,14 @@ impl BorderImage {
 
         let mut ctx = world.resource_mut::<bevy_egui::EguiUserTextures>();
 
+        let atlas_size = atlas_size.unwrap_or(image_size.max);
+
         Self {
             egui_texture: ctx.add_image(handle.clone()),
             handle,
             texture_border_size: border_size,
             texture_size: image_size,
+            atlas_size,
         }
     }
 }
