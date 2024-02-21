@@ -943,6 +943,7 @@ dependencies = [
  "bevy_egui",
  "bitmap_font",
  "dyn-clone",
+ "egui",
  "glyph_brush_layout",
  "image",
  "itertools",
@@ -1809,6 +1810,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c55bcb864b764eb889515a38b8924757657a250738ad15126637ee2df291ee6b"
 dependencies = [
  "ahash",
+ "backtrace",
  "epaint",
  "nohash-hasher",
 ]

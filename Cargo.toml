@@ -45,8 +45,11 @@ strum = { version = "0.25.0", features = ["derive"] }
 thiserror = "1.0.56"
 image = "0.24.8"
 glyph_brush_layout = "0.2.3"
-bevy_egui = "0.24.0"
+bevy_egui = { version = "0.24.0" }
 unicode-linebreak = "0.1.5"
+
+[dependencies.egui]
+features = ["callstack"]
 
 [features]
 dev = ["bevy/dynamic_linking"]
