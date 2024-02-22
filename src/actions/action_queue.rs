@@ -18,7 +18,7 @@ pub struct QueuedAction {
 #[derive(Resource, Default, Clone)]
 pub struct ActionQueue(pub VecDeque<QueuedAction>);
 
-pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Local<u32>) {
+pub fn process_action_queue(world: &mut World) {
     let mut running_action_query = world.query_filtered::<Entity, With<RunningAction>>();
 
     if running_action_query.iter(world).next().is_some() {
@@ -60,7 +60,6 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
                         action: action.clone(),
                         entity: queued_action.entity,
                     });
-                    *tracking_queue_animation += 1;
                     world
                         .entity_mut(queued_action.entity)
                         .insert(RunningAction(action.clone()));
