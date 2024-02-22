@@ -14,5 +14,10 @@ impl Plugin for UIPlugin {
             Update,
             (gather_logs, event_logger_ui).run_if(in_state(GameState::Playing)),
         );
+
+        #[cfg(debug_assertions)]
+        {
+            // app.add_plugins(ResourceInspectorPlugin::<EventLogs>::default());
+        }
     }
 }
