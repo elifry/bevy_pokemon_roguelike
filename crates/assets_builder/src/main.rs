@@ -10,10 +10,10 @@ use crate::bitmap_fonts::create_bitmap_font;
 const FONT_RAW_FOLDER_PATH: &str = "raw_assets/fonts";
 
 fn main() {
-    build_font_atlases();
+    build_bitmap_fonts();
 }
 
-fn build_font_atlases() {
+fn build_bitmap_fonts() {
     println!("Building font atlases...");
 
     // if let Ok(buffer) = fs::read("assets/fonts/text/font.bin") {

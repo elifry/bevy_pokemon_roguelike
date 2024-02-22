@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-font_atlas = { path = "../font_atlas" }
 bitmap_font = { path = "../bitmap_font" }
 bevy_math = "0.13.0"
 crunch = "0.5.3"
