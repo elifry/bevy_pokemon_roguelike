@@ -1,4 +1,5 @@
 use bevy_inspector_egui::prelude::*;
+use egui::Color32;
 use std::collections::VecDeque;
 
 use bevy::prelude::*;
@@ -8,30 +9,70 @@ use crate::actions::walk_action::WalkAction;
 use crate::actions::ActionExecutedEvent;
 use crate::graphics::assets::font_assets::FontAssets;
 use crate::graphics::assets::ui_assets::UIAssets;
-use crate::graphics::ui::{BorderedFrame, SpriteTextEguiUiExt};
+use crate::graphics::ui::{BorderedFrame, SpriteTextEguiUiExt, UISpriteText, UISpriteTextSection};
 
-const SCROLL_SPEED: f32 = 10.;
+const SCROLL_SPEED: f32 = 15.;
 
-#[derive(Default, Resource, InspectorOptions, Reflect)]
-#[reflect(Resource, InspectorOptions)]
+#[derive(Default, Resource)]
 pub struct EventLogs {
-    pub logs: VecDeque<String>,
-    pub offset: f32,
+    pub logs: VecDeque<EventLogLine>,
 }
+
+#[derive(Default, InspectorOptions)]
+pub enum EventLogColor {
+    TeamLeader, // #009CFF
+    TeamMember, // #FFFF00
+    Friendly,   // #FFFF00
+    Enemy,      // #00ffff
+    #[default]
+    None,
+}
+
+impl EventLogColor {
+    pub fn to_color32(&self) -> Color32 {
+        match self {
+            EventLogColor::TeamLeader => Color32::from_rgb(0, 157, 255),
+            EventLogColor::TeamMember => Color32::from_rgb(255, 255, 0),
+            EventLogColor::Friendly => Color32::from_rgb(255, 255, 0),
+            EventLogColor::Enemy => Color32::from_rgb(0, 255, 255),
+            EventLogColor::None => Color32::WHITE,
+        }
+    }
+}
+
+#[derive(Default, InspectorOptions)]
+pub struct EventLogLineSection {
+    text: String,
+    color: EventLogColor,
+}
+impl EventLogLineSection {
+    pub fn new(text: String, color: EventLogColor) -> Self {
+        Self { text, color }
+    }
+}
+
+#[derive(Default, InspectorOptions)]
+pub struct EventLogLine(Vec<EventLogLineSection>);
 
 pub(crate) fn gather_logs(
     mut ev_action_executed: EventReader<ActionExecutedEvent>,
+    name_query: Query<&Name>,
     mut event_logs: ResMut<EventLogs>,
 ) {
     for action_executed in ev_action_executed.read() {
         info!("Gather logs -> {:?}", action_executed.action);
         let action = action_executed.action.as_any();
+        let entity_name = name_query.get(action_executed.entity).unwrap().as_str();
 
         if let Some(walk_action) = action.downcast_ref::<WalkAction>() {
-            event_logs.logs.push_back(format!(
-                "{:?} took a walk to {:?}",
-                walk_action.entity, walk_action.to
-            ));
+            let log_line_sections = vec![
+                EventLogLineSection::new(format!("{}", entity_name), EventLogColor::TeamLeader),
+                EventLogLineSection::new(
+                    format!(" walk to {:?}!", walk_action.to),
+                    EventLogColor::None,
+                ),
+            ];
+            event_logs.logs.push_back(EventLogLine(log_line_sections));
             continue;
         };
     }
@@ -39,8 +80,8 @@ pub(crate) fn gather_logs(
 
 #[derive(Debug, Default)]
 pub(crate) struct ScrollAnimation {
-    scroll_offset: f32,
-    current_offset: f32,
+    current_scroll_position: f32,
+    target_offset: f32,
 }
 
 const TEXT_LINE_HEIGHT: f32 = 12.;
@@ -56,17 +97,17 @@ pub(crate) fn event_logger_ui(
     let ctx = ctx.ctx_mut();
 
     if event_logs.is_changed() && event_logs.logs.len() > 3 {
-        scroll_animation.current_offset += TEXT_LINE_HEIGHT;
+        scroll_animation.target_offset += TEXT_LINE_HEIGHT;
     }
 
-    if scroll_animation.current_offset > 0. {
+    if scroll_animation.target_offset > 0. {
         let delta = time.delta_seconds() * SCROLL_SPEED;
-        let prev_current_offset = scroll_animation.current_offset;
-        scroll_animation.current_offset -= delta;
+        let prev_current_offset = scroll_animation.target_offset;
+        scroll_animation.target_offset -= delta;
 
-        let diff = (prev_current_offset - scroll_animation.current_offset).max(0.);
+        let diff = (prev_current_offset - scroll_animation.target_offset).max(0.);
 
-        scroll_animation.scroll_offset += diff;
+        scroll_animation.current_scroll_position += diff;
     }
 
     egui::TopBottomPanel::bottom("bottom")
@@ -87,38 +128,20 @@ pub(crate) fn event_logger_ui(
                         .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
                         .stick_to_bottom(true)
                         .min_scrolled_height(20.)
-                        .vertical_scroll_offset(scroll_animation.scroll_offset + 2.)
+                        .vertical_scroll_offset(scroll_animation.current_scroll_position + 2.)
                         .auto_shrink(false)
                         .show(ui, |ui| {
-                            for event_log in event_logs.logs.iter() {
-                                ui.sprite_text(event_log, &font_assets.text);
+                            for event_line_log in event_logs.logs.iter() {
+                                let sprite_text_sections = event_line_log
+                                    .0
+                                    .iter()
+                                    .map(|section| {
+                                        UISpriteTextSection::new(&section.text, &font_assets.text)
+                                            .with_color(section.color.to_color32())
+                                    })
+                                    .collect::<Vec<_>>();
+                                UISpriteText::from_sections(sprite_text_sections).show(ui);
                             }
-
-                            // UISpriteText::from_sections([
-                            //     UISpriteTextSection::new("Charmander", &font_assets.text)
-                            //         .with_color(Color32::BLUE),
-                            //     UISpriteTextSection::new(" used ", &font_assets.text),
-                            //     UISpriteTextSection::new("AncientPower", &font_assets.text)
-                            //         .with_color(Color32::GREEN),
-                            //     UISpriteTextSection::new("!", &font_assets.text),
-                            // ])
-                            // .show(ui);
-
-                            // UISpriteText::from_sections([UISpriteTextSection::new(
-                            //     "It's supper effective!",
-                            //     &font_assets.text,
-                            // )])
-                            // .show(ui);
-
-                            // UISpriteText::from_sections([
-                            //     UISpriteTextSection::new("Rattata", &font_assets.text)
-                            //         .with_color(Color32::LIGHT_BLUE),
-                            //     UISpriteTextSection::new(" took ", &font_assets.text),
-                            //     UISpriteTextSection::new("26", &font_assets.text)
-                            //         .with_color(Color32::LIGHT_BLUE),
-                            //     UISpriteTextSection::new(" damage!", &font_assets.text),
-                            // ])
-                            // .show(ui);
                         });
                 });
         });
