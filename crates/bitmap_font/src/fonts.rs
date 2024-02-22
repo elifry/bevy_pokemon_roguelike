@@ -4,7 +4,10 @@ use crate::bfn;
 use bevy::{
     asset::{io::Reader, meta::AssetMeta, AssetLoader, AsyncReadExt, LoadContext, LoadedAsset},
     prelude::*,
-    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
+    render::{
+        render_asset::RenderAssetUsages,
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
+    },
     utils::BoxedFuture,
 };
 use bevy_egui::egui;
@@ -92,6 +95,7 @@ impl AssetLoader for BitmapFontLoader {
                 TextureDimension::D2,
                 texture_buffer.into_raw(),
                 TextureFormat::Rgba8Unorm,
+                RenderAssetUsages::default(),
             );
 
             // let labeled = load_context.begin_labeled_asset();

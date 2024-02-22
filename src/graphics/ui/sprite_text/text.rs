@@ -34,7 +34,7 @@ pub struct SpriteText {
     pub sections: Vec<SpriteTextSection>,
     /// The text's internal alignment.
     /// Should not affect its position within a container.
-    pub alignment: TextAlignment,
+    pub alignment: JustifyText,
     /// How the text should linebreak when running out of the bounds determined by max_size
     pub linebreak_behavior: BreakLineOn,
 }
@@ -73,8 +73,8 @@ impl SpriteText {
         }
     }
 
-    /// Returns this [`Text`] with a new [`TextAlignment`].
-    pub const fn with_alignment(mut self, alignment: TextAlignment) -> Self {
+    /// Returns this [`Text`] with a new [`JustifyText`].
+    pub const fn with_alignment(mut self, alignment: JustifyText) -> Self {
         self.alignment = alignment;
         self
     }
@@ -98,7 +98,7 @@ impl Default for SpriteText {
     fn default() -> Self {
         Self {
             sections: Default::default(),
-            alignment: TextAlignment::Left,
+            alignment: JustifyText::Left,
             linebreak_behavior: BreakLineOn::WordBoundary,
         }
     }

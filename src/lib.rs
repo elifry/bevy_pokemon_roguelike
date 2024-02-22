@@ -70,7 +70,7 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<GameState>()
+        app.init_state::<GameState>()
             .configure_sets(
                 Update,
                 (
@@ -125,12 +125,12 @@ fn update_ui_scale(
                 bevy::render::camera::ScalingMode::FixedVertical(fixed_ratio) => {
                     let window_height = window.height();
                     let scale = window_height / fixed_ratio / (projection.scale);
-                    egui_settings.scale_factor = scale as f64;
+                    egui_settings.scale_factor = scale;
                 }
                 bevy::render::camera::ScalingMode::FixedHorizontal(fixed_ratio) => {
                     let window_width = window.width();
                     let scale = window_width / fixed_ratio / (projection.scale);
-                    egui_settings.scale_factor = scale as f64;
+                    egui_settings.scale_factor = scale;
                 }
                 _ => {}
             }

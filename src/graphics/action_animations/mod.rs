@@ -54,9 +54,7 @@ impl Plugin for ActionAnimationPlugin {
             )
             .add_systems(
                 Update,
-                (clean_up_animation, apply_deferred)
-                    .chain()
-                    .in_set(ActionAnimationSet::Flush),
+                clean_up_animation.chain().in_set(ActionAnimationSet::Flush),
             );
     }
 }

@@ -34,7 +34,8 @@ pub struct AnimationFrame {
 
 #[derive(Component, Debug, Default, InspectorOptions)]
 pub struct Animator {
-    pub texture_atlas: Handle<TextureAtlas>,
+    pub atlas_layout: Handle<TextureAtlasLayout>,
+    pub texture: Handle<Image>,
     pub current_frame: usize,
     pub timer: Timer,
     pub is_loop: bool,
@@ -47,7 +48,8 @@ pub struct Animator {
 
 impl Animator {
     pub fn new(
-        texture_atlas: Handle<TextureAtlas>,
+        atlas_layout: Handle<TextureAtlasLayout>,
+        texture: Handle<Image>,
         frames: Vec<AnimationFrame>,
         is_loop: bool,
         return_frame: Option<usize>,
@@ -56,7 +58,8 @@ impl Animator {
     ) -> Self {
         let last_frame = frames.len() - 1;
         Self {
-            texture_atlas,
+            atlas_layout,
+            texture,
             frames,
             is_loop,
             return_frame: return_frame.unwrap_or(last_frame),
@@ -116,7 +119,7 @@ impl AnimationIndices {
 
 fn animation_system(
     time: Res<Time>,
-    mut query: Query<(Entity, &mut Animator, &mut TextureAtlasSprite)>,
+    mut query: Query<(Entity, &mut Animator, &mut TextureAtlas)>,
     mut ev_finished: EventWriter<AnimationFinished>,
     mut ev_animation_frame_changed: EventWriter<AnimationFrameChangedEvent>,
 ) {

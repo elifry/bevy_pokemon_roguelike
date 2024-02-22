@@ -71,19 +71,20 @@ fn spawn_player(mut commands: Commands) {
         InputManagerBundle::<PlayerAction> {
             action_state: ActionState::default(),
             input_map: InputMap::new([
-                (KeyCode::Space, PlayerAction::Skip),
-                (KeyCode::W, PlayerAction::Up),
-                (KeyCode::Up, PlayerAction::Up),
-                (KeyCode::S, PlayerAction::Down),
-                (KeyCode::Down, PlayerAction::Down),
-                (KeyCode::A, PlayerAction::Left),
-                (KeyCode::Left, PlayerAction::Left),
-                (KeyCode::D, PlayerAction::Right),
-                (KeyCode::Right, PlayerAction::Right),
-                (KeyCode::Key1, PlayerAction::SpellSlot1),
-                (KeyCode::Key2, PlayerAction::SpellSlot2),
-                (KeyCode::Key3, PlayerAction::SpellSlot3),
-                (KeyCode::Key4, PlayerAction::SpellSlot4),
+                (PlayerAction::Skip, KeyCode::Space),
+                (PlayerAction::Skip, KeyCode::Space),
+                (PlayerAction::Up, KeyCode::KeyW),
+                (PlayerAction::Up, KeyCode::ArrowUp),
+                (PlayerAction::Down, KeyCode::KeyS),
+                (PlayerAction::Down, KeyCode::ArrowDown),
+                (PlayerAction::Left, KeyCode::KeyA),
+                (PlayerAction::Left, KeyCode::ArrowLeft),
+                (PlayerAction::Right, KeyCode::KeyD),
+                (PlayerAction::Right, KeyCode::ArrowRight),
+                (PlayerAction::SpellSlot1, KeyCode::Digit1),
+                (PlayerAction::SpellSlot2, KeyCode::Digit2),
+                (PlayerAction::SpellSlot3, KeyCode::Digit3),
+                (PlayerAction::SpellSlot4, KeyCode::Digit4),
             ]),
         },
     ));
@@ -105,7 +106,7 @@ fn take_action(
     };
 
     for (key, dir) in DIR_KEY_MAPPING {
-        if !action_state.pressed(key) {
+        if !action_state.pressed(&key) {
             continue;
         }
         let target = position.0 + dir;
@@ -136,7 +137,7 @@ fn take_action(
         return;
     }
 
-    if action_state.pressed(PlayerAction::SpellSlot1) {
+    if action_state.pressed(&PlayerAction::SpellSlot1) {
         let action = Box::new(SpellAction {
             caster: entity,
             spell: Spell {
@@ -159,7 +160,7 @@ fn take_action(
         ev_action.send(PlayerActionEvent(vec![action]));
     }
 
-    if action_state.pressed(PlayerAction::Skip) {
+    if action_state.pressed(&PlayerAction::Skip) {
         let action = Box::new(SkipAction);
         ev_action.send(PlayerActionEvent(vec![action]));
     }

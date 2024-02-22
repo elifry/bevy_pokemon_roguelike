@@ -21,7 +21,7 @@ pub enum PokemonShadow {
 
 #[allow(clippy::type_complexity)]
 pub fn update_shadow_animator(
-    mut query_child: Query<(Entity, &mut Handle<TextureAtlas>), With<PokemonShadow>>,
+    mut query_child: Query<(Entity, &mut TextureAtlas, &mut Handle<Image>), With<PokemonShadow>>,
     query_parent: Query<(
         &FacingOrientation,
         &PokemonAnimationState,
@@ -40,7 +40,7 @@ pub fn update_shadow_animator(
         };
 
         for child in children.iter() {
-            let Ok((entity, mut texture_atlas)) = query_child.get_mut(*child) else {
+            let Ok((entity, mut texture_atlas, mut texture)) = query_child.get_mut(*child) else {
                 continue;
             };
 
@@ -54,7 +54,8 @@ pub fn update_shadow_animator(
             ) else {
                 continue;
             };
-            *texture_atlas = shadow_animator.texture_atlas.clone();
+            texture_atlas.layout = shadow_animator.atlas_layout.clone();
+            *texture = shadow_animator.texture.clone();
             // Resets PokemonShadow component to force change detection
             // Maybe use an event there ?
             commands
@@ -69,18 +70,13 @@ pub fn update_shadow_animator(
 /// But waiting for the implementation of https://github.com/bevyengine/bevy/pull/10845
 pub fn update_pokemon_shadow_renderer(
     mut commands: Commands,
-    mut atlases: ResMut<Assets<TextureAtlas>>,
+    mut atlases: ResMut<Assets<TextureAtlasLayout>>,
     mut images: ResMut<Assets<Image>>,
-    mut query: Query<(Entity, &Handle<TextureAtlas>, &PokemonShadow), Changed<PokemonShadow>>,
+    mut query: Query<(Entity, &Handle<Image>, &PokemonShadow), Changed<PokemonShadow>>,
 ) {
-    for (entity, texture_atlas_handle, shadow) in query.iter_mut() {
-        // get the image from the texture handle
-        let Some(atlas) = atlases.get(texture_atlas_handle) else {
-            continue;
-        };
-        let image_handle = atlas.texture.clone();
+    for (entity, image_handle, shadow) in query.iter_mut() {
         // get the image struct
-        let Some(image) = images.get(&image_handle) else {
+        let Some(image) = images.get(image_handle) else {
             continue;
         };
         // get raw image data
@@ -117,12 +113,7 @@ pub fn update_pokemon_shadow_renderer(
         // add the image to the assets, to get a handle
         let new_image_handle = images.add(new_image);
 
-        // create a new texture atlas from the new texture
-        let mut new_texture_atlas = TextureAtlas::new_empty(new_image_handle, atlas.size);
-        new_texture_atlas.textures = atlas.textures.clone();
-        let new_atlas_handle = atlases.add(new_texture_atlas);
-
-        // replace the texture atlas handle on the entity
-        commands.entity(entity).insert(new_atlas_handle);
+        // replace the texture handle on the entity
+        commands.entity(entity).insert(new_image_handle);
     }
 }

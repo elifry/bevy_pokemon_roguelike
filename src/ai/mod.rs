@@ -28,10 +28,7 @@ impl Plugin for AIPlugin {
                 .in_set(GamePlayingSet::AI),
         )
         .add_systems(Update, plan_walk.in_set(AISet::Planning))
-        .add_systems(
-            Update,
-            (npc_action, apply_deferred).chain().in_set(AISet::Late),
-        )
+        .add_systems(Update, npc_action.in_set(AISet::Late))
         .add_systems(OnEnter(GameState::Playing), spawn_npcs);
     }
 }

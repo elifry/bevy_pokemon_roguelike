@@ -43,7 +43,6 @@ impl Plugin for PokemonPlugin {
                     update_animator,
                     update_shadow_animator,
                     update_offsets_animator,
-                    apply_deferred,
                     update_head_offset,
                     update_body_offset,
                     update_pokemon_shadow_renderer,
@@ -73,7 +72,8 @@ fn update_animator(
             &FacingOrientation,
             &PokemonAnimationState,
             &Pokemon,
-            &mut Handle<TextureAtlas>,
+            &mut TextureAtlas,
+            &mut Handle<Image>,
         ),
         Or<(Changed<FacingOrientation>, Changed<PokemonAnimationState>)>,
     >,
@@ -82,7 +82,7 @@ fn update_animator(
     mut ev_animator_updated: EventWriter<AnimatorUpdatedEvent>,
     mut commands: Commands,
 ) {
-    for (entity, facing_orientation, animation_state, pokemon, mut texture_atlas) in
+    for (entity, facing_orientation, animation_state, pokemon, mut texture_atlas, mut texture) in
         query.iter_mut()
     {
         let pokemon_asset = assets.0.get(pokemon).unwrap();
@@ -95,7 +95,8 @@ fn update_animator(
         ) else {
             continue;
         };
-        *texture_atlas = animator.texture_atlas.clone();
+        texture_atlas.layout = animator.atlas_layout.clone();
+        *texture = animator.texture.clone();
         commands.entity(entity).insert(animator);
         ev_animator_updated.send(AnimatorUpdatedEvent(entity));
     }
@@ -111,11 +112,7 @@ fn spawn_pokemon_renderer(
         let pokemon_animation = assets.0.get(pokemon).unwrap();
 
         let v = super::get_world_position(&position.0, POKEMON_Z);
-        let sprite = TextureAtlasSprite {
-            index: 0,
-            anchor: Anchor::Center,
-            ..default()
-        };
+
         let Some(anim_texture_atlas) = pokemon_animation
             .textures
             .get(&default_state)
@@ -124,13 +121,18 @@ fn spawn_pokemon_renderer(
             continue;
         };
 
+        let atlas = TextureAtlas {
+            index: 0,
+            layout: anim_texture_atlas.0.clone(),
+        };
+
         commands
             .entity(entity)
             .insert((
                 PokemonAnimationState(default_state),
                 SpriteSheetBundle {
-                    texture_atlas: anim_texture_atlas.clone(),
-                    sprite,
+                    atlas,
+                    texture: anim_texture_atlas.1.clone(),
                     transform: Transform::from_translation(v),
                     ..default()
                 },
@@ -145,9 +147,9 @@ fn spawn_pokemon_renderer(
                     return;
                 };
 
-                let shadow_sprite = TextureAtlasSprite {
+                let shadow_atlas = TextureAtlas {
                     index: 0,
-                    anchor: Anchor::Center,
+                    layout: shadow_texture_atlas.0.clone(),
                     ..default()
                 };
 
@@ -155,8 +157,8 @@ fn spawn_pokemon_renderer(
                     Name::new("Shadow"),
                     PokemonShadow::default(),
                     SpriteSheetBundle {
-                        texture_atlas: shadow_texture_atlas.clone(),
-                        sprite: shadow_sprite,
+                        atlas: shadow_atlas,
+                        texture: shadow_texture_atlas.1.clone(),
                         transform: Transform::from_xyz(0., 0., SHADOW_POKEMON_Z),
                         ..default()
                     },
@@ -187,9 +189,9 @@ fn spawn_pokemon_renderer(
                     return;
                 };
 
-                let offsets_sprite = TextureAtlasSprite {
+                let offsets_atlas = TextureAtlas {
                     index: 0,
-                    anchor: Anchor::Center,
+                    layout: offsets_texture_atlas.0.clone(),
                     ..default()
                 };
 
@@ -197,8 +199,8 @@ fn spawn_pokemon_renderer(
                     Name::new("Offsets"),
                     PokemonOffsets::default(),
                     SpriteSheetBundle {
-                        texture_atlas: offsets_texture_atlas.clone(),
-                        sprite: offsets_sprite,
+                        atlas: offsets_atlas,
+                        texture: offsets_texture_atlas.1.clone(),
                         transform: Transform::from_xyz(0., 0., POKEMON_Z + 1.),
                         visibility: Visibility::Hidden,
                         ..default()

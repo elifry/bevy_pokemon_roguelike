@@ -28,7 +28,7 @@ pub struct AutoDespawnEffect;
 fn spawn_visual_effect_renderer(
     mut commands: Commands,
     visual_effect_assets: Res<VisualEffectAssets>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
+    texture_atlases: Res<Assets<TextureAtlasLayout>>,
     query: Query<(Entity, &VisualEffect, &Transform), Added<VisualEffect>>,
 ) {
     for (entity, effect, _transform) in query.iter() {
@@ -37,7 +37,7 @@ fn spawn_visual_effect_renderer(
             continue;
         };
 
-        let Some(texture_atlas) = texture_atlases.get(&effect_texture_info.texture_atlas) else {
+        let Some(texture_atlas) = texture_atlases.get(&effect_texture_info.layout) else {
             continue;
         };
 
@@ -57,17 +57,19 @@ fn spawn_visual_effect_renderer(
 
         commands.entity(entity).insert((
             Animator::new(
-                effect_texture_info.texture_atlas.clone(),
+                effect_texture_info.layout.clone(),
+                effect_texture_info.texture.clone(),
                 frames,
                 effect.is_loop,
                 None,
                 None,
                 None,
             ),
-            effect_texture_info.texture_atlas.clone(),
-            TextureAtlasSprite {
+            Sprite::default(),
+            effect_texture_info.texture.clone(),
+            TextureAtlas {
                 index: first_index,
-                ..default()
+                layout: effect_texture_info.layout.clone(),
             },
         ));
     }

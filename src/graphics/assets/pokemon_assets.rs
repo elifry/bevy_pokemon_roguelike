@@ -40,7 +40,8 @@ pub enum AnimTextureType {
 
 #[derive(Debug, Clone)]
 pub struct PokemonAnimation {
-    pub textures: HashMap<AnimKey, HashMap<AnimTextureType, Handle<TextureAtlas>>>,
+    pub textures:
+        HashMap<AnimKey, HashMap<AnimTextureType, (Handle<TextureAtlasLayout>, Handle<Image>)>>,
     pub anim_data: Handle<AnimData>,
 }
 
@@ -67,7 +68,7 @@ fn process_pokemon_assets(
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     anim_data_assets: Res<Assets<AnimData>>,
     mut pokemon_animation_assets: ResMut<PokemonAnimationAssets>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     mut next_state: ResMut<NextState<GameState>>,
     mut commands: Commands,
 ) {
@@ -115,8 +116,10 @@ fn process_pokemon_assets(
             AnimKey::Swing,
         ];
 
-        let mut anim_textures: HashMap<AnimKey, HashMap<AnimTextureType, Handle<TextureAtlas>>> =
-            HashMap::new();
+        let mut anim_textures: HashMap<
+            AnimKey,
+            HashMap<AnimTextureType, (Handle<TextureAtlasLayout>, Handle<Image>)>,
+        > = HashMap::new();
 
         for anim_key in anim_to_load {
             for texture_type in AnimTextureType::iter() {
@@ -155,8 +158,8 @@ fn get_texture_atlas_by_anim_key(
     anim_texture_type: AnimTextureType,
     anim_data: &AnimData,
     hashmap_files: &mut HashMap<&str, &UntypedHandle>,
-    texture_atlases: &mut ResMut<'_, Assets<TextureAtlas>>,
-) -> Handle<TextureAtlas> {
+    texture_atlases: &mut ResMut<'_, Assets<TextureAtlasLayout>>,
+) -> (Handle<TextureAtlasLayout>, Handle<Image>) {
     let anim_info = anim_data.get(anim_key);
 
     let anim_key_str: &'static str = anim_info.value().name.into();
@@ -165,15 +168,14 @@ fn get_texture_atlas_by_anim_key(
 
     let anim_file = anim_file.as_str();
 
-    let Some(image_handle) = hashmap_files
+    let Some(texture_handle) = hashmap_files
         .get_mut(anim_file)
         .map(|handle| handle.to_owned().typed::<Image>())
     else {
         panic!("Couldn't load the {anim_key} animation asset")
     };
 
-    let texture_atlas = TextureAtlas::from_grid(
-        image_handle,
+    let atlas_layout = TextureAtlasLayout::from_grid(
         anim_info.tile_size(),
         anim_info.columns(),
         anim_info.rows(),
@@ -181,5 +183,6 @@ fn get_texture_atlas_by_anim_key(
         None,
     );
 
-    texture_atlases.add(texture_atlas)
+    let layout_handle = texture_atlases.add(atlas_layout);
+    (layout_handle, texture_handle)
 }

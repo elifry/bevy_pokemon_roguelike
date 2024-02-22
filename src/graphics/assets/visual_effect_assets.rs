@@ -36,8 +36,9 @@ pub struct VisualEffectAssets(pub HashMap<String, VisualEffectAsset>);
 
 #[derive(Debug, Clone)]
 pub struct VisualEffectAsset {
-    pub texture_atlas: Handle<TextureAtlas>,
+    pub layout: Handle<TextureAtlasLayout>,
     pub direction: VisualEffectDirectionType,
+    pub texture: Handle<Image>,
 }
 
 fn load_assets_folder(
@@ -57,7 +58,7 @@ fn process_effect_assets(
     visual_effect_assets_folder: Res<VisualEffectAssetsFolder>,
     mut visual_effect_assets: ResMut<VisualEffectAssets>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     textures: Res<Assets<Image>>,
 ) {
     let folder: &LoadedFolder = match loaded_folder_assets.get(&visual_effect_assets_folder.0) {
@@ -98,8 +99,7 @@ fn process_effect_assets(
         let texture_atlas = match direction {
             VisualEffectDirectionType::None => {
                 let tile_size = vf_texture.height();
-                TextureAtlas::from_grid(
-                    vf_image,
+                TextureAtlasLayout::from_grid(
                     Vec2::splat(tile_size as f32),
                     (vf_texture.width() / tile_size) as usize,
                     1,
@@ -109,8 +109,7 @@ fn process_effect_assets(
             }
             VisualEffectDirectionType::Dir5 => {
                 let tile_size = vf_texture.height() / 5;
-                TextureAtlas::from_grid(
-                    vf_image,
+                TextureAtlasLayout::from_grid(
                     Vec2::splat(tile_size as f32),
                     (vf_texture.width() / tile_size) as usize,
                     5,
@@ -120,8 +119,7 @@ fn process_effect_assets(
             }
             VisualEffectDirectionType::Dir8 => {
                 let tile_size = vf_texture.height() / 8;
-                TextureAtlas::from_grid(
-                    vf_image,
+                TextureAtlasLayout::from_grid(
                     Vec2::splat(tile_size as f32),
                     (vf_texture.width() / tile_size) as usize,
                     8,
@@ -134,7 +132,8 @@ fn process_effect_assets(
         let atlas_handle = texture_atlases.add(texture_atlas);
 
         let visual_effect_texture_info = VisualEffectAsset {
-            texture_atlas: atlas_handle,
+            layout: atlas_handle,
+            texture: vf_image,
             direction,
         };
 

@@ -44,7 +44,7 @@ struct AssetsLoading(Vec<UntypedHandle>);
 // TODO: handle tile map loading in a separated plugin
 #[derive(AssetCollection, Resource)]
 pub struct TileAssets {
-    #[asset(texture_atlas(
+    #[asset(texture_atlas_layout(
         tile_size_x = 24.,
         tile_size_y = 24.,
         columns = 21,
@@ -54,21 +54,13 @@ pub struct TileAssets {
         offset_x = 1.,
         offset_y = 1.
     ))]
-    #[asset(path = "tiles/forest_path_tiles.png")]
-    pub forest_path: Handle<TextureAtlas>,
+    pub tile_layout: Handle<TextureAtlasLayout>,
 
-    #[asset(texture_atlas(
-        tile_size_x = 24.,
-        tile_size_y = 24.,
-        columns = 21,
-        rows = 24,
-        padding_x = 1.,
-        padding_y = 1.,
-        offset_x = 1.,
-        offset_y = 1.
-    ))]
+    #[asset(path = "tiles/forest_path_tiles.png")]
+    pub forest_path_texture: Handle<Image>,
+
     #[asset(path = "tiles/amp_plains_tiles.png")]
-    pub amp_plains: Handle<TextureAtlas>,
+    pub amp_plains_texture: Handle<Image>,
 }
 
 fn set_playing(mut next_state: ResMut<NextState<GameState>>) {

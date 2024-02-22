@@ -88,8 +88,8 @@ impl SpriteTextBundle {
         }
     }
 
-    /// Returns this [`SpriteTextBundle`] with a new [`TextAlignment`] on [`Text`].
-    pub const fn with_text_alignment(mut self, alignment: TextAlignment) -> Self {
+    /// Returns this [`SpriteTextBundle`] with a new [`JustifyText`] on [`Text`].
+    pub const fn with_text_alignment(mut self, alignment: JustifyText) -> Self {
         self.text.alignment = alignment;
         self
     }

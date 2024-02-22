@@ -23,7 +23,7 @@ impl Plugin for TilesPlugin {
 
 pub fn update_tile_render(
     query: Query<(Entity, &Position, Ref<Tile>)>,
-    mut query_tile: Query<(&Tile, &mut TextureAtlasSprite)>,
+    mut query_tile: Query<(&Tile, &mut TextureAtlas)>,
     map: Res<GameMap>,
     mut commands: Commands,
     assets: Res<TileAssets>,
@@ -31,13 +31,19 @@ pub fn update_tile_render(
     for (entity, position, tile) in query.iter() {
         if tile.is_added() || tile.is_changed() {
             let sprite_index = get_tile_map_index(&position.0, &tile.0, &map);
-            let mut sprite = TextureAtlasSprite::new(sprite_index);
-            sprite.custom_size = Some(Vec2::splat(TILE_SIZE));
+            let atlas = TextureAtlas {
+                index: sprite_index,
+                layout: assets.tile_layout.clone(),
+            };
             let v = super::get_world_position(&position.0, TILE_Z);
 
             commands.entity(entity).insert(SpriteSheetBundle {
-                sprite,
-                texture_atlas: assets.amp_plains.clone(),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::splat(TILE_SIZE)),
+                    ..default()
+                },
+                atlas,
+                texture: assets.amp_plains_texture.clone(),
                 transform: Transform::from_translation(v),
                 ..Default::default()
             });

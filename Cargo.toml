@@ -21,31 +21,31 @@ opt-level = 3
 [dependencies]
 # font_atlas = { path = "crates/font_atlas" }
 bitmap_font = { path = "crates/bitmap_font" }
-bevy = { version = "0.12.1", features = [
+bevy = { version = "0.13.0", features = [
   "asset_processor",
   "basis-universal",
   "ktx2",
   "zstd",
   "multi-threaded",
 ] }
-bevy-inspector-egui = "0.22.0"
-bevy_asset_loader = { version = "0.19.1", features = [
+bevy-inspector-egui = "0.23.2"
+bevy_asset_loader = { version = "0.20.0", features = [
   "standard_dynamic_assets",
   "2d",
 ] }
 dyn-clone = "1.0.16"
 itertools = "0.12.0"
-leafwing-input-manager = "0.11.2"
+leafwing-input-manager = "0.13.2"
 quick-xml = { version = "0.31.0", features = ["serialize"] }
 rand = "0.8.5"
 rayon = "1.8.1"
 serde = "1.0.195"
-strum = { version = "0.25.0", features = ["derive"] }
+strum = { version = "0.26.0", features = ["derive"] }
 # serde-xml-rs = "0.6.0"
 thiserror = "1.0.56"
 image = "0.24.8"
 glyph_brush_layout = "0.2.3"
-bevy_egui = { version = "0.24.0" }
+bevy_egui = { version = "0.25.0" }
 unicode-linebreak = "0.1.5"
 
 [dependencies.egui]

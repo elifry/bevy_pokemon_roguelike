@@ -35,7 +35,7 @@ pub struct PokemonRightOffset;
 
 #[allow(clippy::type_complexity)]
 pub fn update_offsets_animator(
-    mut query_child: Query<(Entity, &mut Handle<TextureAtlas>), With<PokemonOffsets>>,
+    mut query_child: Query<(Entity, &mut TextureAtlas, &mut Handle<Image>), With<PokemonOffsets>>,
     query_parent: Query<(
         &FacingOrientation,
         &PokemonAnimationState,
@@ -54,7 +54,7 @@ pub fn update_offsets_animator(
         };
 
         for child in children.iter() {
-            let Ok((entity, mut texture_atlas)) = query_child.get_mut(*child) else {
+            let Ok((entity, mut texture_atlas, mut texture)) = query_child.get_mut(*child) else {
                 continue;
             };
 
@@ -68,7 +68,8 @@ pub fn update_offsets_animator(
             ) else {
                 continue;
             };
-            *texture_atlas = offsets_animator.texture_atlas.clone();
+            texture_atlas.layout = offsets_animator.atlas_layout.clone();
+            *texture = offsets_animator.texture.clone();
             commands.entity(entity).insert(offsets_animator);
         }
     }
@@ -76,16 +77,17 @@ pub fn update_offsets_animator(
 
 /// Update the [`PokemonOffsets`] based on its current texture each new animation frame
 pub fn update_offsets(
-    mut query_offsets: Query<(&mut PokemonOffsets, &Handle<TextureAtlas>, &Parent)>,
+    mut query_offsets: Query<(&mut PokemonOffsets, &TextureAtlas, &Handle<Image>, &Parent)>,
     query_parent: Query<(&Pokemon, &PokemonAnimationState)>,
     mut ev_frame_changed: EventReader<AnimationFrameChangedEvent>,
-    atlases: ResMut<Assets<TextureAtlas>>,
+    atlases: ResMut<Assets<TextureAtlasLayout>>,
     images: ResMut<Assets<Image>>,
     anim_data_assets: Res<Assets<AnimData>>,
     pokemon_animation_assets: ResMut<PokemonAnimationAssets>,
 ) {
     for ev in ev_frame_changed.read() {
-        let Ok((mut offsets, texture_atlas_handle, parent)) = query_offsets.get_mut(ev.entity)
+        let Ok((mut offsets, texture_atlas, image_handle, parent)) =
+            query_offsets.get_mut(ev.entity)
         else {
             continue;
         };
@@ -102,19 +104,17 @@ pub fn update_offsets(
             continue;
         };
 
-        let Some(atlas) = atlases.get(texture_atlas_handle) else {
+        // get the image struct
+        let Some(image) = images.get(image_handle) else {
             continue;
         };
 
-        let image_handle = atlas.texture.clone();
-
-        // get the image struct
-        let Some(image) = images.get(&image_handle) else {
+        let Some(atlas_layout) = atlases.get(&texture_atlas.layout) else {
             continue;
         };
 
         // Get the current texture
-        let Some(texture) = atlas.textures.get(ev.frame.atlas_index) else {
+        let Some(texture) = atlas_layout.textures.get(ev.frame.atlas_index) else {
             continue;
         };
 
