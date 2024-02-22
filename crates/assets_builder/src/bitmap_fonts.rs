@@ -10,7 +10,13 @@ use std::{
 
 use crunch::{Item, PackedItem, Rect, Rotation};
 
-use crate::{atlas::TextureAtlasEntry, font_data::FontData, utils::list_png_files_in_folder};
+use crate::{font_data::FontData, utils::list_png_files_in_folder};
+
+#[derive(Debug, Clone)]
+pub struct TextureAtlasEntry<T> {
+    pub id: T,
+    pub texture: RgbaImage,
+}
 
 pub fn create_bitmap_font(source_directory: &str, output_filename: &str, atlas_size: UVec2) {
     println!("Start packing font {}", output_filename);

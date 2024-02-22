@@ -1,4 +1,3 @@
-mod atlas;
 mod bitmap_fonts;
 mod font_data;
 mod utils;
