@@ -11,6 +11,7 @@ use bitmap_font::BitmapFontPlugin;
 use camera::CameraPlugin;
 use graphics::GraphicsPlugin;
 use test::TestPlugin;
+use ui::UIPlugin;
 use visual_effects::VisualEffectsPlugin;
 
 use map::MapPlugin;
@@ -32,6 +33,7 @@ mod pokemons;
 pub mod spells;
 mod test;
 mod turn;
+mod ui;
 pub mod utils;
 mod vector2_int;
 mod visual_effects;
@@ -97,6 +99,7 @@ impl Plugin for GamePlugin {
                 ActionsPlugin,
                 TurnPlugin,
                 VisualEffectsPlugin,
+                UIPlugin,
                 //Only for testing purposes
                 TestPlugin,
             ))

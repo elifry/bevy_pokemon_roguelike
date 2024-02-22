@@ -53,7 +53,10 @@ pub struct NextActions(pub Vec<Box<dyn Action>>);
 pub struct ProcessingActionEvent;
 
 #[derive(Event, Debug)]
-pub struct ActionExecutedEvent(Entity);
+pub struct ActionExecutedEvent {
+    pub action: Box<dyn Action>,
+    pub entity: Entity,
+}
 
 #[derive(Event, Debug)]
 pub struct ActionQueueProcessedEvent;

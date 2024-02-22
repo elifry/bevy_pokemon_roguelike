@@ -2,7 +2,10 @@ use std::collections::VecDeque;
 
 use bevy::{prelude::*, utils::info};
 
-use crate::{actions::RunningAction, pieces::Health};
+use crate::{
+    actions::{ActionExecutedEvent, RunningAction},
+    pieces::Health,
+};
 
 use super::{Action, ProcessingActionEvent};
 
@@ -53,6 +56,10 @@ pub fn process_action_queue(world: &mut World, mut tracking_queue_animation: Loc
                 Ok(result_actions) => {
                     // Action well executed (insert the `RunningAction`)
                     info!("action executed {:?}", action);
+                    world.send_event(ActionExecutedEvent {
+                        action: action.clone(),
+                        entity: queued_action.entity,
+                    });
                     *tracking_queue_animation += 1;
                     world
                         .entity_mut(queued_action.entity)

@@ -15,8 +15,8 @@ pub struct TestPlugin;
 
 impl Plugin for TestPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Initializing), spawn_test)
-            .add_systems(Update, ui.run_if(in_state(GameState::Playing)));
+        app.add_systems(OnEnter(GameState::Initializing), spawn_test);
+        //.add_systems(Update, ui.run_if(in_state(GameState::Playing)));
     }
 }
 
