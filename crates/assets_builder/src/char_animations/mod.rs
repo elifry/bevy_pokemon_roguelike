@@ -115,7 +115,7 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             rush_frame: anim_info.value().rush_frame,
             hit_frame: anim_info.value().hit_frame,
             return_frame: anim_info.value().return_frame,
-            shadow_offsets: HashMap::new(),
+            shadow_offsets,
             body_offsets,
             head_offsets,
             left_offsets,
