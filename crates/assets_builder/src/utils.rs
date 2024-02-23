@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn list_png_files_in_folder(folder_path: &str) -> std::io::Result<Vec<String>> {
+pub fn list_png_files_in_folder(folder_path: &Path) -> std::io::Result<Vec<String>> {
     let mut png_files = Vec::new();
 
     // Read the directory specified by folder_path
