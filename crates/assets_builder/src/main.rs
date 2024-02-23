@@ -5,7 +5,6 @@ pub mod utils;
 use std::{fs, path::Path};
 
 use bevy_math::UVec2;
-use char_animations::char_animation::CharAnimation;
 
 use crate::{
     bitmap_fonts::create_bitmap_font, char_animations::create_char_animation,
@@ -17,10 +16,10 @@ const CHAR_ANIMATION_RAW_FOLDER_PATH: &str = "raw_assets/sprites";
 
 fn main() {
     // println!("hello");
-    let char_animation_data = fs::read("assets/chara/0001.chara").unwrap();
-    let char_animation = CharAnimation::load(&char_animation_data);
+    // let char_animation_data = fs::read("assets/chara/0001.chara").unwrap();
+    // let char_animation = CharAnimation::load(&char_animation_data);
     build_char_animations();
-    // build_bitmap_fonts();
+    build_bitmap_fonts();
 }
 
 fn build_char_animations() {

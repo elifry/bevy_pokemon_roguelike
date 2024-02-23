@@ -1,6 +1,4 @@
 mod anim_data;
-pub mod char_animation;
-pub mod orientation;
 
 use std::{
     collections::HashMap,
@@ -8,18 +6,13 @@ use std::{
     path::Path,
 };
 
+use ::char_animation::{
+    orientation::Orientation, CharAnimation, CharAnimationEntry, IVec2Serialized,
+};
 use bevy_math::{IVec2, URect, UVec2};
 use image::{ImageBuffer, Rgba};
 
-use crate::char_animations::{
-    char_animation::{CharAnimationEntry, IVec2Serialized},
-    orientation::Orientation,
-};
-
-use self::{
-    anim_data::{AnimData, AnimInfo},
-    char_animation::CharAnimation,
-};
+use self::anim_data::{AnimData, AnimInfo};
 
 pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
     println!("Creating {output_filename}");

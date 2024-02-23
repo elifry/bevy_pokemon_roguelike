@@ -25,7 +25,7 @@ pub fn create_bitmap_font(source_directory: &Path, output_filename: &str, atlas_
     let font_texture_files = list_png_files_in_folder(source_directory)
         .unwrap_or_else(|_| panic!("Unable to list texture files in {:?}", source_directory));
 
-    let font_data_path = source_directory.join("AnimData.xml");
+    let font_data_path = source_directory.join("FontData.xml");
     let font_data_content = fs::read(font_data_path).expect("Failed to read FontData.xml");
     let font_data =
         FontData::parse_from_xml(&font_data_content).expect("Failed to parse FontData.xml");

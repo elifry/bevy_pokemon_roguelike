@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bitmap_font = { path = "../bitmap_font" }
+char_animation = { path = "../char_animation" }
 bevy_math = "0.13.0"
 crunch = "0.5.3"
 image = "0.24.8"
@@ -14,4 +15,3 @@ serde = { version = "1.0.196", features = ["derive"] }
 quick-xml = { version = "0.31.0", features = ["serde", "serialize"] }
 rayon = "1.8.1"
 strum = { version = "0.26.0", features = ["derive"] }
-bincode = { version = "2.0.0-rc.3", features = ["serde"] }

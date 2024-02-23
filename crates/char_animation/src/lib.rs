@@ -4,10 +4,13 @@ use std::{
     io::{self, Write},
 };
 
-use bevy_math::IVec2;
+use anim_key::AnimKey;
+use bevy::math::IVec2;
+use orientation::Orientation;
 use serde::{Deserialize, Serialize};
 
-use super::{anim_data::AnimKey, orientation::Orientation};
+pub mod anim_key;
+pub mod orientation;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
 pub struct IVec2Serialized {

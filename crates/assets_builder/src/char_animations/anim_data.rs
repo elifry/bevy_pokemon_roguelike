@@ -1,11 +1,10 @@
 use std::{collections::HashMap, iter};
 
-use bevy_math::{UVec2, Vec2};
+use bevy_math::UVec2;
+use char_animation::{anim_key::AnimKey, orientation::Orientation};
 use quick_xml::{de::from_reader, DeError};
-use serde::{Deserialize, Serialize};
-use strum::{Display, IntoEnumIterator, IntoStaticStr};
-
-use super::orientation::{Orientation, OrientationIter};
+use serde::Deserialize;
+use strum::IntoEnumIterator;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -98,55 +97,6 @@ pub struct Anims {
 #[serde(rename_all = "PascalCase")]
 pub struct AnimsRaw {
     pub anim: Vec<Anim>,
-}
-
-#[derive(
-    Debug, IntoStaticStr, Default, Display, Deserialize, Serialize, Eq, PartialEq, Hash, Clone, Copy,
-)]
-pub enum AnimKey {
-    Walk,
-    Attack,
-    Kick,
-    Shoot,
-    Strike,
-    Sleep,
-    Hurt,
-    #[default]
-    Idle,
-    Swing,
-    Double,
-    Hop,
-    Charge,
-    Rotate,
-    EventSleep,
-    Wake,
-    Eat,
-    Tumble,
-    Pose,
-    Pull,
-    Pain,
-    Float,
-    DeepBreath,
-    Nod,
-    Sit,
-    LookUp,
-    Sink,
-    Trip,
-    Laying,
-    LeapForth,
-    Head,
-    Cringe,
-    LostBalance,
-    TumbleBack,
-    TailWhip,
-    Faint,
-    HitGround,
-    Dance,
-    Shake,
-    SpAttack,
-    Twirl,
-    Withdraw,
-    Ricochet,
 }
 
 #[derive(Debug, Deserialize)]
