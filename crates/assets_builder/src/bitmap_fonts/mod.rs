@@ -10,7 +10,9 @@ use std::{
 
 use crunch::{Item, PackedItem, Rect, Rotation};
 
-use crate::{font_data::FontData, utils::list_png_files_in_folder};
+use crate::{bitmap_fonts::font_data::FontData, utils::list_png_files_in_folder};
+
+mod font_data;
 
 #[derive(Debug, Clone)]
 pub struct TextureAtlasEntry<T> {

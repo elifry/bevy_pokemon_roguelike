@@ -1,6 +1,5 @@
 mod bitmap_fonts;
-mod font_data;
-mod utils;
+pub mod utils;
 
 use bevy_math::UVec2;
 
