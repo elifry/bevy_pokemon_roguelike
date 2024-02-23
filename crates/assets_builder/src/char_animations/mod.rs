@@ -1,8 +1,9 @@
 mod anim_data;
-mod char_animation;
+pub mod char_animation;
 pub mod orientation;
 
 use std::{
+    collections::HashMap,
     fs::{self, File},
     path::Path,
 };
@@ -10,7 +11,10 @@ use std::{
 use bevy_math::{IVec2, URect, UVec2};
 use image::{ImageBuffer, Rgba};
 
-use crate::char_animations::char_animation::IVec2Serialized;
+use crate::char_animations::{
+    char_animation::{CharAnimationEntry, IVec2Serialized},
+    orientation::Orientation,
+};
 
 use self::{
     anim_data::{AnimData, AnimInfo},
@@ -27,8 +31,7 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
     let anim_data =
         AnimData::parse_from_xml(&anim_data_content).expect("Failed to parse AnimData.xml");
 
-    // let font_texture_files = list_png_files_in_folder(source_directory)
-    //     .unwrap_or_else(|_| panic!("Unable to list texture files in {:?}", source_directory));
+    let mut char_animation_entries = HashMap::new();
 
     for (anim_key, _) in anim_data.anims.anim.iter() {
         let anim_info = anim_data.get(anim_key);
@@ -37,15 +40,40 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
         let offsets_texture_file = source_directory.join(format!("{anim_key_str}-Offsets.png"));
         let offsets_texture = image::open(offsets_texture_file).unwrap().to_rgba8();
 
+        let shadow_texture_file = source_directory.join(format!("{anim_key_str}-Shadow.png"));
+        let shadow_texture = image::open(shadow_texture_file).unwrap().to_rgba8();
+
+        let mut body_offsets = HashMap::new();
+        let mut head_offsets = HashMap::new();
+        let mut right_offsets = HashMap::new();
+        let mut left_offsets = HashMap::new();
+        let mut shadow_offsets = HashMap::new();
+
         let columns = anim_info.columns();
-        let rows = anim_info.rows();
+        let orientations: Box<dyn Iterator<Item = Orientation>> = anim_info.orientations();
 
-        let mut body_offsets = vec![vec![IVec2Serialized::default(); columns]; rows];
-        let mut head_offsets = vec![vec![IVec2Serialized::default(); columns]; rows];
-        let mut right_offsets = vec![vec![IVec2Serialized::default(); columns]; rows];
-        let mut left_offsets = vec![vec![IVec2Serialized::default(); columns]; rows];
+        for (row, orientation) in orientations.enumerate() {
+            body_offsets.insert(
+                orientation.clone(),
+                vec![IVec2Serialized::default(); columns],
+            );
+            head_offsets.insert(
+                orientation.clone(),
+                vec![IVec2Serialized::default(); columns],
+            );
+            right_offsets.insert(
+                orientation.clone(),
+                vec![IVec2Serialized::default(); columns],
+            );
+            left_offsets.insert(
+                orientation.clone(),
+                vec![IVec2Serialized::default(); columns],
+            );
+            shadow_offsets.insert(
+                orientation.clone(),
+                vec![IVec2Serialized::default(); columns],
+            );
 
-        for row in 0..(rows - 1) {
             for column in 0..(columns - 1) {
                 let tile_size = anim_info.tile_size();
                 let texture_rect = URect::from_corners(
@@ -57,10 +85,13 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
                 );
 
                 let offsets = extract_offsets(&anim_info, &offsets_texture, texture_rect);
-                body_offsets[row][column] = offsets.body;
-                head_offsets[row][column] = offsets.head;
-                right_offsets[row][column] = offsets.right;
-                left_offsets[row][column] = offsets.left;
+                body_offsets.get_mut(&orientation).unwrap()[column] = offsets.body;
+                head_offsets.get_mut(&orientation).unwrap()[column] = offsets.head;
+                right_offsets.get_mut(&orientation).unwrap()[column] = offsets.right;
+                left_offsets.get_mut(&orientation).unwrap()[column] = offsets.left;
+
+                shadow_offsets.get_mut(&orientation).unwrap()[column] =
+                    extract_shadow_offset(&anim_info, &shadow_texture, texture_rect);
             }
         }
 
@@ -75,9 +106,8 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             .map(|d| d.value)
             .collect::<Vec<_>>();
 
-        let char_animation = CharAnimation {
-            // texture: animation_texture.to_vec(),
-            texture: vec![],
+        let char_animation_entry = CharAnimationEntry {
+            texture: animation_texture.to_vec(),
             index: anim_info.index(),
             frame_width: anim_info.tile_size().x,
             frame_height: anim_info.tile_size().y,
@@ -85,18 +115,22 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             rush_frame: anim_info.value().rush_frame,
             hit_frame: anim_info.value().hit_frame,
             return_frame: anim_info.value().return_frame,
-            shadow_offsets: vec![],
+            shadow_offsets: HashMap::new(),
             body_offsets,
             head_offsets,
             left_offsets,
             right_offsets,
         };
 
-        let mut char_animation_file =
-            File::create(format!("{output_filename}-{anim_key}.xml")).unwrap();
-
-        let _ = char_animation.save(&mut char_animation_file);
+        char_animation_entries.insert(*anim_key, char_animation_entry);
     }
+
+    let mut char_animation_file = File::create(output_filename).unwrap();
+
+    let char_animation = CharAnimation {
+        anim: char_animation_entries,
+    };
+    let _ = char_animation.save(&mut char_animation_file);
 }
 
 #[derive(Default, Debug)]
@@ -105,6 +139,30 @@ struct Offsets {
     head: IVec2Serialized,  // Black
     right: IVec2Serialized, // Blue
     left: IVec2Serialized,  // Red
+}
+
+fn extract_shadow_offset(
+    anim_info: &AnimInfo,
+    atlas_image: &ImageBuffer<Rgba<u8>, Vec<u8>>,
+    texture: URect,
+) -> IVec2Serialized {
+    let tile_size = anim_info.tile_size();
+
+    for y in (texture.min.y)..texture.max.y {
+        for x in (texture.min.x)..texture.max.x {
+            // Access individual color components
+            let pixel = atlas_image.get_pixel(x, y);
+
+            let real_x: i32 = (x - texture.min.x).try_into().unwrap();
+            let real_y: i32 = (y - texture.min.y).try_into().unwrap();
+
+            if *pixel == Rgba([255, 255, 255, 255]) {
+                return calculate_offset(real_x, real_y, tile_size).into();
+            }
+        }
+    }
+
+    panic!("Unable to find the shadow offsets for {:?}", anim_info);
 }
 
 fn extract_offsets(
@@ -116,6 +174,7 @@ fn extract_offsets(
 
     let mut offsets = Offsets::default();
 
+    let mut part_counter = 0;
     for y in (texture.min.y)..texture.max.y {
         for x in (texture.min.x)..texture.max.x {
             // Access individual color components
@@ -126,14 +185,25 @@ fn extract_offsets(
 
             if *pixel == Rgba([0, 0, 0, 255]) {
                 offsets.head = calculate_offset(real_x, real_y, tile_size).into();
+                part_counter += 1;
             } else if *pixel == Rgba([255, 0, 0, 255]) {
                 offsets.left = calculate_offset(real_x, real_y, tile_size).into();
+                part_counter += 1;
             } else if *pixel == Rgba([0, 255, 0, 255]) {
                 offsets.body = calculate_offset(real_x, real_y, tile_size).into();
+                part_counter += 1;
             } else if *pixel == Rgba([0, 0, 255, 255]) {
                 offsets.right = calculate_offset(real_x, real_y, tile_size).into();
+                part_counter += 1;
             }
         }
+    }
+
+    if part_counter != 4 {
+        panic!(
+            "Could'nt find all the offsets part {part_counter} for {:?}",
+            anim_info
+        );
     }
 
     offsets

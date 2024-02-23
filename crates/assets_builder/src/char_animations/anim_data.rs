@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, iter};
 
 use bevy_math::{UVec2, Vec2};
 use quick_xml::{de::from_reader, DeError};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use strum::{Display, IntoEnumIterator, IntoStaticStr};
 
-use super::orientation::Orientation;
+use super::orientation::{Orientation, OrientationIter};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -23,6 +23,7 @@ impl AnimData {
     }
 }
 
+#[derive(Debug)]
 pub struct AnimInfo<'a> {
     pub key: &'a AnimKey,
     anims: &'a Anims,
@@ -33,23 +34,23 @@ impl AnimInfo<'_> {
         self.value().durations.duration.len()
     }
 
-    pub fn rows(&self) -> usize {
+    pub fn orientations(&self) -> Box<dyn Iterator<Item = Orientation> + '_> {
         match self.value().name {
             // No orientations for this ones
-            AnimKey::Sleep => 1,
-            AnimKey::TumbleBack => 1,
-            AnimKey::Sink => 1,
-            AnimKey::Pull => 1,
-            AnimKey::LostBalance => 1,
-            AnimKey::DeepBreath => 1,
-            AnimKey::Sit => 1,
-            AnimKey::HitGround => 1,
-            AnimKey::Tumble => 1,
-            AnimKey::LookUp => 1,
-            AnimKey::LeapForth => 1,
-            AnimKey::Cringe => 1,
-            AnimKey::Eat => 1,
-            _ => Orientation::iter().len(),
+            AnimKey::Sleep
+            | AnimKey::TumbleBack
+            | AnimKey::Sink
+            | AnimKey::Pull
+            | AnimKey::LostBalance
+            | AnimKey::DeepBreath
+            | AnimKey::Sit
+            | AnimKey::HitGround
+            | AnimKey::Tumble
+            | AnimKey::LookUp
+            | AnimKey::LeapForth
+            | AnimKey::Cringe
+            | AnimKey::Eat => Box::new(iter::once(Orientation::South)),
+            _ => Box::new(Orientation::iter()),
         }
     }
 
@@ -99,7 +100,9 @@ pub struct AnimsRaw {
     pub anim: Vec<Anim>,
 }
 
-#[derive(Debug, IntoStaticStr, Default, Display, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(
+    Debug, IntoStaticStr, Default, Display, Deserialize, Serialize, Eq, PartialEq, Hash, Clone, Copy,
+)]
 pub enum AnimKey {
     Walk,
     Attack,

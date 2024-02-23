@@ -1,10 +1,13 @@
 use std::{
+    collections::HashMap,
     fs::File,
-    io::{BufWriter, Write},
+    io::{self, Write},
 };
 
-use bevy_math::{IVec2, UVec2};
+use bevy_math::IVec2;
 use serde::{Deserialize, Serialize};
+
+use super::{anim_data::AnimKey, orientation::Orientation};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
 pub struct IVec2Serialized {
@@ -25,7 +28,7 @@ impl From<IVec2> for IVec2Serialized {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct CharAnimation {
+pub struct CharAnimationEntry {
     pub texture: Vec<u8>,
     pub index: usize,
     pub frame_width: u32,
@@ -35,26 +38,29 @@ pub struct CharAnimation {
     pub hit_frame: Option<usize>,
     pub return_frame: Option<usize>,
     // Offsets
-    pub shadow_offsets: Vec<Vec<IVec2Serialized>>,
-    pub body_offsets: Vec<Vec<IVec2Serialized>>,
-    pub head_offsets: Vec<Vec<IVec2Serialized>>,
-    pub left_offsets: Vec<Vec<IVec2Serialized>>,
-    pub right_offsets: Vec<Vec<IVec2Serialized>>,
+    pub shadow_offsets: HashMap<Orientation, Vec<IVec2Serialized>>,
+    pub body_offsets: HashMap<Orientation, Vec<IVec2Serialized>>,
+    pub head_offsets: HashMap<Orientation, Vec<IVec2Serialized>>,
+    pub left_offsets: HashMap<Orientation, Vec<IVec2Serialized>>,
+    pub right_offsets: HashMap<Orientation, Vec<IVec2Serialized>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct CharAnimation {
+    pub anim: HashMap<AnimKey, CharAnimationEntry>,
 }
 
 impl CharAnimation {
-    /// Save the font sheet to a file
-    pub fn save(&self, file: &mut File) -> Result<(), ()> {
-        let xml = quick_xml::se::to_string(&self).expect("Failed to serialize to XML");
-        file.write_all(xml.as_bytes())
-            .expect("Failed to write XML to file");
-
+    pub fn save(&self, file: &mut File) -> Result<(), io::Error> {
+        let buffer = bincode::serde::encode_to_vec(self, bincode::config::standard())
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        file.write_all(&buffer)?;
         Ok(())
     }
 
-    // pub fn load(buffer: &[u8]) -> Result<Self, bincode::error::DecodeError> {
-    //     let (font_sheet, _): (Font, usize) =
-    //         bincode::serde::decode_from_slice(buffer, bincode::config::standard()).unwrap();
-    //     Ok(font_sheet)
-    // }
+    pub fn load(buffer: &[u8]) -> Result<Self, bincode::error::DecodeError> {
+        let (font_sheet, _): (CharAnimation, usize) =
+            bincode::serde::decode_from_slice(buffer, bincode::config::standard()).unwrap();
+        Ok(font_sheet)
+    }
 }
