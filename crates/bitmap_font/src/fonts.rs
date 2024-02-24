@@ -32,7 +32,7 @@ pub struct BitmapFontLoader;
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum BinaryDataLoaderError {
+pub enum BitmapFontLoaderError {
     /// An [IO](std::io) Error
     #[error("Could not load asset: {0}")]
     Io(#[from] std::io::Error),
@@ -43,7 +43,7 @@ pub enum BinaryDataLoaderError {
 impl AssetLoader for BitmapFontLoader {
     type Asset = BitmapFont;
     type Settings = ();
-    type Error = BinaryDataLoaderError;
+    type Error = BitmapFontLoaderError;
 
     fn load<'a>(
         &'a self,
