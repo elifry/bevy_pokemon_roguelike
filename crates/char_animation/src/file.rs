@@ -34,6 +34,7 @@ pub struct CharAnimationFileEntry {
     pub frame_width: u32,
     pub frame_height: u32,
     pub durations: Vec<u32>,
+    pub is_single_orientation: bool,
     pub rush_frame: Option<usize>,
     pub hit_frame: Option<usize>,
     pub return_frame: Option<usize>,

@@ -6,17 +6,19 @@ use bevy::{
     asset::{
         io::Reader, Asset, AssetApp, AssetLoader, AsyncReadExt, Handle, LoadContext, LoadedAsset,
     },
-    math::IVec2,
+    math::{IVec2, Vec2},
     reflect::TypePath,
     render::{
         render_asset::RenderAssetUsages,
         render_resource::{Extent3d, TextureDimension, TextureFormat},
         texture::Image,
     },
+    sprite::TextureAtlasLayout,
     utils::BoxedFuture,
 };
 use bincode::error::DecodeError;
 use file::CharAnimationFile;
+use strum::IntoEnumIterator;
 use thiserror::Error;
 
 pub mod anim_key;
@@ -34,7 +36,11 @@ impl Plugin for CharAnimationPlugin {
 
 #[derive(Debug, Clone)]
 pub struct CharAnimationData {
+    // Texture / Atlas
     pub texture: Handle<Image>,
+    pub atlas_layout: Handle<TextureAtlasLayout>,
+
+    // Frames info
     pub index: usize,
     pub frame_width: u32,
     pub frame_height: u32,
@@ -111,9 +117,34 @@ impl AssetLoader for CharAnimationLoader {
                     let texture_handle = load_context
                         .add_loaded_labeled_asset(texture_label, LoadedAsset::from(texture));
 
+                    let tile_size = Vec2::new(
+                        char_animation_entry.frame_width as f32,
+                        char_animation_entry.frame_height as f32,
+                    );
+
+                    let columns = match char_animation_entry.is_single_orientation {
+                        false => Orientation::iter().len(),
+                        true => 1,
+                    };
+
+                    let atlas_layout = TextureAtlasLayout::from_grid(
+                        tile_size,
+                        columns,
+                        char_animation_entry.durations.len(),
+                        None,
+                        None,
+                    );
+
+                    let atlas_layout_label = format!("{}_atlas_layout_label", anim_key);
+                    let atlas_layout_handle = load_context.add_loaded_labeled_asset(
+                        atlas_layout_label,
+                        LoadedAsset::from(atlas_layout),
+                    );
+
                     // TODO: find a better way than cloning the char_animation_entry
                     let data = CharAnimationData {
                         texture: texture_handle,
+                        atlas_layout: atlas_layout_handle,
                         index: char_animation_entry.index,
                         frame_width: char_animation_entry.frame_width,
                         frame_height: char_animation_entry.frame_height,

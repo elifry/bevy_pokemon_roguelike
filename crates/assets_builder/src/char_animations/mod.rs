@@ -3,13 +3,14 @@ mod anim_data;
 use std::{
     collections::HashMap,
     fs::{self, File},
+    io::Cursor,
     path::Path,
 };
 
 use ::char_animation::orientation::Orientation;
 use bevy_math::{IVec2, URect, UVec2};
 use char_animation::file::{CharAnimationFile, CharAnimationFileEntry};
-use image::{ImageBuffer, Rgba};
+use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
 
 use self::anim_data::{AnimData, AnimInfo};
 
@@ -83,9 +84,18 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             .map(|d| d.value)
             .collect::<Vec<_>>();
 
+        let mut animation_texture_bytes: Vec<u8> = Vec::new();
+        DynamicImage::ImageRgba8(animation_texture)
+            .write_to(
+                &mut Cursor::new(&mut animation_texture_bytes),
+                ImageOutputFormat::Png,
+            )
+            .expect("Failed to compress animation texture");
+
         let char_animation_entry = CharAnimationFileEntry {
-            texture: animation_texture.to_vec(),
+            texture: animation_texture_bytes,
             index: anim_info.index(),
+            is_single_orientation: columns == 1,
             frame_width: anim_info.tile_size().x,
             frame_height: anim_info.tile_size().y,
             durations,
