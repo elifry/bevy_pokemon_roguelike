@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::Health, vector2_int::Vector2Int};
+use crate::{ivec2::IVec2Ext, map::Position, pieces::Health};
 
 use super::{damage_action::DamageAction, orient_entity, Action};
 
 #[derive(Debug, Clone)]
 pub struct MeleeHitAction {
     pub attacker: Entity,
-    pub target: Vector2Int,
+    pub target: IVec2,
     pub damage: i32,
 }
 

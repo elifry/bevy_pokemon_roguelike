@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use crate::{
     map::{GameMap, Position, TileType},
     pieces::Occupier,
-    vector2_int::Vector2Int,
 };
 
 use super::{orient_entity, Action};
@@ -11,8 +10,8 @@ use super::{orient_entity, Action};
 #[derive(Debug, Clone)]
 pub struct WalkAction {
     pub entity: Entity,
-    pub to: Vector2Int,
-    pub from: Vector2Int,
+    pub to: IVec2,
+    pub from: IVec2,
 }
 
 impl Action for WalkAction {

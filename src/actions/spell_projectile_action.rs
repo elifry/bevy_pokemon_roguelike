@@ -4,7 +4,6 @@ use crate::{
     map::Position,
     pieces::Health,
     spells::{ProjectileSpell, Spell},
-    vector2_int::Vector2Int,
 };
 
 use super::{spell_hit_action::SpellHitAction, Action};
@@ -14,7 +13,7 @@ pub struct SpellProjectileAction {
     pub caster: Entity,
     pub spell: Spell,
     pub projectile: ProjectileSpell,
-    pub target: Vector2Int,
+    pub target: IVec2,
 }
 
 impl Action for SpellProjectileAction {

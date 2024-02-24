@@ -1,11 +1,9 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
+use char_animation::orientation::Orientation;
 use std::time::Duration;
 
-use crate::pieces::Orientation;
 use crate::GamePlayingSet;
-
-use super::anim_data::AnimInfo;
 
 pub struct AnimationsPlugin;
 
@@ -97,9 +95,7 @@ impl AnimationIndices {
         AnimationIndices { first, last }
     }
 
-    pub fn from_animation(orientation: &Orientation, anim_info: &AnimInfo) -> Self {
-        let anim_step = anim_info.value().durations.duration.len() - 1;
-
+    pub fn from_animation(orientation: &Orientation, anim_step: usize) -> Self {
         let start_index = match orientation {
             Orientation::South => 0,
             Orientation::SouthEst => anim_step + 1,

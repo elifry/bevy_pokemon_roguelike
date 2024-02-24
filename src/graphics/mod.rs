@@ -1,15 +1,11 @@
 use bevy::prelude::*;
 
-use crate::vector2_int::Vector2Int;
-
 use self::{
-    action_animations::ActionAnimationPlugin, anim_data::AnimDataPlugin,
-    animations::AnimationsPlugin, assets::AssetsPlugin, pokemons::PokemonPlugin,
-    tiles::TilesPlugin, ui::UIPlugin, visual_effects::VisualEffectsPlugin,
+    action_animations::ActionAnimationPlugin, animations::AnimationsPlugin, assets::AssetsPlugin,
+    pokemons::PokemonPlugin, tiles::TilesPlugin, ui::UIPlugin, visual_effects::VisualEffectsPlugin,
 };
 
 pub mod action_animations;
-pub mod anim_data;
 pub mod animations;
 pub mod assets;
 pub mod pokemons;
@@ -29,7 +25,7 @@ pub const WALK_SPEED: f32 = 1.43;
 pub const PROJECTILE_SPEED: f32 = 1.8;
 pub const POSITION_TOLERANCE: f32 = 0.1;
 
-pub const FRAME_DURATION_MILLIS: i32 = 25;
+pub const FRAME_DURATION_MILLIS: u32 = 25;
 
 pub struct GraphicsPlugin;
 
@@ -40,7 +36,6 @@ impl Plugin for GraphicsPlugin {
             TilesPlugin,
             PokemonPlugin,
             AssetsPlugin,
-            AnimDataPlugin,
             AnimationsPlugin,
             VisualEffectsPlugin,
             UIPlugin,
@@ -51,7 +46,7 @@ impl Plugin for GraphicsPlugin {
 #[derive(Event)]
 pub struct GraphicsWaitEvent;
 
-pub fn get_world_position(position: &Vector2Int, z: f32) -> Vec3 {
+pub fn get_world_position(position: &IVec2, z: f32) -> Vec3 {
     Vec3::new(
         TILE_SIZE * position.x as f32,
         TILE_SIZE * position.y as f32,
@@ -59,6 +54,6 @@ pub fn get_world_position(position: &Vector2Int, z: f32) -> Vec3 {
     )
 }
 
-fn get_world_vec(v: Vector2Int, z: f32) -> Vec3 {
+fn get_world_vec(v: IVec2, z: f32) -> Vec3 {
     Vec3::new(TILE_SIZE * v.x as f32, TILE_SIZE * v.y as f32, z)
 }

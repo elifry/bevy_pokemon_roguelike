@@ -5,10 +5,10 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     actions::{skip_action::SkipAction, walk_action::WalkAction, Action, NextActions},
+    ivec2::{find_path, ORTHO_DIRECTIONS},
     map::{GameMap, Position},
     pieces::Occupier,
     player::Player,
-    vector2_int::{utils::find_path, Vector2Int, ORTHO_DIRECTIONS},
     GamePlayingSet, GameState,
 };
 
@@ -53,10 +53,10 @@ struct PossibleAction {
 
 fn spawn_npcs(mut commands: Commands) {
     // spawn_test_npc(&mut commands, Vector2Int::new(5, 5));
-    spawn_test_npc(&mut commands, Vector2Int::new(4, 5));
+    spawn_test_npc(&mut commands, IVec2::new(4, 5));
 }
 
-fn spawn_test_npc(commands: &mut Commands, position: Vector2Int) {
+fn spawn_test_npc(commands: &mut Commands, position: IVec2) {
     commands.spawn(NPCBundle::new("NPC".to_string(), position));
 }
 

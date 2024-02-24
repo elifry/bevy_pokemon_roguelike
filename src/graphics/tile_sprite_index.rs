@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use crate::{map::TileType, vector2_int::Vector2Int};
+use crate::map::TileType;
 
 const ROW: usize = 21;
 
@@ -86,14 +86,14 @@ static PATTERNS: &[([[i8; 3]; 3], usize); 47] = &[
 
 /// Check if the position match any pattern in PATTERNS (first tuple element) then returns the associated index (present in the second of the tuple).
 /// Pattern encoding, 0 = no element or tile_type different from the tested one, 1 = same tile type
-pub fn find_sprite_index_tile(position: &Vector2Int, map: &HashMap<Vector2Int, TileType>) -> usize {
+pub fn find_sprite_index_tile(position: &IVec2, map: &HashMap<IVec2, TileType>) -> usize {
     let tile_type = *map.get(position).unwrap();
 
     for (pattern, index) in PATTERNS {
         let mut pattern_match = true;
         for (dy, row) in pattern.iter().enumerate() {
             for (dx, &value) in row.iter().enumerate() {
-                let neighbor_position = Vector2Int {
+                let neighbor_position = IVec2 {
                     x: position.x + dx as i32 - 1,
                     y: position.y - dy as i32 + 1, // axis is inverted on bevy
                 };
@@ -125,7 +125,7 @@ pub fn find_sprite_index_tile(position: &Vector2Int, map: &HashMap<Vector2Int, T
     #[cfg(debug_assertions)]
     for dy in 0..=2 {
         for dx in 0..=2 {
-            let neighbor_position = Vector2Int {
+            let neighbor_position = IVec2 {
                 x: position.x + dx - 1,
                 y: position.y + dy - 1,
             };

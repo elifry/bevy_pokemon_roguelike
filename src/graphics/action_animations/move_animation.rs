@@ -1,14 +1,13 @@
 use bevy::prelude::*;
+use char_animation::anim_key::AnimKey;
 
 use crate::{
     actions::{walk_action::WalkAction, RunningAction},
     constants::GAME_SPEED,
     graphics::{
-        anim_data::AnimKey, animations::Animator, get_world_position,
-        pokemons::PokemonAnimationState, POKEMON_Z, POSITION_TOLERANCE, WALK_SPEED,
+        animations::Animator, get_world_position, pokemons::PokemonAnimationState, POKEMON_Z,
+        POSITION_TOLERANCE, WALK_SPEED,
     },
-    map::Position,
-    vector2_int::Vector2Int,
 };
 
 use super::{
@@ -40,7 +39,7 @@ pub struct MoveAnimation {
 }
 
 impl MoveAnimation {
-    pub fn new(entity: Entity, from: Vector2Int, to: Vector2Int) -> Self {
+    pub fn new(entity: Entity, from: IVec2, to: IVec2) -> Self {
         Self {
             entity,
             from: get_world_position(&from, POKEMON_Z),

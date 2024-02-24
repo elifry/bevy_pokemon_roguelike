@@ -1,9 +1,9 @@
 use bevy::prelude::*;
+use char_animation::anim_key::AnimKey;
 
 use crate::{
     actions::{damage_action::DamageAction, RunningAction},
     graphics::{
-        anim_data::AnimKey,
         animations::Animator,
         pokemons::{offsets::PokemonBodyOffset, PokemonAnimationState},
         visual_effects::AutoDespawnEffect,

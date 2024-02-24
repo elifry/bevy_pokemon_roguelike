@@ -1,10 +1,10 @@
 use bevy::prelude::*;
+use char_animation::orientation::Orientation;
 
 use crate::{
     map::Position,
-    pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind},
+    pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind},
     pokemons::Pokemon,
-    vector2_int::Vector2Int,
 };
 
 use super::{PossibleActions, AI};
@@ -36,14 +36,14 @@ impl Default for NPCBundle {
             piece: Piece {
                 kind: PieceKind::Npc,
             },
-            position: Position(Vector2Int::new(0, 0)),
+            position: Position(IVec2::new(0, 0)),
             facing_orientation: FacingOrientation(Orientation::South),
         }
     }
 }
 
 impl NPCBundle {
-    pub fn new(name: String, position: Vector2Int) -> Self {
+    pub fn new(name: String, position: IVec2) -> Self {
         Self {
             name: Name::new(name),
             position: Position(position),

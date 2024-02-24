@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use crate::{
     actions::{damage_action::DamageAction, spell_action::SpellAction, RunningAction},
     graphics::{
-        anim_data::AnimKey,
         animations::Animator,
         pokemons::{offsets::PokemonHeadOffset, PokemonAnimationState},
         visual_effects::AutoDespawnEffect,

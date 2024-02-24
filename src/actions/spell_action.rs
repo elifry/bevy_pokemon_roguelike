@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
+    ivec2::OrientationExt,
     map::Position,
     pieces::{FacingOrientation, Health},
     spells::{Spell, SpellType},
-    vector2_int::Vector2Int,
 };
 
 use super::{orient_entity, spell_projectile_action::SpellProjectileAction, Action};
@@ -36,7 +36,7 @@ impl Action for SpellAction {
         let direction = direction_vector + position_vector;
         orient_entity(world, self.caster, direction);
 
-        let mut target: Vector2Int = direction_vector * *self.spell.range.end() + position_vector;
+        let mut target: IVec2 = direction_vector * *self.spell.range.end() + position_vector;
 
         // Looks for any target in range of the spell
         for i in self.spell.range.clone() {

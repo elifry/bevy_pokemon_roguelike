@@ -1,10 +1,6 @@
-use crate::{
-    map::Position,
-    pieces::{FacingOrientation, Orientation},
-    vector2_int::Vector2Int,
-    GamePlayingSet,
-};
+use crate::{ivec2::OrientationExt, map::Position, pieces::FacingOrientation, GamePlayingSet};
 use bevy::prelude::*;
+use char_animation::orientation::Orientation;
 use dyn_clone::DynClone;
 use std::{any::Any, fmt::Debug};
 
@@ -61,7 +57,7 @@ pub struct ActionExecutedEvent {
 #[derive(Event, Debug)]
 pub struct ActionQueueProcessedEvent;
 
-pub fn orient_entity(world: &mut World, entity: Entity, target: Vector2Int) {
+pub fn orient_entity(world: &mut World, entity: Entity, target: IVec2) {
     let Some(grid_position) = world.get::<Position>(entity) else {
         return;
     };

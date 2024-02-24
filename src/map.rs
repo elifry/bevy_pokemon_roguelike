@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 
-use crate::{vector2_int::Vector2Int, GameState};
+use crate::GameState;
 
 pub struct MapPlugin;
 
@@ -14,24 +14,24 @@ impl Plugin for MapPlugin {
 
 #[derive(Default, Resource)]
 pub struct GameMap {
-    pub tiles: HashMap<Vector2Int, TileType>,
-    pub tiles_lookup: HashMap<Vector2Int, Entity>,
+    pub tiles: HashMap<IVec2, TileType>,
+    pub tiles_lookup: HashMap<IVec2, Entity>,
 }
 
 impl GameMap {
     pub fn new() -> Self {
-        let mut tiles: HashMap<Vector2Int, TileType> = HashMap::new();
+        let mut tiles: HashMap<IVec2, TileType> = HashMap::new();
 
         for x in 4..20 {
             for y in 1..20 {
-                let position = Vector2Int::new(x, y);
+                let position = IVec2::new(x, y);
                 tiles.insert(position, TileType::Ground);
             }
         }
 
         for x in 0..11 {
             for y in 0..22 {
-                let position = Vector2Int::new(x, y);
+                let position = IVec2::new(x, y);
                 tiles.entry(position).or_insert(TileType::Wall);
             }
         }
@@ -42,11 +42,11 @@ impl GameMap {
         }
     }
 
-    pub fn get_neighbors(&self, position: &Vector2Int) -> HashMap<Vector2Int, TileType> {
-        let mut neighbors: HashMap<Vector2Int, TileType> = HashMap::new();
+    pub fn get_neighbors(&self, position: &IVec2) -> HashMap<IVec2, TileType> {
+        let mut neighbors: HashMap<IVec2, TileType> = HashMap::new();
         for dy in 0..=2 {
             for dx in 0..=2 {
-                let neighbor_position = Vector2Int {
+                let neighbor_position = IVec2 {
                     x: position.x + dx - 1,
                     y: position.y + dy - 1,
                 };
@@ -61,13 +61,13 @@ impl GameMap {
         neighbors
     }
 
-    pub fn associate_entity_to_tile(&mut self, entity: Entity, position: &Vector2Int) {
+    pub fn associate_entity_to_tile(&mut self, entity: Entity, position: &IVec2) {
         self.tiles_lookup.insert(*position, entity);
     }
 }
 
 #[derive(Component)]
-pub struct Position(pub Vector2Int);
+pub struct Position(pub IVec2);
 
 #[derive(Component)]
 pub struct Tilemap;

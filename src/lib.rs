@@ -25,6 +25,7 @@ mod ai;
 mod camera;
 mod constants;
 mod graphics;
+mod ivec2;
 mod map;
 mod menu;
 mod pieces;
@@ -35,7 +36,6 @@ mod test;
 mod turn;
 mod ui;
 pub mod utils;
-mod vector2_int;
 mod visual_effects;
 
 // This example game uses States to separate logic

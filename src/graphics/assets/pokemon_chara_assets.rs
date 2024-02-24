@@ -1,14 +1,11 @@
 use std::str::FromStr;
 
+use crate::GameState;
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use char_animation::CharAnimation;
-use strum::{Display, EnumIter, EnumString, IntoEnumIterator};
-
-use crate::graphics::anim_data::{AnimData, AnimKey};
-use crate::pokemons::Pokemon;
-use crate::GameState;
+use strum::IntoEnumIterator;
 
 use super::AssetsLoading;
 
@@ -81,4 +78,6 @@ fn process_chara_assets(
     commands.remove_resource::<CharaAssetsFolder>();
 
     info!("Assets processed");
+
+    next_state.set(GameState::Initializing);
 }

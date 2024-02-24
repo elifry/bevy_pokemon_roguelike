@@ -1,10 +1,11 @@
 use bevy::prelude::*;
+use char_animation::anim_key::AnimKey;
 
 use crate::{
     actions::{
         destroy_wall_action::DestroyWallAction, melee_hit_action::MeleeHitAction, RunningAction,
     },
-    graphics::{anim_data::AnimKey, animations::Animator, pokemons::PokemonAnimationState},
+    graphics::{animations::Animator, pokemons::PokemonAnimationState},
 };
 
 use super::{

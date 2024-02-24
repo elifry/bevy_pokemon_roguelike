@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use crate::{
     map::{GameMap, Position, Tile, TileType},
     pieces::Occupier,
-    vector2_int::Vector2Int,
 };
 
 use super::{orient_entity, Action};
@@ -11,7 +10,7 @@ use super::{orient_entity, Action};
 #[derive(Clone, Debug)]
 pub struct DestroyWallAction {
     pub instigator: Entity,
-    pub target: Vector2Int,
+    pub target: IVec2,
 }
 
 impl Action for DestroyWallAction {

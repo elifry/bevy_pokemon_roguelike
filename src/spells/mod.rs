@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::graphics::anim_data::AnimKey;
+use char_animation::anim_key::AnimKey;
 
 #[derive(Debug, Clone)]
 pub struct ProjectileSpell {

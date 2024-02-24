@@ -1,6 +1,7 @@
 use std::any::TypeId;
 
 use bevy::prelude::*;
+use char_animation::anim_key::AnimKey;
 
 use crate::{
     actions::{skip_action::SkipAction, RunningAction},
@@ -13,7 +14,7 @@ use self::{
     spell_cast_animation::SpellCastAnimationPlugin, spell_hit_animation::SpellHitAnimationPlugin,
 };
 
-use super::{anim_data::AnimKey, pokemons::PokemonAnimationState};
+use super::pokemons::PokemonAnimationState;
 
 mod attack_animation;
 mod hurt_animation;

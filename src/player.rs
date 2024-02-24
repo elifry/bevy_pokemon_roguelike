@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use char_animation::anim_key::AnimKey;
+use char_animation::orientation::Orientation;
 use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
@@ -10,21 +12,19 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
-use crate::graphics::anim_data::AnimKey;
 use crate::map::Position;
-use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Orientation, Piece, PieceKind};
+use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
 use crate::pokemons::Pokemon;
 use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
-use crate::vector2_int::Vector2Int;
 use crate::{GamePlayingSet, GameState};
 
 pub struct PlayerPlugin;
 
-const DIR_KEY_MAPPING: [(PlayerAction, Vector2Int); 4] = [
-    (PlayerAction::Up, Vector2Int { x: 0, y: 1 }),
-    (PlayerAction::Down, Vector2Int { x: 0, y: -1 }),
-    (PlayerAction::Left, Vector2Int { x: -1, y: 0 }),
-    (PlayerAction::Right, Vector2Int { x: 1, y: 0 }),
+const DIR_KEY_MAPPING: [(PlayerAction, IVec2); 4] = [
+    (PlayerAction::Up, IVec2 { x: 0, y: 1 }),
+    (PlayerAction::Down, IVec2 { x: 0, y: -1 }),
+    (PlayerAction::Left, IVec2 { x: -1, y: 0 }),
+    (PlayerAction::Right, IVec2 { x: 1, y: 0 }),
 ];
 
 impl Plugin for PlayerPlugin {
@@ -67,7 +67,7 @@ fn spawn_player(mut commands: Commands) {
         Piece {
             kind: PieceKind::Player,
         },
-        Position(Vector2Int::new(4, 4)),
+        Position(IVec2::new(4, 4)),
         InputManagerBundle::<PlayerAction> {
             action_state: ActionState::default(),
             input_map: InputMap::new([

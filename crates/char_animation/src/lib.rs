@@ -58,7 +58,7 @@ pub struct CharAnimationData {
 }
 
 /// A bitmap font asset that can be loaded from .bfn files
-#[derive(TypePath, Asset)]
+#[derive(TypePath, Asset, Debug)]
 pub struct CharAnimation {
     pub anim: HashMap<AnimKey, CharAnimationData>,
 }
@@ -122,15 +122,15 @@ impl AssetLoader for CharAnimationLoader {
                         char_animation_entry.frame_height as f32,
                     );
 
-                    let columns = match char_animation_entry.is_single_orientation {
+                    let rows = match char_animation_entry.is_single_orientation {
                         false => Orientation::iter().len(),
                         true => 1,
                     };
 
                     let atlas_layout = TextureAtlasLayout::from_grid(
                         tile_size,
-                        columns,
                         char_animation_entry.durations.len(),
+                        rows,
                         None,
                         None,
                     );

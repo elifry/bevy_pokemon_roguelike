@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 use crate::{
     map::{GameMap, Position, Tile, TileType},
-    vector2_int::Vector2Int,
     GameState,
 };
 
@@ -67,7 +66,7 @@ pub fn update_tile_render(
     }
 }
 
-fn get_tile_map_index(position: &Vector2Int, tile_type: &TileType, map: &GameMap) -> usize {
+fn get_tile_map_index(position: &IVec2, tile_type: &TileType, map: &GameMap) -> usize {
     match tile_type {
         TileType::Ground => find_sprite_index_tile(position, &map.tiles) + 4 * 3,
         TileType::Wall => find_sprite_index_tile(position, &map.tiles) + 3,
