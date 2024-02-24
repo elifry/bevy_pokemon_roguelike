@@ -80,7 +80,7 @@ fn update_animator(
         query.iter_mut()
     {
         // TODO: replace by the real id of the pokemon
-        let char_animation_handle = pokemon_char_assets.0.get("0001").unwrap();
+        let char_animation_handle = pokemon_char_assets.0.get(&pokemon.id).unwrap();
         let Some(animator) = get_pokemon_animator(
             &char_animation_assets,
             char_animation_handle,
@@ -104,7 +104,7 @@ fn spawn_pokemon_renderer(
 ) {
     let default_state = AnimKey::Idle;
     for (entity, position, pokemon) in query.iter() {
-        let pokemon_animation_handle = pokemon_char_assets.0.get("0001").unwrap();
+        let pokemon_animation_handle = pokemon_char_assets.0.get(&pokemon.id).unwrap();
         let pokemon_char_animation = char_animation_assets.get(pokemon_animation_handle).unwrap();
         let animation_data = pokemon_char_animation.anim.get(&default_state).unwrap();
 

@@ -5,7 +5,6 @@ use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use char_animation::CharAnimation;
-use strum::IntoEnumIterator;
 
 use super::AssetsLoading;
 
@@ -23,7 +22,7 @@ impl Plugin for PokemonCharaAssetsPlugin {
 }
 
 #[derive(Resource, Debug, Default)]
-pub struct PokemonCharaAssets(pub HashMap<String, Handle<CharAnimation>>);
+pub struct PokemonCharaAssets(pub HashMap<u32, Handle<CharAnimation>>);
 
 #[derive(Default, Resource)]
 struct CharaAssetsFolder(Handle<LoadedFolder>);
@@ -52,7 +51,7 @@ fn process_chara_assets(
         return;
     };
 
-    let pokemon_char_animations: HashMap<String, Handle<CharAnimation>> = chara_folder
+    let pokemon_char_animations: HashMap<u32, Handle<CharAnimation>> = chara_folder
         .handles
         .iter()
         .map(|handle| {
@@ -65,10 +64,9 @@ fn process_chara_assets(
                 .to_str()
                 .unwrap();
 
-            (
-                file_stem.to_string(),
-                handle.to_owned().typed::<CharAnimation>(),
-            )
+            let pokemon_id = u32::from_str(file_stem).expect("Failed to parse pokemon id");
+
+            (pokemon_id, handle.to_owned().typed::<CharAnimation>())
         })
         .collect::<HashMap<_, _>>();
 

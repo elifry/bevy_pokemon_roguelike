@@ -28,7 +28,10 @@ impl Default for NPCBundle {
         Self {
             actor: Actor,
             name: Name::new("NPC"),
-            pokemon: Pokemon::Rattata,
+            pokemon: Pokemon {
+                id: 1,
+                name: "Bulbasaur".to_string(),
+            },
             health: Health { value: 1 },
             ai: AI,
             possible_actions: PossibleActions::default(),

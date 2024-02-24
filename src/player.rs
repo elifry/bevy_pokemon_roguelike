@@ -59,7 +59,10 @@ fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
-        Pokemon::Charmander,
+        Pokemon {
+            id: 4,
+            name: "Charmander".to_string(),
+        },
         Player,
         Occupier,
         Health { value: 10 },
