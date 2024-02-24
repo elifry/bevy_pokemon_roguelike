@@ -94,7 +94,7 @@ impl AssetLoader for BitmapFontLoader {
                 },
                 TextureDimension::D2,
                 texture_buffer.into_raw(),
-                TextureFormat::Rgba8Unorm,
+                TextureFormat::Rgba8UnormSrgb,
                 RenderAssetUsages::default(),
             );
 

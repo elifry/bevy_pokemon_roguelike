@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Cursor};
 
 use crate::{anim_key::AnimKey, orientation::Orientation};
 use bevy::{
@@ -14,10 +14,12 @@ use bevy::{
         texture::Image,
     },
     sprite::TextureAtlasLayout,
+    text,
     utils::BoxedFuture,
 };
 use bincode::error::DecodeError;
 use file::CharAnimationFile;
+use image::io;
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
@@ -108,12 +110,11 @@ impl AssetLoader for CharAnimationLoader {
                         },
                         TextureDimension::D2,
                         texture_buffer.into_raw(),
-                        TextureFormat::Rgba8Unorm,
-                        // TODO: can maybe render in the GPU only
+                        TextureFormat::Rgba8UnormSrgb,
                         RenderAssetUsages::default(),
                     );
 
-                    let texture_label = format!("{}_texture", anim_key);
+                    let texture_label = format!("{}_texture.png", anim_key);
                     let texture_handle = load_context
                         .add_loaded_labeled_asset(texture_label, LoadedAsset::from(texture));
 
