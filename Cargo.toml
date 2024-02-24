@@ -20,6 +20,7 @@ opt-level = 3
 
 [dependencies]
 bitmap_font = { path = "crates/bitmap_font" }
+char_animation = { path = "crates/char_animation" }
 bevy = { version = "0.13.0", features = [
   "asset_processor",
   "basis-universal",

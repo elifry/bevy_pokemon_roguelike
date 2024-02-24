@@ -1,14 +1,14 @@
 use actions::ActionsPlugin;
 use ai::AIPlugin;
-use bevy::{app::App, window::PrimaryWindow};
+use bevy::app::App;
 
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
+use bevy_egui::{EguiPlugin, EguiSettings};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bitmap_font::BitmapFontPlugin;
 use camera::CameraPlugin;
+use char_animation::CharAnimationPlugin;
 use graphics::GraphicsPlugin;
 use test::TestPlugin;
 use ui::UIPlugin;
@@ -88,6 +88,7 @@ impl Plugin for GamePlugin {
             .add_plugins((
                 // LoadingPlugin, // custom assets loading system can't use for now
                 BitmapFontPlugin,
+                CharAnimationPlugin,
                 EguiPlugin,
                 MenuPlugin,
                 MapPlugin,

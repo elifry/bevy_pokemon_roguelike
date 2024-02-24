@@ -931,6 +931,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_egui",
  "bitmap_font",
+ "char_animation",
  "dyn-clone",
  "egui",
  "glyph_brush_layout",

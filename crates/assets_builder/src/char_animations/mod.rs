@@ -6,10 +6,9 @@ use std::{
     path::Path,
 };
 
-use ::char_animation::{
-    orientation::Orientation, CharAnimation, CharAnimationEntry, IVec2Serialized,
-};
+use ::char_animation::orientation::Orientation;
 use bevy_math::{IVec2, URect, UVec2};
+use char_animation::file::{CharAnimationFile, CharAnimationFileEntry};
 use image::{ImageBuffer, Rgba};
 
 use self::anim_data::{AnimData, AnimInfo};
@@ -46,26 +45,11 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
         let orientations: Box<dyn Iterator<Item = Orientation>> = anim_info.orientations();
 
         for (row, orientation) in orientations.enumerate() {
-            body_offsets.insert(
-                orientation.clone(),
-                vec![IVec2Serialized::default(); columns],
-            );
-            head_offsets.insert(
-                orientation.clone(),
-                vec![IVec2Serialized::default(); columns],
-            );
-            right_offsets.insert(
-                orientation.clone(),
-                vec![IVec2Serialized::default(); columns],
-            );
-            left_offsets.insert(
-                orientation.clone(),
-                vec![IVec2Serialized::default(); columns],
-            );
-            shadow_offsets.insert(
-                orientation.clone(),
-                vec![IVec2Serialized::default(); columns],
-            );
+            body_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
+            head_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
+            right_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
+            left_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
+            shadow_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
 
             for column in 0..(columns - 1) {
                 let tile_size = anim_info.tile_size();
@@ -99,7 +83,7 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             .map(|d| d.value)
             .collect::<Vec<_>>();
 
-        let char_animation_entry = CharAnimationEntry {
+        let char_animation_entry = CharAnimationFileEntry {
             texture: animation_texture.to_vec(),
             index: anim_info.index(),
             frame_width: anim_info.tile_size().x,
@@ -120,7 +104,7 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
 
     let mut char_animation_file = File::create(output_filename).unwrap();
 
-    let char_animation = CharAnimation {
+    let char_animation = CharAnimationFile {
         anim: char_animation_entries,
     };
     let _ = char_animation.save(&mut char_animation_file);
@@ -128,17 +112,17 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
 
 #[derive(Default, Debug)]
 struct Offsets {
-    body: IVec2Serialized,  // Green
-    head: IVec2Serialized,  // Black
-    right: IVec2Serialized, // Blue
-    left: IVec2Serialized,  // Red
+    body: IVec2,  // Green
+    head: IVec2,  // Black
+    right: IVec2, // Blue
+    left: IVec2,  // Red
 }
 
 fn extract_shadow_offset(
     anim_info: &AnimInfo,
     atlas_image: &ImageBuffer<Rgba<u8>, Vec<u8>>,
     texture: URect,
-) -> IVec2Serialized {
+) -> IVec2 {
     let tile_size = anim_info.tile_size();
 
     for y in (texture.min.y)..texture.max.y {
@@ -150,7 +134,7 @@ fn extract_shadow_offset(
             let real_y: i32 = (y - texture.min.y).try_into().unwrap();
 
             if *pixel == Rgba([255, 255, 255, 255]) {
-                return calculate_offset(real_x, real_y, tile_size).into();
+                return calculate_offset(real_x, real_y, tile_size);
             }
         }
     }
@@ -177,16 +161,16 @@ fn extract_offsets(
             let real_y: i32 = (y - texture.min.y).try_into().unwrap();
 
             if *pixel == Rgba([0, 0, 0, 255]) {
-                offsets.head = calculate_offset(real_x, real_y, tile_size).into();
+                offsets.head = calculate_offset(real_x, real_y, tile_size);
                 part_counter += 1;
             } else if *pixel == Rgba([255, 0, 0, 255]) {
-                offsets.left = calculate_offset(real_x, real_y, tile_size).into();
+                offsets.left = calculate_offset(real_x, real_y, tile_size);
                 part_counter += 1;
             } else if *pixel == Rgba([0, 255, 0, 255]) {
-                offsets.body = calculate_offset(real_x, real_y, tile_size).into();
+                offsets.body = calculate_offset(real_x, real_y, tile_size);
                 part_counter += 1;
             } else if *pixel == Rgba([0, 0, 255, 255]) {
-                offsets.right = calculate_offset(real_x, real_y, tile_size).into();
+                offsets.right = calculate_offset(real_x, real_y, tile_size);
                 part_counter += 1;
             }
         }
