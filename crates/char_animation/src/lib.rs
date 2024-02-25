@@ -106,7 +106,8 @@ impl AssetLoader for CharAnimationLoader {
                         TextureDimension::D2,
                         texture_buffer.into_raw(),
                         TextureFormat::Rgba8UnormSrgb,
-                        RenderAssetUsages::default(),
+                        // Unload the texture inside de VRAM
+                        RenderAssetUsages::RENDER_WORLD,
                     );
 
                     let texture_label = format!("{}_texture.png", anim_key);

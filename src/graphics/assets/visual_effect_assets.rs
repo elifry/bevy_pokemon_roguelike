@@ -1,5 +1,6 @@
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::utils::hashbrown::HashMap;
 
 use crate::utils::get_path_from_handle;
@@ -59,7 +60,8 @@ fn process_effect_assets(
     mut visual_effect_assets: ResMut<VisualEffectAssets>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
-    textures: Res<Assets<Image>>,
+    mut textures: ResMut<Assets<Image>>,
+    mut commands: Commands,
 ) {
     let folder: &LoadedFolder = match loaded_folder_assets.get(&visual_effect_assets_folder.0) {
         Some(folder) => folder,
@@ -91,10 +93,13 @@ fn process_effect_assets(
     }
 
     for (direction, file_name, vf_image) in visual_effect_images {
-        let Some(vf_texture) = textures.get(vf_image.id()) else {
+        let Some(vf_texture) = textures.get_mut(vf_image.id()) else {
             warn!("Texture not loaded: {:?}", vf_image.path().unwrap());
             continue;
         };
+
+        // Unload the texture inside de VRAM
+        vf_texture.asset_usage = RenderAssetUsages::RENDER_WORLD;
 
         let texture_atlas = match direction {
             VisualEffectDirectionType::None => {
@@ -150,5 +155,5 @@ fn process_effect_assets(
             .insert(visual_effect_name.to_owned(), visual_effect_texture_info);
     }
 
-    // commands.remove_resource::<VisualEffectAssetsFolder>();
+    commands.remove_resource::<VisualEffectAssetsFolder>();
 }
