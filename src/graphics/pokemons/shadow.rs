@@ -1,8 +1,15 @@
 use bevy::prelude::*;
+use char_animation::{file::CharAnimationOffsets, CharAnimation};
 
-use crate::{pieces::FacingOrientation, pokemons::Pokemon};
+use crate::{
+    graphics::{
+        animations::AnimationFrameChangedEvent, assets::shadow_assets::ShadowAssets,
+        SHADOW_POKEMON_Z,
+    },
+    pieces::FacingOrientation,
+};
 
-use super::{pokemon_animator::get_pokemon_animator, AnimatorUpdatedEvent, PokemonAnimationState};
+use super::PokemonAnimationState;
 
 #[derive(Component, Default)]
 pub enum PokemonShadow {
@@ -10,6 +17,70 @@ pub enum PokemonShadow {
     #[default]
     Medium, // Red
     Big,   // Blue
+}
+
+pub fn spawn_shadow_renderer(
+    mut commands: Commands,
+    shadow_assets: Res<ShadowAssets>,
+    query: Query<Entity, Added<PokemonShadow>>,
+) {
+    for entity in query.iter() {
+        let atlas = TextureAtlas {
+            index: 9,
+            layout: shadow_assets.atlas_layout.clone(),
+        };
+
+        // TODO: retrieve shadow offsets for 1 frame
+        commands.entity(entity).insert(SpriteSheetBundle {
+            transform: Transform::from_translation(Vec3::new(0., 0., SHADOW_POKEMON_Z)),
+            texture: shadow_assets.texture.clone(),
+            atlas,
+
+            ..default()
+        });
+    }
+}
+
+pub fn update_shadow_offsets(
+    mut query_parent: Query<(
+        &Handle<CharAnimation>,
+        &mut CharAnimationOffsets,
+        &PokemonAnimationState,
+        &FacingOrientation,
+        &Children,
+    )>,
+    mut query_shadow: Query<(&Parent, &mut Transform), With<PokemonShadow>>,
+    mut ev_frame_changed: EventReader<AnimationFrameChangedEvent>,
+    char_animation_assets: Res<Assets<CharAnimation>>,
+) {
+    for ev in ev_frame_changed.read() {
+        let Ok((char_animation_handle, mut offsets, animation_state, orientation, children)) =
+            query_parent.get_mut(ev.entity)
+        else {
+            continue;
+        };
+
+        for child in children {
+            let Ok(mut shadow) = query_shadow.get_mut(*child) else {
+                continue;
+            };
+            let char_animation = char_animation_assets
+                .get(char_animation_handle)
+                .expect("Failed to load char animation for pokemon");
+
+            let animation_data = char_animation
+                .anim
+                .get(&animation_state.0)
+                .expect("Failed to load anim key");
+
+            let shadow_offset = animation_data
+                .shadow_offsets
+                .get(&orientation.0)
+                .expect("Failed to get offsets")[ev.frame_index];
+
+            shadow.1.translation = shadow_offset.extend(SHADOW_POKEMON_Z)
+        }
+    }
 }
 
 // #[allow(clippy::type_complexity)]

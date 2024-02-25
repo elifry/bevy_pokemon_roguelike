@@ -3,7 +3,7 @@ mod pokemon_animator;
 mod shadow;
 
 use bevy::prelude::*;
-use char_animation::{anim_key::AnimKey, orientation, CharAnimation};
+use char_animation::{anim_key::AnimKey, CharAnimation};
 
 use crate::{
     map::Position, pieces::FacingOrientation, pokemons::Pokemon, GamePlayingSet, GameState,
@@ -15,12 +15,12 @@ use self::{
         PokemonHeadOffset,
     },
     pokemon_animator::get_pokemon_animator,
+    shadow::{spawn_shadow_renderer, update_shadow_offsets, PokemonShadow},
 };
 
 use super::{
-    action_animations::ActionAnimationSet,
-    assets::pokemon_chara_assets::{PokemonCharaAssets, PokemonCharaAssetsPlugin},
-    POKEMON_Z, SHADOW_POKEMON_Z,
+    action_animations::ActionAnimationSet, assets::pokemon_chara_assets::PokemonCharaAssets,
+    POKEMON_Z,
 };
 
 pub struct PokemonPlugin;
@@ -31,7 +31,8 @@ impl Plugin for PokemonPlugin {
         app.add_event::<AnimatorUpdatedEvent>()
             .add_systems(
                 Update,
-                (spawn_pokemon_renderer,).run_if(in_state(GameState::Playing)),
+                (spawn_pokemon_renderer, spawn_shadow_renderer)
+                    .run_if(in_state(GameState::Playing)),
             )
             .add_systems(
                 Update,
@@ -46,7 +47,10 @@ impl Plugin for PokemonPlugin {
                     .chain()
                     .in_set(ActionAnimationSet::Animator),
             )
-            .add_systems(Update, update_offsets.after(GamePlayingSet::LateLogics));
+            .add_systems(
+                Update,
+                (update_offsets, update_shadow_offsets).after(GamePlayingSet::LateLogics),
+            );
         #[cfg(debug_assertions)]
         {
             app.add_systems(Update, (debug_offsets).run_if(in_state(GameState::Playing)));
@@ -74,7 +78,6 @@ fn update_animator(
         Or<(Changed<FacingOrientation>, Changed<PokemonAnimationState>)>,
     >,
     char_animation_assets: Res<Assets<CharAnimation>>,
-    pokemon_char_assets: Res<PokemonCharaAssets>,
     mut ev_animator_updated: EventWriter<AnimatorUpdatedEvent>,
     mut commands: Commands,
 ) {
@@ -136,31 +139,10 @@ fn spawn_pokemon_renderer(
                     ..default()
                 },
             ))
-            // .with_children(|parent| {
-            //     // Shadow
-            //     let Some(shadow_texture_atlas) = pokemon_animation
-            //         .textures
-            //         .get(&default_state)
-            //         .and_then(|t| t.get(&AnimTextureType::Shadow))
-            //     else {
-            //         return;
-            //     };
-            //     let shadow_atlas = TextureAtlas {
-            //         index: 0,
-            //         layout: shadow_texture_atlas.0.clone(),
-            //         ..default()
-            //     };
-            //     parent.spawn((
-            //         Name::new("Shadow"),
-            //         PokemonShadow::default(),
-            //         SpriteSheetBundle {
-            //             atlas: shadow_atlas,
-            //             texture: shadow_texture_atlas.1.clone(),
-            //             transform: Transform::from_xyz(0., 0., SHADOW_POKEMON_Z),
-            //             ..default()
-            //         },
-            //     ));
-            // })
+            .with_children(|parent| {
+                // Shadow
+                parent.spawn((Name::new("Shadow"), PokemonShadow::default()));
+            })
             .with_children(|parent| {
                 parent.spawn((
                     Name::new("HeadOffset"),
@@ -175,34 +157,5 @@ fn spawn_pokemon_renderer(
                     SpatialBundle::default(),
                 ));
             });
-        // .with_children(|parent| {
-        //     // Offsets
-        //     let Some(offsets_texture_atlas) = pokemon_animation
-        //         .textures
-        //         .get(&default_state)
-        //         .and_then(|t| t.get(&AnimTextureType::Offsets))
-        //     else {
-        //         warn!("unable to load offsets for {:?}", entity);
-        //         return;
-        //     };
-
-        //     let offsets_atlas = TextureAtlas {
-        //         index: 0,
-        //         layout: offsets_texture_atlas.0.clone(),
-        //         ..default()
-        //     };
-
-        //     parent.spawn((
-        //         Name::new("Offsets"),
-        //         PokemonOffsets::default(),
-        //         SpriteSheetBundle {
-        //             atlas: offsets_atlas,
-        //             texture: offsets_texture_atlas.1.clone(),
-        //             transform: Transform::from_xyz(0., 0., POKEMON_Z + 1.),
-        //             visibility: Visibility::Hidden,
-        //             ..default()
-        //         },
-        //     ));
-        // });
     }
 }

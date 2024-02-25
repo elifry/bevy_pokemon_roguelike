@@ -19,7 +19,7 @@ pub const TILE_SIZE: f32 = 24.;
 
 pub const POKEMON_Z: f32 = 10.;
 pub const EFFECT_Z: f32 = 15.;
-pub const SHADOW_POKEMON_Z: f32 = -5.; // relative to `POKEMON_Z`
+pub const SHADOW_POKEMON_Z: f32 = -1.; // relative to `POKEMON_Z`
 
 pub const WALK_SPEED: f32 = 1.43;
 pub const PROJECTILE_SPEED: f32 = 1.8;
