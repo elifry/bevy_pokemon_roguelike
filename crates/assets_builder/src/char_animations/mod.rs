@@ -8,8 +8,8 @@ use std::{
 };
 
 use ::char_animation::orientation::Orientation;
-use bevy_math::{IVec2, URect, UVec2};
-use char_animation::file::{CharAnimationFile, CharAnimationFileEntry};
+use bevy_math::{IVec2, URect, UVec2, Vec2};
+use char_animation::file::{CharAnimationFile, CharAnimationFileEntry, CharAnimationOffsets};
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
 
 use self::anim_data::{AnimData, AnimInfo};
@@ -36,21 +36,18 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
         let shadow_texture_file = source_directory.join(format!("{anim_key_str}-Shadow.png"));
         let shadow_texture = image::open(shadow_texture_file).unwrap().to_rgba8();
 
-        let mut body_offsets = HashMap::new();
-        let mut head_offsets = HashMap::new();
-        let mut right_offsets = HashMap::new();
-        let mut left_offsets = HashMap::new();
+        let mut offsets = HashMap::new();
         let mut shadow_offsets = HashMap::new();
 
         let columns = anim_info.columns();
         let orientations: Box<dyn Iterator<Item = Orientation>> = anim_info.orientations();
 
         for (row, orientation) in orientations.enumerate() {
-            body_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
-            head_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
-            right_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
-            left_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
-            shadow_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
+            offsets.insert(
+                orientation.clone(),
+                vec![CharAnimationOffsets::default(); columns],
+            );
+            shadow_offsets.insert(orientation.clone(), vec![Vec2::default(); columns]);
 
             for column in 0..(columns) {
                 let tile_size = anim_info.tile_size();
@@ -62,11 +59,8 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
                     ),
                 );
 
-                let offsets = extract_offsets(&anim_info, &offsets_texture, texture_rect);
-                body_offsets.get_mut(&orientation).unwrap()[column] = offsets.body;
-                head_offsets.get_mut(&orientation).unwrap()[column] = offsets.head;
-                right_offsets.get_mut(&orientation).unwrap()[column] = offsets.right;
-                left_offsets.get_mut(&orientation).unwrap()[column] = offsets.left;
+                offsets.get_mut(&orientation).unwrap()[column] =
+                    extract_offsets(&anim_info, &offsets_texture, texture_rect);
 
                 shadow_offsets.get_mut(&orientation).unwrap()[column] =
                     extract_shadow_offset(&anim_info, &shadow_texture, texture_rect);
@@ -103,10 +97,7 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             hit_frame: anim_info.value().hit_frame,
             return_frame: anim_info.value().return_frame,
             shadow_offsets,
-            body_offsets,
-            head_offsets,
-            left_offsets,
-            right_offsets,
+            offsets,
         };
 
         char_animation_entries.insert(*anim_key, char_animation_entry);
@@ -120,19 +111,11 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
     let _ = char_animation.save(&mut char_animation_file);
 }
 
-#[derive(Default, Debug)]
-struct Offsets {
-    body: IVec2,  // Green
-    head: IVec2,  // Black
-    right: IVec2, // Blue
-    left: IVec2,  // Red
-}
-
 fn extract_shadow_offset(
     anim_info: &AnimInfo,
     atlas_image: &ImageBuffer<Rgba<u8>, Vec<u8>>,
     texture: URect,
-) -> IVec2 {
+) -> Vec2 {
     let tile_size = anim_info.tile_size();
 
     for y in (texture.min.y)..texture.max.y {
@@ -156,10 +139,10 @@ fn extract_offsets(
     anim_info: &AnimInfo,
     atlas_image: &ImageBuffer<Rgba<u8>, Vec<u8>>,
     texture: URect,
-) -> Offsets {
+) -> CharAnimationOffsets {
     let tile_size = anim_info.tile_size();
 
-    let mut offsets = Offsets::default();
+    let mut offsets = CharAnimationOffsets::default();
 
     let mut part_counter = 0;
     for y in (texture.min.y)..texture.max.y {
@@ -196,8 +179,9 @@ fn extract_offsets(
     offsets
 }
 
-fn calculate_offset(real_x: i32, real_y: i32, tile_size: UVec2) -> IVec2 {
-    let half_tile_size = tile_size / 2;
+fn calculate_offset(real_x: i32, real_y: i32, tile_size: UVec2) -> Vec2 {
+    let half_tile_size = (tile_size / 2).as_ivec2();
     let coordinates = IVec2::new(real_x, tile_size.y as i32 - real_y);
-    coordinates - IVec2::new(half_tile_size.x as i32, half_tile_size.y as i32)
+
+    (coordinates - half_tile_size).as_vec2()
 }

@@ -1,19 +1,11 @@
 use bevy::prelude::*;
-use char_animation::CharAnimation;
+use char_animation::{file::CharAnimationOffsets, CharAnimation};
 
 use crate::{
     graphics::animations::AnimationFrameChangedEvent, pieces::FacingOrientation, pokemons::Pokemon,
 };
 
 use super::PokemonAnimationState;
-
-#[derive(Component, Default)]
-pub struct PokemonOffsets {
-    pub body: Vec2,  // Green
-    pub head: Vec2,  // Black
-    pub right: Vec2, // Blue
-    pub left: Vec2,  // Red
-}
 
 //
 #[derive(Component, Default)]
@@ -32,7 +24,7 @@ pub struct PokemonRightOffset;
 pub fn update_offsets(
     mut query: Query<(
         &Handle<CharAnimation>,
-        &mut PokemonOffsets,
+        &mut CharAnimationOffsets,
         &PokemonAnimationState,
         &FacingOrientation,
     )>,
@@ -55,65 +47,40 @@ pub fn update_offsets(
             .get(&animation_state.0)
             .expect("Failed to load anim key");
 
-        let body_offsets = animation_data
-            .body_offsets
+        *offsets = animation_data
+            .offsets
             .get(&orientation.0)
-            .expect("Failed get body offsets");
-
-        let head_offsets = animation_data
-            .head_offsets
-            .get(&orientation.0)
-            .expect("Failed get body offsets");
-
-        offsets.body = body_offsets[ev.frame_index].as_vec2();
-        offsets.head = head_offsets[ev.frame_index].as_vec2();
+            .expect("Failed to get offsets")[ev.frame_index]
+            .clone();
     }
 }
 
 pub fn update_head_offset(
     mut query_head_offset: Query<(&Parent, &mut Transform), With<PokemonHeadOffset>>,
-    query_parent: Query<&Children, With<Pokemon>>,
-    query_offsets: Query<&mut PokemonOffsets>,
+    query_parent: Query<&CharAnimationOffsets, With<Pokemon>>,
 ) {
     for (parent, mut transform) in query_head_offset.iter_mut() {
-        let Ok(children) = query_parent.get(parent.get()) else {
+        let Ok(offsets) = query_parent.get(parent.get()) else {
             continue;
         };
-        let Some(offsets) = children
-            .iter()
-            .filter_map(|&child| query_offsets.get(child).ok())
-            .next()
-        else {
-            continue;
-        };
-
         transform.translation = Vec3::new(offsets.head.x, offsets.head.y, 0.);
     }
 }
 
 pub fn update_body_offset(
     mut query_body_offset: Query<(&Parent, &mut Transform), With<PokemonBodyOffset>>,
-    query_parent: Query<&Children, With<Pokemon>>,
-    query_offsets: Query<&mut PokemonOffsets>,
+    query_parent: Query<&CharAnimationOffsets, With<Pokemon>>,
 ) {
     for (parent, mut transform) in query_body_offset.iter_mut() {
-        let Ok(children) = query_parent.get(parent.get()) else {
+        let Ok(offsets) = query_parent.get(parent.get()) else {
             continue;
         };
-        let Some(offsets) = children
-            .iter()
-            .filter_map(|&child| query_offsets.get(child).ok())
-            .next()
-        else {
-            continue;
-        };
-
         transform.translation = Vec3::new(offsets.body.x, offsets.body.y, 0.);
     }
 }
 
 pub fn debug_offsets(
-    query_offsets: Query<(&mut PokemonOffsets, &GlobalTransform)>,
+    query_offsets: Query<(&mut CharAnimationOffsets, &GlobalTransform)>,
     mut gizmos: Gizmos,
 ) {
     for (offsets, global_transform) in query_offsets.iter() {

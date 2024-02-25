@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Cursor};
+use std::collections::HashMap;
 
 use crate::{anim_key::AnimKey, orientation::Orientation};
 use bevy::{
@@ -6,7 +6,7 @@ use bevy::{
     asset::{
         io::Reader, Asset, AssetApp, AssetLoader, AsyncReadExt, Handle, LoadContext, LoadedAsset,
     },
-    math::{IVec2, Vec2},
+    math::Vec2,
     reflect::TypePath,
     render::{
         render_asset::RenderAssetUsages,
@@ -17,8 +17,7 @@ use bevy::{
     utils::BoxedFuture,
 };
 use bincode::error::DecodeError;
-use file::CharAnimationFile;
-use image::io;
+use file::{CharAnimationFile, CharAnimationOffsets};
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
@@ -51,11 +50,8 @@ pub struct CharAnimationData {
     pub return_frame: Option<usize>,
 
     // Offsets
-    pub shadow_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub body_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub head_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub left_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub right_offsets: HashMap<Orientation, Vec<IVec2>>,
+    pub shadow_offsets: HashMap<Orientation, Vec<Vec2>>,
+    pub offsets: HashMap<Orientation, Vec<CharAnimationOffsets>>,
 }
 
 /// A bitmap font asset that can be loaded from .bfn files
@@ -153,10 +149,7 @@ impl AssetLoader for CharAnimationLoader {
                         hit_frame: char_animation_entry.hit_frame,
                         return_frame: char_animation_entry.return_frame,
                         shadow_offsets: char_animation_entry.shadow_offsets.to_owned(),
-                        body_offsets: char_animation_entry.body_offsets.to_owned(),
-                        head_offsets: char_animation_entry.head_offsets.to_owned(),
-                        left_offsets: char_animation_entry.left_offsets.to_owned(),
-                        right_offsets: char_animation_entry.right_offsets.to_owned(),
+                        offsets: char_animation_entry.offsets.to_owned(),
                     };
                     (*anim_key, data)
                 })

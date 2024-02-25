@@ -4,7 +4,10 @@ use std::{
     io::{self, Write},
 };
 
-use bevy::math::IVec2;
+use bevy::{
+    ecs::component::Component,
+    math::{IVec2, Vec2},
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{anim_key::AnimKey, orientation::Orientation};
@@ -27,6 +30,14 @@ impl From<IVec2> for IVec2Serialized {
     }
 }
 
+#[derive(Component, Default, Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub struct CharAnimationOffsets {
+    pub body: Vec2,  // Green
+    pub head: Vec2,  // Black
+    pub right: Vec2, // Blue
+    pub left: Vec2,  // Red
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct CharAnimationFileEntry {
     pub texture: Vec<u8>,
@@ -38,12 +49,10 @@ pub struct CharAnimationFileEntry {
     pub rush_frame: Option<usize>,
     pub hit_frame: Option<usize>,
     pub return_frame: Option<usize>,
+
     // Offsets
-    pub shadow_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub body_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub head_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub left_offsets: HashMap<Orientation, Vec<IVec2>>,
-    pub right_offsets: HashMap<Orientation, Vec<IVec2>>,
+    pub shadow_offsets: HashMap<Orientation, Vec<Vec2>>,
+    pub offsets: HashMap<Orientation, Vec<CharAnimationOffsets>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

@@ -3,7 +3,7 @@ mod pokemon_animator;
 mod shadow;
 
 use bevy::prelude::*;
-use char_animation::{anim_key::AnimKey, CharAnimation};
+use char_animation::{anim_key::AnimKey, orientation, CharAnimation};
 
 use crate::{
     map::Position, pieces::FacingOrientation, pokemons::Pokemon, GamePlayingSet, GameState,
@@ -12,7 +12,7 @@ use crate::{
 use self::{
     offsets::{
         debug_offsets, update_body_offset, update_head_offset, update_offsets, PokemonBodyOffset,
-        PokemonHeadOffset, PokemonOffsets,
+        PokemonHeadOffset,
     },
     pokemon_animator::get_pokemon_animator,
 };
@@ -106,13 +106,15 @@ fn spawn_pokemon_renderer(
     mut commands: Commands,
     char_animation_assets: Res<Assets<CharAnimation>>,
     pokemon_char_assets: Res<PokemonCharaAssets>,
-    query: Query<(Entity, &Position, &Pokemon), Added<Pokemon>>,
+    query: Query<(Entity, &Position, &Pokemon, &FacingOrientation), Added<Pokemon>>,
 ) {
     let default_state = AnimKey::Idle;
-    for (entity, position, pokemon) in query.iter() {
+    for (entity, position, pokemon, orientation) in query.iter() {
         let pokemon_animation_handle = pokemon_char_assets.0.get(&pokemon.id).unwrap();
         let pokemon_char_animation = char_animation_assets.get(pokemon_animation_handle).unwrap();
         let animation_data = pokemon_char_animation.anim.get(&default_state).unwrap();
+
+        let char_animation_offsets = &animation_data.offsets.get(&orientation.0).unwrap()[0];
 
         let v = super::get_world_position(&position.0, POKEMON_Z);
 
@@ -126,7 +128,7 @@ fn spawn_pokemon_renderer(
             .insert((
                 PokemonAnimationState(default_state),
                 pokemon_animation_handle.clone(),
-                PokemonOffsets::default(),
+                char_animation_offsets.clone(),
                 SpriteSheetBundle {
                     atlas,
                     texture: animation_data.texture.clone(),
