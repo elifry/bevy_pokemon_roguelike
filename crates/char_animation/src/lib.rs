@@ -14,7 +14,6 @@ use bevy::{
         texture::Image,
     },
     sprite::TextureAtlasLayout,
-    text,
     utils::BoxedFuture,
 };
 use bincode::error::DecodeError;

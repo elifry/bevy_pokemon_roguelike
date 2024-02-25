@@ -21,6 +21,7 @@ pub struct AnimationFinished(pub Entity);
 #[derive(Event, Debug)]
 pub struct AnimationFrameChangedEvent {
     pub entity: Entity,
+    pub frame_index: usize,
     pub frame: AnimationFrame,
 }
 
@@ -142,7 +143,11 @@ fn animation_system(
         animator.timer.reset();
         sprite.index = frame.atlas_index;
 
-        ev_animation_frame_changed.send(AnimationFrameChangedEvent { entity, frame });
+        ev_animation_frame_changed.send(AnimationFrameChangedEvent {
+            entity,
+            frame,
+            frame_index: animator.current_frame,
+        });
 
         // Next frame
         animator.current_frame = if animator.current_frame + 1 < animator.frames.len() {

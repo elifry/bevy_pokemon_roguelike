@@ -52,7 +52,7 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             left_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
             shadow_offsets.insert(orientation.clone(), vec![IVec2::default(); columns]);
 
-            for column in 0..(columns - 1) {
+            for column in 0..(columns) {
                 let tile_size = anim_info.tile_size();
                 let texture_rect = URect::from_corners(
                     UVec2::new(tile_size.x * column as u32, tile_size.y * row as u32),

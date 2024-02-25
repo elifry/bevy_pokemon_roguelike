@@ -41,7 +41,6 @@ fn process_chara_assets(
     chara_assets_folder: ResMut<CharaAssetsFolder>,
     loaded_folder_assets: Res<Assets<LoadedFolder>>,
     mut pokemon_chara_assets: ResMut<PokemonCharaAssets>,
-    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
     mut next_state: ResMut<NextState<GameState>>,
     mut commands: Commands,
 ) {

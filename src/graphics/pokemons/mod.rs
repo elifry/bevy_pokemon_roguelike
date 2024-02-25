@@ -5,11 +5,13 @@ mod shadow;
 use bevy::prelude::*;
 use char_animation::{anim_key::AnimKey, CharAnimation};
 
-use crate::{map::Position, pieces::FacingOrientation, pokemons::Pokemon, GameState};
+use crate::{
+    map::Position, pieces::FacingOrientation, pokemons::Pokemon, GamePlayingSet, GameState,
+};
 
 use self::{
     offsets::{
-        debug_offsets, update_body_offset, update_head_offset, PokemonBodyOffset,
+        debug_offsets, update_body_offset, update_head_offset, update_offsets, PokemonBodyOffset,
         PokemonHeadOffset, PokemonOffsets,
     },
     pokemon_animator::get_pokemon_animator,
@@ -43,8 +45,8 @@ impl Plugin for PokemonPlugin {
                 )
                     .chain()
                     .in_set(ActionAnimationSet::Animator),
-            );
-        // .add_systems(Update, update_offsets.after(GamePlayingSet::LateLogics));
+            )
+            .add_systems(Update, update_offsets.after(GamePlayingSet::LateLogics));
         #[cfg(debug_assertions)]
         {
             app.add_systems(Update, (debug_offsets).run_if(in_state(GameState::Playing)));
@@ -65,7 +67,7 @@ fn update_animator(
             Entity,
             &FacingOrientation,
             &PokemonAnimationState,
-            &Pokemon,
+            &Handle<CharAnimation>,
             &mut TextureAtlas,
             &mut Handle<Image>,
         ),
@@ -76,11 +78,15 @@ fn update_animator(
     mut ev_animator_updated: EventWriter<AnimatorUpdatedEvent>,
     mut commands: Commands,
 ) {
-    for (entity, facing_orientation, animation_state, pokemon, mut texture_atlas, mut texture) in
-        query.iter_mut()
+    for (
+        entity,
+        facing_orientation,
+        animation_state,
+        char_animation_handle,
+        mut texture_atlas,
+        mut texture,
+    ) in query.iter_mut()
     {
-        // TODO: replace by the real id of the pokemon
-        let char_animation_handle = pokemon_char_assets.0.get(&pokemon.id).unwrap();
         let Some(animator) = get_pokemon_animator(
             &char_animation_assets,
             char_animation_handle,
@@ -119,6 +125,8 @@ fn spawn_pokemon_renderer(
             .entity(entity)
             .insert((
                 PokemonAnimationState(default_state),
+                pokemon_animation_handle.clone(),
+                PokemonOffsets::default(),
                 SpriteSheetBundle {
                     atlas,
                     texture: animation_data.texture.clone(),
