@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use char_animation::orientation::Orientation;
 
 use crate::{
+    faction::Faction,
     map::Position,
     pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind},
     pokemons::Pokemon,
@@ -21,6 +22,7 @@ pub struct NPCBundle {
     piece: Piece,
     position: Position,
     facing_orientation: FacingOrientation,
+    faction: Faction,
 }
 
 impl Default for NPCBundle {
@@ -41,15 +43,17 @@ impl Default for NPCBundle {
             },
             position: Position(IVec2::new(0, 0)),
             facing_orientation: FacingOrientation(Orientation::South),
+            faction: Faction::None,
         }
     }
 }
 
 impl NPCBundle {
-    pub fn new(name: String, position: IVec2) -> Self {
+    pub fn new(name: String, position: IVec2, faction: Faction) -> Self {
         Self {
             name: Name::new(name),
             position: Position(position),
+            faction,
             ..default()
         }
     }

@@ -12,6 +12,7 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
+use crate::faction::Faction;
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
 use crate::pokemons::Pokemon;
@@ -63,6 +64,7 @@ fn spawn_player(mut commands: Commands) {
             id: 4,
             name: "Charmander".to_string(),
         },
+        Faction::Player,
         Player,
         Occupier,
         Health { value: 10 },

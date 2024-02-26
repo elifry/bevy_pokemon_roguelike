@@ -5,6 +5,7 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     actions::{skip_action::SkipAction, walk_action::WalkAction, Action, NextActions},
+    faction::Faction,
     ivec2::{find_path, ORTHO_DIRECTIONS},
     map::{GameMap, Position},
     pieces::Occupier,
@@ -57,7 +58,7 @@ fn spawn_npcs(mut commands: Commands) {
 }
 
 fn spawn_test_npc(commands: &mut Commands, position: IVec2) {
-    commands.spawn(NPCBundle::new("NPC".to_string(), position));
+    commands.spawn(NPCBundle::new("NPC".to_string(), position, Faction::Foe));
 }
 
 fn npc_action(mut query: Query<(Entity, &mut PossibleActions), With<AI>>, mut commands: Commands) {
