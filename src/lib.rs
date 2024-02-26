@@ -24,6 +24,7 @@ mod actions;
 mod ai;
 mod camera;
 mod constants;
+mod faction;
 mod graphics;
 mod ivec2;
 mod map;

@@ -1,43 +1,100 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use char_animation::{file::CharAnimationOffsets, CharAnimation};
 
 use crate::{
+    constants::GAME_SPEED,
+    faction::Faction,
     graphics::{
-        animations::AnimationFrameChangedEvent, assets::shadow_assets::ShadowAssets,
-        SHADOW_POKEMON_Z,
+        animations::{AnimationFrame, AnimationFrameChangedEvent, Animator},
+        assets::shadow_assets::ShadowAssets,
+        FRAME_DURATION_MILLIS, SHADOW_POKEMON_Z,
     },
+    map::{GameMap, Position, TerrainData},
     pieces::FacingOrientation,
 };
 
 use super::PokemonAnimationState;
 
 #[derive(Component, Default)]
-pub enum PokemonShadow {
-    Small, // Green
-    #[default]
-    Medium, // Red
-    Big,   // Blue
+pub struct PokemonShadow;
+impl PokemonShadow {
+    pub fn get_animation_frames(
+        &self,
+        faction: Faction,
+        terrain: TerrainData,
+    ) -> Vec<AnimationFrame> {
+        let row = match terrain.r#type {
+            crate::map::TerrainType::Ground => 1,
+            crate::map::TerrainType::Wall => 0,
+            crate::map::TerrainType::Environment(env_type) => match env_type {
+                crate::map::EnvironmentType::Water => 3,
+                crate::map::EnvironmentType::Lava => 4,
+            },
+        };
+        let faction = match faction {
+            Faction::None => 1,
+            Faction::Player => 0,
+            Faction::Friend => 0,
+            Faction::Foe => 2,
+        };
+
+        (0..3)
+            .map(|i| AnimationFrame {
+                atlas_index: row * 3 * 3 + faction * 3 + i,
+                duration: Duration::from_millis(
+                    ((10 * FRAME_DURATION_MILLIS) as f32 / GAME_SPEED).floor() as u64,
+                ),
+            })
+            .collect::<Vec<_>>()
+    }
 }
 
 pub fn spawn_shadow_renderer(
     mut commands: Commands,
     shadow_assets: Res<ShadowAssets>,
-    query: Query<Entity, Added<PokemonShadow>>,
+    map: Res<GameMap>,
+    query: Query<(Entity, &PokemonShadow, &Parent), Added<PokemonShadow>>,
+    query_position: Query<&Position>,
 ) {
-    for entity in query.iter() {
+    for (entity, shadow, parent) in query.iter() {
+        let Ok(position) = query_position.get(**parent) else {
+            continue;
+        };
+        let Some(tile) = map.tiles.get(&position.0) else {
+            warn!(
+                "Failed to retrieve tile data for {:?} at {:?}",
+                entity, position.0,
+            );
+            continue;
+        };
+
+        // TODO: pass correct faction
+        let frames = shadow.get_animation_frames(Faction::Friend, *tile);
+
         let atlas = TextureAtlas {
-            index: 9,
+            index: frames[0].atlas_index,
             layout: shadow_assets.atlas_layout.clone(),
         };
 
-        // TODO: retrieve shadow offsets for 1 frame
-        commands.entity(entity).insert(SpriteSheetBundle {
-            transform: Transform::from_translation(Vec3::new(0., 0., SHADOW_POKEMON_Z)),
-            texture: shadow_assets.texture.clone(),
-            atlas,
-
-            ..default()
-        });
+        commands.entity(entity).insert((
+            SpriteSheetBundle {
+                transform: Transform::from_translation(Vec3::new(0., 0., SHADOW_POKEMON_Z)),
+                texture: shadow_assets.texture.clone(),
+                atlas,
+                ..default()
+            },
+            Animator::new(
+                shadow_assets.atlas_layout.clone(),
+                shadow_assets.texture.clone(),
+                frames,
+                true,
+                None,
+                None,
+                None,
+            ),
+        ));
     }
 }
 

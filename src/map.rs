@@ -14,25 +14,32 @@ impl Plugin for MapPlugin {
 
 #[derive(Default, Resource)]
 pub struct GameMap {
-    pub tiles: HashMap<IVec2, TileType>,
+    pub tiles: HashMap<IVec2, TerrainData>,
     pub tiles_lookup: HashMap<IVec2, Entity>,
 }
 
 impl GameMap {
     pub fn new() -> Self {
-        let mut tiles: HashMap<IVec2, TileType> = HashMap::new();
+        let mut tiles: HashMap<IVec2, TerrainData> = HashMap::new();
 
         for x in 4..20 {
             for y in 1..20 {
                 let position = IVec2::new(x, y);
-                tiles.insert(position, TileType::Ground);
+                tiles.insert(
+                    position,
+                    TerrainData {
+                        r#type: TerrainType::Ground,
+                    },
+                );
             }
         }
 
         for x in 0..11 {
             for y in 0..22 {
                 let position = IVec2::new(x, y);
-                tiles.entry(position).or_insert(TileType::Wall);
+                tiles.entry(position).or_insert(TerrainData {
+                    r#type: TerrainType::Wall,
+                });
             }
         }
 
@@ -42,8 +49,8 @@ impl GameMap {
         }
     }
 
-    pub fn get_neighbors(&self, position: &IVec2) -> HashMap<IVec2, TileType> {
-        let mut neighbors: HashMap<IVec2, TileType> = HashMap::new();
+    pub fn get_neighbors(&self, position: &IVec2) -> HashMap<IVec2, TerrainData> {
+        let mut neighbors: HashMap<IVec2, TerrainData> = HashMap::new();
         for dy in 0..=2 {
             for dx in 0..=2 {
                 let neighbor_position = IVec2 {
@@ -73,25 +80,36 @@ pub struct Position(pub IVec2);
 pub struct Tilemap;
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, PartialEq, Eq, Hash)]
-pub enum TileType {
+pub enum EnvironmentType {
+    Water,
+    Lava,
+}
+
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, PartialEq, Eq, Hash)]
+pub enum TerrainType {
     Ground,
     Wall,
-    Environment, // Water / Lava
+    Environment(EnvironmentType), // Water / Lava
+}
+
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, PartialEq, Eq, Hash, Deref, DerefMut)]
+pub struct TerrainData {
+    pub r#type: TerrainType,
 }
 
 #[derive(Component, Debug)]
-pub struct Tile(pub TileType);
+pub struct Tile(pub TerrainData);
 
 fn spawn_map(mut commands: Commands, mut current_map: ResMut<GameMap>) {
     let tilemap = commands
         .spawn((Tilemap, Name::new("Tilemap"), SpatialBundle { ..default() }))
         .id();
 
-    for (position, tile_type) in current_map.tiles.clone().into_iter() {
+    for (position, tile_data) in current_map.tiles.clone().into_iter() {
         let tile = commands
             .spawn((
                 Position(position),
-                Tile(tile_type),
+                Tile(tile_data),
                 Name::new(format!("Tile (x:{}, y:{})", position.x, position.y)),
             ))
             .id();

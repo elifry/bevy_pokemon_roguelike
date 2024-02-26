@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use crate::map::TileType;
+use crate::map::TerrainData;
 
 const ROW: usize = 21;
 
@@ -85,9 +85,9 @@ static PATTERNS: &[([[i8; 3]; 3], usize); 47] = &[
 ];
 
 /// Check if the position match any pattern in PATTERNS (first tuple element) then returns the associated index (present in the second of the tuple).
-/// Pattern encoding, 0 = no element or tile_type different from the tested one, 1 = same tile type
-pub fn find_sprite_index_tile(position: &IVec2, map: &HashMap<IVec2, TileType>) -> usize {
-    let tile_type = *map.get(position).unwrap();
+/// Pattern encoding, 0 = no element or terrain_data different from the tested one, 1 = same tile type
+pub fn find_sprite_index_tile(position: &IVec2, map: &HashMap<IVec2, TerrainData>) -> usize {
+    let terrain_data = map.get(position).unwrap();
 
     for (pattern, index) in PATTERNS {
         let mut pattern_match = true;
@@ -100,8 +100,8 @@ pub fn find_sprite_index_tile(position: &IVec2, map: &HashMap<IVec2, TileType>) 
 
                 let neighbor_type = map.get(&neighbor_position);
 
-                if value != U && (value == O && neighbor_type != Some(&tile_type))
-                    || (value == X && neighbor_type == Some(&tile_type))
+                if value != U && (value == O && neighbor_type != Some(&terrain_data))
+                    || (value == X && neighbor_type == Some(&terrain_data))
                 {
                     pattern_match = false;
                     break;
@@ -119,7 +119,7 @@ pub fn find_sprite_index_tile(position: &IVec2, map: &HashMap<IVec2, TileType>) 
 
     warn!(
         "Unable to find tile index for {:?} {:?}",
-        position, tile_type
+        position, terrain_data
     );
 
     #[cfg(debug_assertions)]
@@ -133,7 +133,7 @@ pub fn find_sprite_index_tile(position: &IVec2, map: &HashMap<IVec2, TileType>) 
             let neighbor_type = map.get(&neighbor_position);
 
             // X: No neighbor
-            if neighbor_type.is_none() || neighbor_type != Some(&tile_type) {
+            if neighbor_type.is_none() || neighbor_type != Some(&terrain_data) {
                 print!("X ");
                 continue;
             }

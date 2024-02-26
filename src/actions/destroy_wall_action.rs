@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    map::{GameMap, Position, Tile, TileType},
+    map::{GameMap, Position, TerrainType, Tile},
     pieces::Occupier,
 };
 
@@ -23,13 +23,16 @@ impl Action for DestroyWallAction {
             return Err(());
         };
 
-        map.tiles.insert(self.target, TileType::Ground);
+        if let Some(terrain_data) = map.tiles.get_mut(&self.target) {
+            terrain_data.r#type = TerrainType::Ground;
+        }
+
         let Some(target_tile) = map.tiles_lookup.get(&self.target).cloned() else {
             return Err(());
         };
 
         if let Ok(mut tile) = world.query::<&mut Tile>().get_mut(world, target_tile) {
-            tile.0 = TileType::Ground;
+            tile.0.r#type = TerrainType::Ground;
         }
 
         orient_entity(world, self.instigator, self.target);
@@ -64,7 +67,7 @@ impl Action for DestroyWallAction {
         };
 
         // check the tile is wall
-        if *tile != TileType::Wall {
+        if tile.r#type != TerrainType::Wall {
             return false;
         }
 

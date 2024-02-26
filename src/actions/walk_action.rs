@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    map::{GameMap, Position, TileType},
+    map::{GameMap, Position, TerrainType},
     pieces::Occupier,
 };
 
@@ -47,7 +47,7 @@ impl Action for WalkAction {
             return false;
         };
 
-        if *tile != TileType::Ground {
+        if tile.r#type != TerrainType::Ground {
             return false;
         }
 

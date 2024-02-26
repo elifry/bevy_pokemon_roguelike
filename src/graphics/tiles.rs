@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    map::{GameMap, Position, Tile, TileType},
+    map::{GameMap, Position, TerrainType, Tile},
     GameState,
 };
 
@@ -60,16 +60,17 @@ pub fn update_tile_render(
                     continue;
                 };
 
-                neighbor_sprite.index = get_tile_map_index(&neighbor, &neighbor_tile.0, &map);
+                neighbor_sprite.index =
+                    get_tile_map_index(&neighbor, &neighbor_tile.0.r#type, &map);
             }
         }
     }
 }
 
-fn get_tile_map_index(position: &IVec2, tile_type: &TileType, map: &GameMap) -> usize {
-    match tile_type {
-        TileType::Ground => find_sprite_index_tile(position, &map.tiles) + 4 * 3,
-        TileType::Wall => find_sprite_index_tile(position, &map.tiles) + 3,
-        TileType::Environment => find_sprite_index_tile(position, &map.tiles) + 8 * 3,
+fn get_tile_map_index(position: &IVec2, terrain_type: &TerrainType, map: &GameMap) -> usize {
+    match terrain_type {
+        TerrainType::Ground => find_sprite_index_tile(position, &map.tiles) + 4 * 3,
+        TerrainType::Wall => find_sprite_index_tile(position, &map.tiles) + 3,
+        TerrainType::Environment(_) => find_sprite_index_tile(position, &map.tiles) + 8 * 3,
     }
 }
