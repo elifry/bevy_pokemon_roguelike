@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use self::{
     action_animations::ActionAnimationPlugin, animations::AnimationsPlugin, assets::AssetsPlugin,
     pokemons::PokemonPlugin, tiles::TilesPlugin, ui::UIPlugin, visual_effects::VisualEffectsPlugin,
+    world_number::WorldNumberPlugin,
 };
 
 pub mod action_animations;
@@ -13,6 +14,7 @@ pub mod tile_sprite_index;
 mod tiles;
 pub mod ui;
 mod visual_effects;
+pub mod world_number;
 
 pub const TILE_Z: f32 = 0.;
 pub const TILE_SIZE: f32 = 24.;
@@ -39,6 +41,7 @@ impl Plugin for GraphicsPlugin {
             AnimationsPlugin,
             VisualEffectsPlugin,
             UIPlugin,
+            WorldNumberPlugin,
         ));
     }
 }

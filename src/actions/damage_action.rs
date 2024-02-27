@@ -30,6 +30,7 @@ impl Action for DamageAction {
             world.send_event(PieceDeathEvent {
                 entity: self.target,
             });
+            // TODO: returns death animation
         }
 
         let attacker_position = world.get::<Position>(self.attacker).ok_or(())?;

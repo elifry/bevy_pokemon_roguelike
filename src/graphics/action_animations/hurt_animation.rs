@@ -5,8 +5,12 @@ use crate::{
     actions::{damage_action::DamageAction, RunningAction},
     graphics::{
         animations::Animator,
-        pokemons::{offsets::PokemonBodyOffset, PokemonAnimationState},
+        pokemons::{
+            offsets::{PokemonBodyOffset, PokemonHeadOffset},
+            PokemonAnimationState,
+        },
         visual_effects::AutoDespawnEffect,
+        world_number::{WorldNumber, WorldNumberType},
     },
     visual_effects::VisualEffect,
 };
@@ -40,6 +44,7 @@ fn init_hurt_animation(
     query: Query<(Entity, &RunningAction), Added<RunningAction>>,
     query_children: Query<&Children>,
     query_body_offset: Query<Entity, With<PokemonBodyOffset>>,
+    query_head_offset: Query<Entity, With<PokemonHeadOffset>>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut commands: Commands,
 ) {
@@ -61,6 +66,16 @@ fn init_hurt_animation(
                         .unwrap_or(damage_action.target)
                 });
 
+        let target_entity_text_damage =
+            query_children
+                .get(damage_action.target)
+                .map_or(damage_action.target, |children| {
+                    children
+                        .iter()
+                        .find_map(|&child| query_head_offset.get(child).ok())
+                        .unwrap_or(damage_action.target)
+                });
+
         commands.entity(damage_action.target).insert((
             AnimationHolder(ActionAnimation::Hurt(HurtAnimation {
                 attacker: damage_action.attacker,
@@ -78,6 +93,20 @@ fn init_hurt_animation(
                         is_loop: false,
                     },
                     AutoDespawnEffect,
+                    SpatialBundle::default(),
+                ));
+            });
+
+        commands
+            .entity(target_entity_text_damage)
+            .with_children(|parent| {
+                // Text Damage
+                parent.spawn((
+                    Name::new("Text_Dmg"),
+                    WorldNumber {
+                        value: -damage_action.value,
+                        r#type: WorldNumberType::Damage,
+                    },
                     SpatialBundle::default(),
                 ));
             });
