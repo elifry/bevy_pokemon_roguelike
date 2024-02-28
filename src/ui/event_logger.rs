@@ -5,11 +5,14 @@ use std::collections::VecDeque;
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 
+use crate::actions::damage_action::DamageAction;
+use crate::actions::death_action::DeathAction;
+use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::ActionExecutedEvent;
 use crate::graphics::assets::font_assets::FontAssets;
 use crate::graphics::assets::ui_assets::UIAssets;
-use crate::graphics::ui::{BorderedFrame, SpriteTextEguiUiExt, UISpriteText, UISpriteTextSection};
+use crate::graphics::ui::{BorderedFrame, UISpriteText, UISpriteTextSection};
 
 const SCROLL_SPEED: f32 = 15.;
 
@@ -23,7 +26,9 @@ pub enum EventLogColor {
     TeamLeader, // #009CFF
     TeamMember, // #FFFF00
     Friendly,   // #FFFF00
-    Enemy,      // #00ffff
+    Foe,        // #00ffff
+    Spell,
+    Damage,
     #[default]
     None,
 }
@@ -34,7 +39,9 @@ impl EventLogColor {
             EventLogColor::TeamLeader => Color32::from_rgb(0, 157, 255),
             EventLogColor::TeamMember => Color32::from_rgb(255, 255, 0),
             EventLogColor::Friendly => Color32::from_rgb(255, 255, 0),
-            EventLogColor::Enemy => Color32::from_rgb(0, 255, 255),
+            EventLogColor::Foe => Color32::from_rgb(0, 255, 255),
+            EventLogColor::Spell => Color32::from_rgb(255, 0, 0),
+            EventLogColor::Damage => Color32::from_rgb(0, 255, 255),
             EventLogColor::None => Color32::WHITE,
         }
     }
@@ -66,7 +73,7 @@ pub(crate) fn gather_logs(
 
         if let Some(walk_action) = action.downcast_ref::<WalkAction>() {
             let log_line_sections = vec![
-                EventLogLineSection::new(format!("{}", entity_name), EventLogColor::TeamLeader),
+                EventLogLineSection::new(entity_name.to_string(), EventLogColor::TeamLeader),
                 EventLogLineSection::new(
                     format!(" walk to {:?}!", walk_action.to),
                     EventLogColor::None,
@@ -75,6 +82,38 @@ pub(crate) fn gather_logs(
             event_logs.logs.push_back(EventLogLine(log_line_sections));
             continue;
         };
+        if let Some(spell_action) = action.downcast_ref::<SpellAction>() {
+            let log_line_sections = vec![
+                EventLogLineSection::new(entity_name.to_string(), EventLogColor::TeamLeader),
+                EventLogLineSection::new(" used ".to_string(), EventLogColor::None),
+                EventLogLineSection::new(spell_action.spell.name.to_string(), EventLogColor::Spell),
+            ];
+            event_logs.logs.push_back(EventLogLine(log_line_sections));
+            continue;
+        }
+        if let Some(damage_action) = action.downcast_ref::<DamageAction>() {
+            let entity_name = name_query.get(damage_action.target).unwrap().as_str();
+
+            let log_line_sections = vec![
+                EventLogLineSection::new(entity_name.to_string(), EventLogColor::Foe),
+                EventLogLineSection::new(" took ".to_string(), EventLogColor::None),
+                EventLogLineSection::new(damage_action.value.to_string(), EventLogColor::Damage),
+                EventLogLineSection::new(" damage!".to_string(), EventLogColor::None),
+            ];
+            event_logs.logs.push_back(EventLogLine(log_line_sections));
+            continue;
+        }
+
+        if let Some(death_action) = action.downcast_ref::<DeathAction>() {
+            let entity_name = name_query.get(death_action.target).unwrap().as_str();
+
+            let log_line_sections = vec![
+                EventLogLineSection::new(entity_name.to_string(), EventLogColor::Foe),
+                EventLogLineSection::new(" was defeated!".to_string(), EventLogColor::None),
+            ];
+            event_logs.logs.push_back(EventLogLine(log_line_sections));
+            continue;
+        }
     }
 }
 
