@@ -69,7 +69,7 @@ fn spawn_world_number_render(
                 transform: transform.with_translation(Vec3::new(0., 15., 10.)),
                 text_anchor: bevy::sprite::Anchor::Center,
                 text: SpriteText::from_section(format!("{sign}{}", world_number.value), text_style),
-
+                visibility: Visibility::Visible,
                 ..default()
             },
             AnimatedWorldNumber {
@@ -95,7 +95,7 @@ fn animate_world_number(
         if animated.timer.just_finished() {
             commands.entity(entity).despawn_recursive();
         }
-        transform.translation.x = (time.elapsed_seconds() * 40.).cos() * 0.6;
+        // transform.translation.x = (time.elapsed_seconds() * 40.).cos() * 0.6;
         transform.translation.y += time.delta_seconds() * 10.;
 
         if animated.timer.fraction() > 0.5 {

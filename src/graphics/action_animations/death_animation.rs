@@ -1,15 +1,14 @@
-use bevy::prelude::*;
-use char_animation::anim_key::AnimKey;
+use bevy::{prelude::*, render::view::visibility};
 
-use crate::{
-    actions::{death_action::DeathAction, RunningAction},
-    graphics::{animations::Animator, pokemons::PokemonAnimationState},
-};
+use crate::actions::{death_action::DeathAction, RunningAction};
 
 use super::{
     ActionAnimation, ActionAnimationFinishedEvent, ActionAnimationNextEvent,
     ActionAnimationPlayingEvent, ActionAnimationSet, AnimationHolder,
 };
+
+const FLASH_NUMBER: u8 = 27;
+const FLASH_DURATION_SECONDS: f32 = 0.02;
 
 pub struct DeathAnimationPlugin;
 
@@ -29,6 +28,8 @@ impl Plugin for DeathAnimationPlugin {
 #[derive(Clone)]
 pub struct DeathAnimation {
     pub attacker: Entity,
+    pub flash_timer: Timer,
+    pub flash_count: u8,
 }
 
 fn init_death_animation(
@@ -44,29 +45,54 @@ fn init_death_animation(
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
 
-        commands.entity(death_action.target).insert((
-            AnimationHolder(ActionAnimation::Death(DeathAnimation{attacker: death_action.attacker})),
-            PokemonAnimationState(AnimKey::Hurt),
-        ));
+        commands
+            .entity(death_action.target)
+            .insert((AnimationHolder(ActionAnimation::Death(DeathAnimation {
+                attacker: death_action.attacker,
+                flash_timer: Timer::from_seconds(FLASH_DURATION_SECONDS, TimerMode::Once),
+                flash_count: 0,
+            })),));
     }
 }
 
 fn death_animation(
-    mut query: Query<(&mut AnimationHolder, &Animator)>,
+    time: Res<Time>,
+    mut query: Query<(&mut AnimationHolder, &mut Visibility)>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
-    for (mut animation, animator) in query.iter_mut() {
+    for (mut animation, mut visibility) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Death(death_animation)) = animation.as_mut() else {
             continue;
         };
 
-        if animator.is_finished() {
+        death_animation.flash_timer.tick(time.delta());
+
+        if !death_animation.flash_timer.finished() {
+            continue;
+        }
+
+        if death_animation.flash_count >= FLASH_NUMBER {
             ev_animation_finished.send(ActionAnimationFinishedEvent(death_animation.attacker));
             ev_animation_next.send(ActionAnimationNextEvent(death_animation.attacker));
             continue;
         }
+
+        death_animation.flash_count += 1;
+
+        if death_animation.flash_count == FLASH_NUMBER {
+            death_animation.flash_timer = Timer::from_seconds(0.10, TimerMode::Once);
+        } else {
+            death_animation.flash_timer =
+                Timer::from_seconds(FLASH_DURATION_SECONDS, TimerMode::Once);
+        }
+
+        *visibility = if death_animation.flash_count % 2 == 0 {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
     }

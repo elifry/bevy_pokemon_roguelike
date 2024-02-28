@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use char_animation::anim_key::AnimKey;
+use char_animation::{anim_key::AnimKey, orientation::Orientation};
 
 use crate::{
     actions::{damage_action::DamageAction, RunningAction},
@@ -12,6 +12,7 @@ use crate::{
         visual_effects::AutoDespawnEffect,
         world_number::{WorldNumber, WorldNumberType},
     },
+    pieces::FacingOrientation,
     visual_effects::VisualEffect,
 };
 
@@ -114,12 +115,18 @@ fn init_hurt_animation(
 }
 
 fn hurt_animation(
-    mut query: Query<(&mut AnimationHolder, &Animator)>,
+    time: Res<Time>,
+    mut query: Query<(
+        &mut AnimationHolder,
+        &Animator,
+        &mut Transform,
+        &FacingOrientation,
+    )>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
-    for (mut animation, animator) in query.iter_mut() {
+    for (mut animation, animator, mut transform, orientation) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Hurt(hurt_animation)) = animation.as_mut() else {
             continue;
         };
@@ -128,6 +135,14 @@ fn hurt_animation(
             ev_animation_finished.send(ActionAnimationFinishedEvent(hurt_animation.attacker));
             ev_animation_next.send(ActionAnimationNextEvent(hurt_animation.attacker));
             continue;
+        }
+
+        // Shake the entity
+        let shake_value = (time.elapsed_seconds() * 40.).cos() * 0.6;
+        match orientation.0 {
+            // Shake on the Y axis if the actor is oriented on south/north
+            Orientation::North | Orientation::South => transform.translation.y += shake_value,
+            _ => transform.translation.x += shake_value,
         }
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
