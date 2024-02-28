@@ -7,6 +7,7 @@ use std::{any::Any, fmt::Debug};
 pub use self::action_queue::*;
 mod action_queue;
 pub mod damage_action;
+pub mod death_action;
 pub mod destroy_wall_action;
 pub mod melee_hit_action;
 pub mod skip_action;

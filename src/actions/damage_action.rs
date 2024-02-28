@@ -5,7 +5,7 @@ use crate::{
     pieces::{Health, PieceDeathEvent},
 };
 
-use super::{orient_entity, Action};
+use super::{death_action::DeathAction, orient_entity, Action};
 
 #[derive(Debug, Clone)]
 pub struct DamageAction {
@@ -26,18 +26,22 @@ impl Action for DamageAction {
 
         health.value = health.value.saturating_sub(self.value);
 
+        let mut next_actions = vec![];
         if health.is_dead() {
             world.send_event(PieceDeathEvent {
                 entity: self.target,
             });
-            // TODO: returns death animation
+            next_actions.push(Box::new(DeathAction {
+                target: self.target,
+                attacker: self.attacker,
+            }) as Box<dyn Action>);
         }
 
         let attacker_position = world.get::<Position>(self.attacker).ok_or(())?;
 
         orient_entity(world, self.target, attacker_position.0);
 
-        Ok(Vec::new())
+        Ok(next_actions)
     }
 
     fn as_any(&self) -> &dyn std::any::Any {

@@ -53,7 +53,7 @@ struct PossibleAction {
 }
 
 fn spawn_npcs(mut commands: Commands) {
-    // spawn_test_npc(&mut commands, Vector2Int::new(5, 5));
+    spawn_test_npc(&mut commands, IVec2::new(5, 5));
     spawn_test_npc(&mut commands, IVec2::new(4, 5));
 }
 

@@ -9,6 +9,7 @@ use crate::graphics::ui::sprite_text::{
     SpriteText, SpriteTextSection, SpriteTextStyle, Text2DSpriteBundle,
 };
 use crate::graphics::ui::{BorderedFrame, SpriteTextEguiUiExt, UISpriteText, UISpriteTextSection};
+use crate::graphics::world_number::{WorldNumber, WorldNumberType};
 use crate::GameState;
 
 pub struct TestPlugin;
@@ -145,21 +146,29 @@ fn spawn_test(font_assets: Res<FontAssets>, mut commands: Commands) {
         ..default()
     };
 
-    commands
-        .spawn(Text2DSpriteBundle {
-            transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
-            text_anchor: bevy::sprite::Anchor::BottomLeft,
-            text: SpriteText {
-                sections: [
-                    SpriteTextSection::new("Lorem ipsum dolor sit amet, ", text_red_style.clone()),
-                    SpriteTextSection::new("consectetur ", text_blue_style.clone()),
-                    SpriteTextSection::new("adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", text_style.clone())
-                ].to_vec(),
-                ..default()
-            },
-            // text: SpriteText::from_section("Lorem ipsum dolor sit amet, ", text_style.clone()),
-            text_2d_bounds: Text2dBounds {size: Vec2::new(200., 300.)},
-            ..default()
-        })
-        .insert(Name::new("TextSprite Test"));
+    commands.spawn((
+        WorldNumber {
+            value: 10,
+            r#type: WorldNumberType::Damage,
+        },
+        SpatialBundle::from_transform(Transform::from_translation(Vec3::new(0., 0., 20.))),
+    ));
+
+    // commands
+    //     .spawn(Text2DSpriteBundle {
+    //         transform: Transform::from_translation(Vec3::new(0., 0., 20.)),
+    //         text_anchor: bevy::sprite::Anchor::BottomLeft,
+    //         text: SpriteText {
+    //             sections: [
+    //                 SpriteTextSection::new("Lorem ipsum dolor sit amet, ", text_red_style.clone()),
+    //                 SpriteTextSection::new("consectetur ", text_blue_style.clone()),
+    //                 SpriteTextSection::new("adipiscing elit. Aenean ullamcorper scelerisque odio nec rutrum. Sed facilisis blandit mauris a vehicula. Praesent sagittis diam eget pulvinar elementum.", text_style.clone())
+    //             ].to_vec(),
+    //             ..default()
+    //         },
+    //         // text: SpriteText::from_section("Lorem ipsum dolor sit amet, ", text_style.clone()),
+    //         text_2d_bounds: Text2dBounds {size: Vec2::new(200., 300.)},
+    //         ..default()
+    //     })
+    //     .insert(Name::new("TextSprite Test"));
 }

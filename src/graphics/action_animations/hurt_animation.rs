@@ -114,12 +114,12 @@ fn init_hurt_animation(
 }
 
 fn hurt_animation(
-    mut query: Query<(&mut AnimationHolder, &mut PokemonAnimationState, &Animator)>,
+    mut query: Query<(&mut AnimationHolder, &Animator)>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
 ) {
-    for (mut animation, mut animation_state, animator) in query.iter_mut() {
+    for (mut animation, animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Hurt(hurt_animation)) = animation.as_mut() else {
             continue;
         };

@@ -9,14 +9,16 @@ use crate::{
 };
 
 use self::{
-    attack_animation::AttackAnimationPlugin, hurt_animation::HurtAnimationPlugin,
-    move_animation::MoveAnimationPlugin, projectile_animation::ProjectileAnimationPlugin,
+    attack_animation::AttackAnimationPlugin, death_animation::DeathAnimationPlugin,
+    hurt_animation::HurtAnimationPlugin, move_animation::MoveAnimationPlugin,
+    projectile_animation::ProjectileAnimationPlugin,
     spell_cast_animation::SpellCastAnimationPlugin, spell_hit_animation::SpellHitAnimationPlugin,
 };
 
 use super::pokemons::PokemonAnimationState;
 
 mod attack_animation;
+mod death_animation;
 mod hurt_animation;
 mod move_animation;
 mod projectile_animation;
@@ -37,6 +39,7 @@ impl Plugin for ActionAnimationPlugin {
                 ProjectileAnimationPlugin,
                 SpellCastAnimationPlugin,
                 SpellHitAnimationPlugin,
+                DeathAnimationPlugin,
             ))
             .configure_sets(
                 Update,
@@ -87,6 +90,7 @@ pub enum ActionAnimation {
     Move(move_animation::MoveAnimation),
     Attack,
     Hurt(hurt_animation::HurtAnimation),
+    Death(death_animation::DeathAnimation),
 }
 
 #[derive(Component)]
