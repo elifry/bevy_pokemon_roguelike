@@ -17,6 +17,7 @@ use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
 use crate::pokemons::Pokemon;
 use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
+use crate::stats::{Stat, Stats};
 use crate::{GamePlayingSet, GameState};
 
 pub struct PlayerPlugin;
@@ -67,7 +68,10 @@ fn spawn_player(mut commands: Commands) {
         Faction::Player,
         Player,
         Occupier,
-        Health { value: 10 },
+        // Stats {
+        //     health: Stat::new(10),
+        //     attack: Stat::
+        // },
         Actor,
         Piece {
             kind: PieceKind::Player,

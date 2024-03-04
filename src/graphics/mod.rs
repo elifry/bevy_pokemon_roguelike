@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use self::{
-    action_animations::ActionAnimationPlugin, animations::AnimationsPlugin, assets::AssetsPlugin,
-    pokemons::PokemonPlugin, tiles::TilesPlugin, ui::UIPlugin, visual_effects::VisualEffectsPlugin,
-    world_number::WorldNumberPlugin,
+    action_animations::ActionAnimationPlugin, animations::AnimationsPlugin,
+    assets::GraphicAssetsPlugin, pokemons::PokemonPlugin, tiles::TilesPlugin, ui::UIPlugin,
+    visual_effects::VisualEffectsPlugin, world_number::WorldNumberPlugin,
 };
 
 pub mod action_animations;
@@ -37,7 +37,7 @@ impl Plugin for GraphicsPlugin {
             ActionAnimationPlugin,
             TilesPlugin,
             PokemonPlugin,
-            AssetsPlugin,
+            GraphicAssetsPlugin,
             AnimationsPlugin,
             VisualEffectsPlugin,
             UIPlugin,

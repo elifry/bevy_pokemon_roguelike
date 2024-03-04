@@ -9,6 +9,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bitmap_font::BitmapFontPlugin;
 use camera::CameraPlugin;
 use char_animation::CharAnimationPlugin;
+use data::DataPlugin;
 use graphics::GraphicsPlugin;
 use test::TestPlugin;
 use ui::UIPlugin;
@@ -24,6 +25,7 @@ mod actions;
 mod ai;
 mod camera;
 mod constants;
+mod data;
 mod faction;
 mod graphics;
 mod ivec2;
@@ -33,6 +35,7 @@ mod pieces;
 mod player;
 mod pokemons;
 pub mod spells;
+mod stats;
 mod test;
 mod turn;
 mod ui;
@@ -105,6 +108,7 @@ impl Plugin for GamePlugin {
                 //Only for testing purposes
                 TestPlugin,
             ))
+            .add_plugins(DataPlugin)
             .add_systems(Update, update_ui_scale.run_if(in_state(GameState::Playing)));
 
         #[cfg(debug_assertions)]

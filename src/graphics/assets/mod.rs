@@ -19,9 +19,9 @@ use self::shadow_assets::ShadowAssetsPlugin;
 use self::ui_assets::UIAssetsPlugin;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
 
-pub struct AssetsPlugin;
+pub struct GraphicAssetsPlugin;
 
-impl Plugin for AssetsPlugin {
+impl Plugin for GraphicAssetsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             FontAssetsPlugin,

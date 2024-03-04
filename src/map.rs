@@ -73,7 +73,7 @@ impl GameMap {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Position(pub IVec2);
 
 #[derive(Component)]

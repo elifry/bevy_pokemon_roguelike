@@ -14,7 +14,7 @@ pub struct PieceDeathEvent {
     pub entity: Entity,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 // there can be only a single occupier piece on the same tile
 pub struct Occupier;
 
@@ -29,7 +29,7 @@ impl Health {
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Debug)]
 pub struct Actor;
 
 #[derive(Component)]
@@ -42,5 +42,5 @@ pub enum PieceKind {
     Npc,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct FacingOrientation(pub Orientation);
