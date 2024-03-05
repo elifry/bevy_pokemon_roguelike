@@ -13,7 +13,7 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
-use crate::data::assets::PokemonDataLookup;
+use crate::data::assets::pokemon_data::PokemonDataLookup;
 use crate::faction::Faction;
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
@@ -64,16 +64,18 @@ fn spawn_player(
     pokemon_data_lookup: Res<PokemonDataLookup>,
     mut commands: Commands,
 ) {
-    let pokemon_data = pokemon_data_lookup.0.get("charmander").unwrap();
+    let pokemon_id: u32 = 4;
+    let pokemon_data_handle = pokemon_data_lookup.0.get(&pokemon_id).unwrap();
+    let pokemon_data = pokemon_data_assets.get(pokemon_data_handle).unwrap();
 
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
         Pokemon {
-            id: 4,
-            name: "Charmander".to_string(),
+            id: pokemon_id,
+            name: pokemon_data.name.default_text.clone(),
         },
-        pokemon_data.clone(),
+        pokemon_data_handle.clone(),
         Faction::Player,
         Player,
         Occupier,
