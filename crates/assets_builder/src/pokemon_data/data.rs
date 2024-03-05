@@ -179,16 +179,23 @@ pub struct RawLocalTexts {
 
 impl RawLocalTexts {
     pub fn to_data(&self) -> pokemon_data::LocalTexts {
+        let format_str = |text: &Option<String>| {
+            if text.as_ref().map_or(true, |t| t.is_empty()) {
+                return None;
+            }
+            text.clone()
+        };
+
         pokemon_data::LocalTexts {
-            ja: self.ja.clone(),
-            ko: self.ko.clone(),
-            zh_hant: self.zh_hant.clone(),
-            fr: self.fr.clone(),
-            de: self.de.clone(),
-            es: self.es.clone(),
-            it: self.it.clone(),
-            ja_jp: self.ja_jp.clone(),
-            zh_hans: self.zh_hans.clone(),
+            ja: format_str(&self.ja),
+            ko: format_str(&self.ko),
+            zh_hant: format_str(&self.zh_hant),
+            fr: format_str(&self.fr),
+            de: format_str(&self.de),
+            es: format_str(&self.es),
+            it: format_str(&self.it),
+            ja_jp: format_str(&self.ja_jp),
+            zh_hans: format_str(&self.zh_hans),
         }
     }
 }
