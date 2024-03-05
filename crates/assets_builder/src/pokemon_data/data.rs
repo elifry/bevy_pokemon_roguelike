@@ -47,10 +47,10 @@ impl RawPokemonData {
 pub struct RawPokemonObject {
     #[serde(rename = "$type")]
     pub object_type: String,
-    pub name: RawName,
+    pub name: RawTextData,
     pub released: bool,
     pub comment: String,
-    pub title: RawName,
+    pub title: RawTextData,
     pub index_num: i64,
     #[serde(rename = "EXPTable")]
     pub exp_table: String,
@@ -86,7 +86,7 @@ pub struct PokemonRawForm {
     pub teach_skills: Vec<PokemonRawSkill>,
     pub shared_skills: Vec<PokemonRawSkill>,
     pub secret_skills: Vec<PokemonRawSkill>,
-    pub form_name: RawName,
+    pub form_name: RawTextData,
     pub temporary: bool,
     pub promote_form: i64,
     pub element1: String,
@@ -149,14 +149,14 @@ impl PokemonRawForm {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct RawName {
+pub struct RawTextData {
     pub default_text: String,
     pub local_texts: RawLocalTexts,
 }
 
-impl RawName {
-    pub fn to_data(&self) -> pokemon_data::Name {
-        pokemon_data::Name {
+impl RawTextData {
+    pub fn to_data(&self) -> pokemon_data::TextData {
+        pokemon_data::TextData {
             default_text: self.default_text.to_owned(),
             local_texts: self.local_texts.to_data(),
         }
