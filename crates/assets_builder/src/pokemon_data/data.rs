@@ -16,7 +16,6 @@ impl RawPokemonData {
     }
     pub fn to_data(&self) -> PokemonData {
         pokemon_data::PokemonData {
-            object_type: self.object.object_type.to_owned(),
             name: self.object.name.to_data(),
             released: self.object.released,
             comment: self.object.comment.to_owned(),
@@ -101,7 +100,6 @@ pub struct PokemonRawForm {
 impl PokemonRawForm {
     pub fn to_data(&self) -> pokemon_data::PokemonForm {
         pokemon_data::PokemonForm {
-            form_type: self.form_type.to_owned(),
             released: self.released,
             generation: self.generation,
             genderless_weight: self.genderless_weight,

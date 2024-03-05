@@ -1,11 +1,14 @@
+use std::{
+    fs::File,
+    io::{self, Write},
+};
+
 use common::{element::Element, map_status::MapStatus};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PokemonData {
-    #[serde(rename = "$type")]
-    pub object_type: String,
     pub name: Name,
     pub released: bool,
     pub comment: String,
@@ -25,12 +28,16 @@ impl PokemonData {
     //     let font_data: PokemonRawData = serde_json::from_reader(pokemon_data)?;
     //     Ok(font_data)
     // }
+
+    pub fn save(&self, file: &mut File) -> Result<(), io::Error> {
+        let buffer = ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
+        file.write_all(buffer.as_bytes())?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PokemonForm {
-    #[serde(rename = "$type")]
-    pub form_type: String,
     pub released: bool,
     pub generation: i64,
     pub genderless_weight: i64,
@@ -92,8 +99,6 @@ pub struct PokemonSkill {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PokemonDetail {
-    #[serde(rename = "$type")]
-    pub detail_type: String,
     pub level: i64,
 }
 
@@ -110,7 +115,6 @@ pub struct EvoItemMap {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "$type")]
 
 pub enum PromotionDetail {
     Level {

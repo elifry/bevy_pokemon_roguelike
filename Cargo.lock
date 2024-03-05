@@ -3481,6 +3481,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "common",
+ "ron",
  "serde",
  "strum",
  "thiserror",
