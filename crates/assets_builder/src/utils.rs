@@ -3,8 +3,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn list_png_files_in_folder(folder_path: &Path) -> std::io::Result<Vec<String>> {
-    let mut png_files = Vec::new();
+pub fn list_files_in_folder(
+    folder_path: &Path,
+    file_ext: Option<&str>,
+) -> std::io::Result<Vec<String>> {
+    let mut files = Vec::new();
 
     // Read the directory specified by folder_path
     let entries = fs::read_dir(folder_path)?;
@@ -14,15 +17,17 @@ pub fn list_png_files_in_folder(folder_path: &Path) -> std::io::Result<Vec<Strin
         let path = entry.path();
 
         // Check if the entry is a file and its extension is .png
-        if path.is_file() && path.extension().and_then(|ext| ext.to_str()) == Some("png") {
+        if path.is_file()
+            && (file_ext.is_none() || path.extension().and_then(|ext| ext.to_str()) == file_ext)
+        {
             // Convert the path to a string and add it to the vector
             if let Some(path_str) = path.to_str() {
-                png_files.push(path_str.to_string());
+                files.push(path_str.to_string());
             }
         }
     }
 
-    Ok(png_files)
+    Ok(files)
 }
 
 pub fn list_directories(path: &Path) -> io::Result<impl Iterator<Item = PathBuf>> {

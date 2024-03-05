@@ -17,7 +17,7 @@ use self::anim_data::{AnimData, AnimInfo};
 pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
     println!("Creating {output_filename}");
     let output_path = Path::new(output_filename);
-    fs::create_dir_all(output_path.parent().unwrap().to_str().unwrap()).unwrap();
+    fs::create_dir_all(output_path.parent().unwrap()).unwrap();
 
     let anim_data_path = source_directory.join("AnimData.xml");
     let anim_data_content = fs::read(anim_data_path).expect("Failed to read AnimData.xml");

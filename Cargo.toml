@@ -5,7 +5,13 @@ edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
 
 [workspace]
-members = ["crates/assets_builder", "crates/bitmap_font"]
+members = [
+  "crates/assets_builder",
+  "crates/bitmap_font",
+  "crates/common",
+  "crates/char_animation",
+  "crates/pokemon_data",
+]
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
@@ -21,6 +27,8 @@ opt-level = 3
 [dependencies]
 bitmap_font = { path = "crates/bitmap_font" }
 char_animation = { path = "crates/char_animation" }
+common = { path = "crates/common" }
+pokemon_data = { path = "crates/pokemon_data" }
 bevy = { version = "0.13.0", features = [
   "asset_processor",
   "basis-universal",

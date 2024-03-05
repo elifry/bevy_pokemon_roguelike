@@ -1,19 +1,41 @@
-mod bitmap_fonts;
-mod char_animations;
-pub mod utils;
-
-use std::{fs, path::Path};
+use clap::Parser;
+use std::path::Path;
 
 use bevy_math::UVec2;
-use char_animation::{anim_key::AnimKey, file::CharAnimationFile, CharAnimation};
+
+mod bitmap_fonts;
+mod char_animations;
+mod pokemon_data;
+pub mod utils;
 
 use crate::{
     bitmap_fonts::create_bitmap_font, char_animations::create_char_animation,
-    utils::list_directories,
+    pokemon_data::create_pokemon_data, utils::list_directories,
 };
 
 const FONT_RAW_FOLDER_PATH: &str = "raw_assets/fonts";
 const CHAR_ANIMATION_RAW_FOLDER_PATH: &str = "raw_assets/sprites";
+const POKEMON_DATA_RAW_FOLDER_PATH: &str = "raw_assets/data/pokemons";
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Build the char animations
+    #[arg(short, long, default_value_t = false)]
+    char_animation: bool,
+
+    /// Build the bitmap fonts
+    #[arg(short, long, default_value_t = false)]
+    bitmap_fonts: bool,
+
+    /// Build the pokemon data
+    #[arg(short, long, default_value_t = false)]
+    pokemon_data: bool,
+
+    /// Build all the assets
+    #[arg(short, long, default_value_t = false)]
+    all: bool,
+}
 
 fn main() {
     // println!("hello");
@@ -25,9 +47,24 @@ fn main() {
     //     .to_rgba8();
 
     // let _ = texture_buffer.save("test.png");
+    let args = Args::parse();
 
-    build_char_animations();
-    build_bitmap_fonts();
+    if args.pokemon_data || args.all {
+        build_pokemon_data();
+    }
+    if args.char_animation || args.all {
+        build_char_animations();
+    }
+    if args.bitmap_fonts || args.all {
+        build_bitmap_fonts();
+    }
+}
+
+fn build_pokemon_data() {
+    println!("Building pokemon data...");
+
+    let pokemon_raw_data_path = Path::new(POKEMON_DATA_RAW_FOLDER_PATH);
+    create_pokemon_data(pokemon_raw_data_path, "assets/data/pokemons");
 }
 
 fn build_char_animations() {
