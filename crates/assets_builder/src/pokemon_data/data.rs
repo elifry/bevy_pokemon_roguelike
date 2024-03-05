@@ -51,7 +51,7 @@ pub struct RawPokemonObject {
     pub released: bool,
     pub comment: String,
     pub title: RawTextData,
-    pub index_num: i64,
+    pub index_num: u32,
     #[serde(rename = "EXPTable")]
     pub exp_table: String,
     pub skill_group1: String,

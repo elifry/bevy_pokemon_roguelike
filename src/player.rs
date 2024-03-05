@@ -59,30 +59,14 @@ pub enum PlayerAction {
     SpellSlot4,
 }
 
-fn spawn_player(
-    pokemon_data_assets: Res<Assets<PokemonData>>,
-    pokemon_data_lookup: Res<PokemonDataLookup>,
-    mut commands: Commands,
-) {
-    let pokemon_id: u32 = 4;
-    let pokemon_data_handle = pokemon_data_lookup.0.get(&pokemon_id).unwrap();
-    let pokemon_data = pokemon_data_assets.get(pokemon_data_handle).unwrap();
-
+fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
-        Pokemon {
-            id: pokemon_id,
-            name: pokemon_data.name.default_text.clone(),
-        },
-        pokemon_data_handle.clone(),
+        Pokemon { id: 4 },
         Faction::Player,
         Player,
         Occupier,
-        // Stats {
-        //     health: Stat::new(10),
-        //     attack: Stat::
-        // },
         Actor,
         Piece {
             kind: PieceKind::Player,

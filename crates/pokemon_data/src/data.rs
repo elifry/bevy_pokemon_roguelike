@@ -14,7 +14,7 @@ pub struct PokemonData {
     pub released: bool,
     pub comment: String,
     pub title: TextData,
-    pub index_num: i64,
+    pub index_num: u32,
     pub exp_table: String,
     pub skill_group1: String,
     pub skill_group2: String,
