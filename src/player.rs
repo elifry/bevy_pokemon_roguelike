@@ -5,6 +5,7 @@ use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
 use leafwing_input_manager::{Actionlike, InputManagerBundle};
+use pokemon_data::PokemonData;
 
 use crate::actions::destroy_wall_action::DestroyWallAction;
 use crate::actions::melee_hit_action::MeleeHitAction;
@@ -12,6 +13,7 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
+use crate::data::assets::PokemonDataLookup;
 use crate::faction::Faction;
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
@@ -57,7 +59,13 @@ pub enum PlayerAction {
     SpellSlot4,
 }
 
-fn spawn_player(mut commands: Commands) {
+fn spawn_player(
+    pokemon_data_assets: Res<Assets<PokemonData>>,
+    pokemon_data_lookup: Res<PokemonDataLookup>,
+    mut commands: Commands,
+) {
+    let pokemon_data = pokemon_data_lookup.0.get("charmander").unwrap();
+
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
@@ -65,6 +73,7 @@ fn spawn_player(mut commands: Commands) {
             id: 4,
             name: "Charmander".to_string(),
         },
+        pokemon_data.clone(),
         Faction::Player,
         Player,
         Occupier,

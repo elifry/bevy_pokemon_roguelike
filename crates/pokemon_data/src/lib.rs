@@ -9,12 +9,21 @@ pub mod data;
 
 pub use data::*;
 
+pub struct PokemonDataPlugin;
+
+impl Plugin for PokemonDataPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_asset::<PokemonData>()
+            .init_asset_loader::<PokemonDataLoader>();
+    }
+}
+
 #[derive(Default)]
-pub struct CharAnimationLoader;
+pub struct PokemonDataLoader;
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum CharAnimationLoaderError {
+pub enum PokemonDataLoaderError {
     /// An [IO](std::io) Error
     #[error("Could not load asset: {0}")]
     Io(#[from] std::io::Error),
@@ -22,10 +31,10 @@ pub enum CharAnimationLoaderError {
     DecodeError(#[from] ron::Error),
 }
 
-impl AssetLoader for CharAnimationLoader {
+impl AssetLoader for PokemonDataLoader {
     type Asset = PokemonData;
     type Settings = ();
-    type Error = CharAnimationLoaderError;
+    type Error = PokemonDataLoaderError;
 
     fn load<'a>(
         &'a self,
