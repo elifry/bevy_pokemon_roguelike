@@ -4,7 +4,7 @@ use char_animation::orientation::Orientation;
 use crate::{
     faction::Faction,
     map::Position,
-    pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind},
+    pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind},
     pokemons::Pokemon,
 };
 
@@ -15,7 +15,6 @@ pub struct NPCBundle {
     actor: Actor,
     name: Name,
     pokemon: Pokemon,
-    health: Health,
     ai: AI,
     possible_actions: PossibleActions,
     occupier: Occupier,
@@ -30,8 +29,10 @@ impl Default for NPCBundle {
         Self {
             actor: Actor,
             name: Name::new("NPC"),
-            pokemon: Pokemon { id: 1 },
-            health: Health { value: 1 },
+            pokemon: Pokemon {
+                id: 1,
+                form_index: 0,
+            },
             ai: AI,
             possible_actions: PossibleActions::default(),
             occupier: Occupier,

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::pieces::Health;
+use crate::stats::{Health, Stats};
 
 use super::Action;
 
@@ -30,7 +30,7 @@ impl Action for DeathAction {
     fn can_execute(&self, world: &mut World) -> bool {
         return world
             .get::<Health>(self.target)
-            .map(|health| health.is_dead())
+            .map(|health: &Health| health.is_dead())
             .unwrap_or(false);
     }
 }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{ivec2::IVec2Ext, map::Position, pieces::Health};
+use crate::{ivec2::IVec2Ext, map::Position, stats::Stats};
 
 use super::{damage_action::DamageAction, orient_entity, Action};
 
@@ -18,7 +18,7 @@ impl Action for MeleeHitAction {
         };
 
         let target_entities = world
-            .query_filtered::<(Entity, &Position), With<Health>>()
+            .query_filtered::<(Entity, &Position), With<Stats>>()
             .iter(world)
             .filter(|(_, p)| p.0 == self.target)
             .collect::<Vec<_>>();
@@ -60,7 +60,7 @@ impl Action for MeleeHitAction {
         };
 
         let target_entities = world
-            .query_filtered::<(Entity, &Position), With<Health>>()
+            .query_filtered::<(Entity, &Position), With<Stats>>()
             .iter(world)
             .filter(|(_, p)| p.0 == self.target)
             .collect::<Vec<_>>();

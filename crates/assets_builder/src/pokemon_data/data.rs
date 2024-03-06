@@ -56,7 +56,7 @@ pub struct RawPokemonObject {
     pub exp_table: String,
     pub skill_group1: String,
     pub skill_group2: String,
-    pub join_rate: i64,
+    pub join_rate: i32,
     pub promote_from: String,
     pub promotions: Vec<RawPromotion>,
     pub forms: Vec<PokemonRawForm>,
@@ -68,27 +68,27 @@ pub struct PokemonRawForm {
     #[serde(rename = "$type")]
     pub form_type: String,
     pub released: bool,
-    pub generation: i64,
-    pub genderless_weight: i64,
-    pub male_weight: i64,
-    pub female_weight: i64,
+    pub generation: i32,
+    pub genderless_weight: i32,
+    pub male_weight: i32,
+    pub female_weight: i32,
     #[serde(rename = "BaseHP")]
-    pub base_hp: i64,
-    pub base_atk: i64,
-    pub base_def: i64,
-    pub base_m_atk: i64,
-    pub base_m_def: i64,
-    pub base_speed: i64,
-    pub exp_yield: i64,
+    pub base_hp: i32,
+    pub base_atk: i32,
+    pub base_def: i32,
+    pub base_m_atk: i32,
+    pub base_m_def: i32,
+    pub base_speed: i32,
+    pub exp_yield: i32,
     pub height: f64,
     pub weight: f64,
-    pub personalities: Vec<i64>,
+    pub personalities: Vec<i32>,
     pub teach_skills: Vec<PokemonRawSkill>,
     pub shared_skills: Vec<PokemonRawSkill>,
     pub secret_skills: Vec<PokemonRawSkill>,
     pub form_name: RawTextData,
     pub temporary: bool,
-    pub promote_form: i64,
+    pub promote_form: i32,
     pub element1: String,
     pub element2: String,
     pub intrinsic1: String,
@@ -203,7 +203,7 @@ impl RawLocalTexts {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PokemonRawLevelSkill {
-    pub level: i64,
+    pub level: i32,
     pub skill: String,
 }
 
@@ -235,7 +235,7 @@ impl PokemonRawSkill {
 pub struct RawPokemonDetail {
     #[serde(rename = "$type")]
     pub detail_type: String,
-    pub level: i64,
+    pub level: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

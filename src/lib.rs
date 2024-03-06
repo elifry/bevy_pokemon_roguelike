@@ -13,6 +13,7 @@ use data::DataPlugin;
 use graphics::GraphicsPlugin;
 use loading::LoadingPlugin;
 use pokemon_data::PokemonDataPlugin;
+use stats::StatsPlugin;
 use test::TestPlugin;
 use ui::UIPlugin;
 use visual_effects::VisualEffectsPlugin;
@@ -111,7 +112,7 @@ impl Plugin for GamePlugin {
                 //Only for testing purposes
                 TestPlugin,
             ))
-            .add_plugins((DataPlugin, LoadingPlugin, UIPlugin))
+            .add_plugins((StatsPlugin, DataPlugin, LoadingPlugin, UIPlugin))
             .add_systems(Update, update_ui_scale.run_if(in_state(GameState::Playing)));
 
         #[cfg(debug_assertions)]

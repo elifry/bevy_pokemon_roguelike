@@ -4,8 +4,9 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{ActionQueue, NextActions, ProcessingActionEvent, QueuedAction},
-    pieces::{Actor, Health},
+    pieces::Actor,
     player::{Player, PlayerActionEvent},
+    stats::{Health, Stats},
     GamePlayingSet,
 };
 
@@ -74,7 +75,7 @@ pub fn turn_system(
 
 fn handle_actor_death(
     mut actor_queue: ResMut<TurnOrder>,
-    query_health: Query<(Entity, &Health)>,
+    query_stats: Query<(Entity, &Health)>,
     mut commands: Commands,
     mut ev_processing_action: EventReader<ProcessingActionEvent>,
 ) {
@@ -83,7 +84,7 @@ fn handle_actor_death(
         return;
     }
 
-    for (entity, health) in query_health.iter() {
+    for (entity, health) in query_stats.iter() {
         if !health.is_dead() {
             continue;
         }

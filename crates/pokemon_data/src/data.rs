@@ -18,7 +18,7 @@ pub struct PokemonData {
     pub exp_table: String,
     pub skill_group1: String,
     pub skill_group2: String,
-    pub join_rate: i64,
+    pub join_rate: i32,
     pub promote_from: String,
     pub promotions: Vec<Promotion>,
     pub forms: Vec<PokemonForm>,
@@ -40,26 +40,26 @@ impl PokemonData {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PokemonForm {
     pub released: bool,
-    pub generation: i64,
-    pub genderless_weight: i64,
-    pub male_weight: i64,
-    pub female_weight: i64,
-    pub base_hp: i64,
-    pub base_atk: i64,
-    pub base_def: i64,
-    pub base_m_atk: i64,
-    pub base_m_def: i64,
-    pub base_speed: i64,
-    pub exp_yield: i64,
+    pub generation: i32,
+    pub genderless_weight: i32,
+    pub male_weight: i32,
+    pub female_weight: i32,
+    pub base_hp: i32,
+    pub base_atk: i32,
+    pub base_def: i32,
+    pub base_m_atk: i32,
+    pub base_m_def: i32,
+    pub base_speed: i32,
+    pub exp_yield: i32,
     pub height: f64,
     pub weight: f64,
-    pub personalities: Vec<i64>,
+    pub personalities: Vec<i32>,
     pub teach_skills: Vec<PokemonSkill>,
     pub shared_skills: Vec<PokemonSkill>,
     pub secret_skills: Vec<PokemonSkill>,
     pub form_name: TextData,
     pub temporary: bool,
-    pub promote_form: i64,
+    pub promote_form: i32,
     pub element1: String,
     pub element2: String,
     pub intrinsic1: String,
@@ -89,7 +89,7 @@ pub struct LocalTexts {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PokemonLevelSkill {
-    pub level: i64,
+    pub level: i32,
     pub skill: String,
 }
 
@@ -100,7 +100,7 @@ pub struct PokemonSkill {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PokemonDetail {
-    pub level: i64,
+    pub level: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

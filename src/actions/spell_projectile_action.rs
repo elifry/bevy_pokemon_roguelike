@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
-    pieces::Health,
     spells::{ProjectileSpell, Spell},
+    stats::Stats,
 };
 
 use super::{spell_hit_action::SpellHitAction, Action};
@@ -23,7 +23,7 @@ impl Action for SpellProjectileAction {
         };
 
         let target_entities = world
-            .query_filtered::<(Entity, &Position), With<Health>>()
+            .query_filtered::<(Entity, &Position), With<Stats>>()
             .iter(world)
             .filter(|(_, p)| p.0 == self.target)
             .collect::<Vec<_>>();

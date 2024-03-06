@@ -3,8 +3,9 @@ use bevy::prelude::*;
 use crate::{
     ivec2::OrientationExt,
     map::Position,
-    pieces::{FacingOrientation, Health},
+    pieces::FacingOrientation,
     spells::{Spell, SpellType},
+    stats::Stats,
 };
 
 use super::{orient_entity, spell_projectile_action::SpellProjectileAction, Action};
@@ -43,7 +44,7 @@ impl Action for SpellAction {
             let test_position = direction_vector * i + position_vector;
 
             let targetable_entities = world
-                .query_filtered::<(Entity, &Position), With<Health>>()
+                .query_filtered::<(Entity, &Position), With<Stats>>()
                 .iter(world)
                 .filter(|(_, p)| p.0 == test_position)
                 .collect::<Vec<_>>();

@@ -5,7 +5,6 @@ use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
 use leafwing_input_manager::{Actionlike, InputManagerBundle};
-use pokemon_data::PokemonData;
 
 use crate::actions::destroy_wall_action::DestroyWallAction;
 use crate::actions::melee_hit_action::MeleeHitAction;
@@ -13,13 +12,11 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
-use crate::data::assets::pokemon_data::PokemonDataLookup;
 use crate::faction::Faction;
 use crate::map::Position;
-use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
+use crate::pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind};
 use crate::pokemons::Pokemon;
 use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
-use crate::stats::{Stat, Stats};
 use crate::{GamePlayingSet, GameState};
 
 pub struct PlayerPlugin;
@@ -63,7 +60,10 @@ fn spawn_player(mut commands: Commands) {
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
-        Pokemon { id: 4 },
+        Pokemon {
+            id: 4,
+            form_index: 0,
+        },
         Faction::Player,
         Player,
         Occupier,
