@@ -1,8 +1,20 @@
+use bevy::reflect::Reflect;
 use serde::{Deserialize, Serialize};
 use strum::{Display, IntoStaticStr};
 
 #[derive(
-    Debug, IntoStaticStr, Default, Display, Deserialize, Serialize, Eq, PartialEq, Hash, Clone, Copy,
+    Debug,
+    Reflect,
+    IntoStaticStr,
+    Default,
+    Display,
+    Deserialize,
+    Serialize,
+    Eq,
+    PartialEq,
+    Hash,
+    Clone,
+    Copy,
 )]
 pub enum AnimKey {
     Walk,

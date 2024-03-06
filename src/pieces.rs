@@ -5,7 +5,8 @@ pub struct PiecesPlugin;
 
 impl Plugin for PiecesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PieceDeathEvent>();
+        app.register_type::<FacingOrientation>()
+            .add_event::<PieceDeathEvent>();
     }
 }
 
@@ -31,5 +32,5 @@ pub enum PieceKind {
     Npc,
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect)]
 pub struct FacingOrientation(pub Orientation);
