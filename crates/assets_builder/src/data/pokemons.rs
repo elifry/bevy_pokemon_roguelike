@@ -3,9 +3,7 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::Path;
 
-use self::data::RawPokemonData;
-
-mod data;
+use super::pokemon_data::RawPokemonData;
 
 pub fn create_pokemon_data(source_directory: &Path, output_directory: &str) {
     let output_directory = Path::new(output_directory);

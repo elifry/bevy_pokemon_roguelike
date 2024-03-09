@@ -62,11 +62,11 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Run Assets Builder: Pokemon Data'",
+      "name": "Run Assets Builder: Spell Data'",
       "cargo": {
         "args": ["build", "--bin=assets_builder", "--package=assets_builder"]
       },
-      "args": ["--pokemon-data"],
+      "args": ["--spell-data"],
       "cwd": "${workspaceFolder}",
       "env": {
         "CARGO_MANIFEST_DIR": "${workspaceFolder}",

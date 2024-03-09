@@ -5,17 +5,20 @@ use bevy_math::UVec2;
 
 mod bitmap_fonts;
 mod char_animations;
-mod pokemon_data;
+mod data;
 pub mod utils;
 
 use crate::{
-    bitmap_fonts::create_bitmap_font, char_animations::create_char_animation,
-    pokemon_data::create_pokemon_data, utils::list_directories,
+    bitmap_fonts::create_bitmap_font,
+    char_animations::create_char_animation,
+    data::{create_pokemon_data, spells::create_spell_data},
+    utils::list_directories,
 };
 
 const FONT_RAW_FOLDER_PATH: &str = "raw_assets/fonts";
 const CHAR_ANIMATION_RAW_FOLDER_PATH: &str = "raw_assets/sprites";
 const POKEMON_DATA_RAW_FOLDER_PATH: &str = "raw_assets/data/pokemons";
+const SPELL_DATA_RAW_FOLDER_PATH: &str = "raw_assets/data/spells";
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -31,6 +34,10 @@ struct Args {
     /// Build the pokemon data
     #[arg(short, long, default_value_t = false)]
     pokemon_data: bool,
+
+    /// Build the spell data
+    #[arg(short, long, default_value_t = false)]
+    spell_data: bool,
 
     /// Build all the assets
     #[arg(short, long, default_value_t = false)]
@@ -52,6 +59,9 @@ fn main() {
     if args.pokemon_data || args.all {
         build_pokemon_data();
     }
+    if args.spell_data || args.all {
+        build_spell_data();
+    }
     if args.char_animation || args.all {
         build_char_animations();
     }
@@ -65,6 +75,13 @@ fn build_pokemon_data() {
 
     let pokemon_raw_data_path = Path::new(POKEMON_DATA_RAW_FOLDER_PATH);
     create_pokemon_data(pokemon_raw_data_path, "assets/data/pokemons");
+}
+
+fn build_spell_data() {
+    println!("Building spell data...");
+
+    let pokemon_raw_data_path = Path::new(SPELL_DATA_RAW_FOLDER_PATH);
+    create_spell_data(pokemon_raw_data_path, "assets/data/spells");
 }
 
 fn build_char_animations() {

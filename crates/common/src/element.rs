@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum Element {
-    #[serde(rename = "rain")]
     None,
-    #[serde(rename = "sun")]
+    #[serde(rename = "bug")]
     Bug,
     #[serde(rename = "dark")]
     Dark,
