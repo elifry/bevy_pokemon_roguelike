@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{ivec2::IVec2Ext, map::Position, pieces::Health};
+use crate::{
+    ivec2::IVec2Ext,
+    map::Position,
+    stats::{Health, Stats},
+};
 
 use super::{damage_action::DamageAction, orient_entity, Action};
 

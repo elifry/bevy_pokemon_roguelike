@@ -28,7 +28,8 @@ pub struct PokemonPlugin;
 // TODO: Create plugin for sub systems
 impl Plugin for PokemonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AnimatorUpdatedEvent>()
+        app.register_type::<PokemonAnimationState>()
+            .add_event::<AnimatorUpdatedEvent>()
             .add_systems(
                 Update,
                 (spawn_pokemon_renderer, spawn_shadow_renderer)
@@ -61,7 +62,7 @@ impl Plugin for PokemonPlugin {
 #[derive(Event, Debug)]
 pub struct AnimatorUpdatedEvent(pub Entity);
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Reflect)]
 pub struct PokemonAnimationState(pub AnimKey);
 
 #[allow(clippy::type_complexity)]

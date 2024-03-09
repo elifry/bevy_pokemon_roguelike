@@ -3,8 +3,9 @@ use bevy::prelude::*;
 use crate::{
     ivec2::OrientationExt,
     map::Position,
-    pieces::{FacingOrientation, Health},
+    pieces::FacingOrientation,
     spells::{Spell, SpellType},
+    stats::{Health, Stats},
 };
 
 use super::{orient_entity, spell_projectile_action::SpellProjectileAction, Action};

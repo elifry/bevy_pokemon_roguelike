@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
-    pieces::Health,
     spells::{ProjectileSpell, Spell},
+    stats::{Health, Stats},
 };
 
 use super::{spell_hit_action::SpellHitAction, Action};

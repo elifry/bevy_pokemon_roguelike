@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
+use crate::loading::AssetsLoading;
 use crate::GameState;
 use bevy::asset::LoadedFolder;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use char_animation::CharAnimation;
-
-use super::AssetsLoading;
 
 const CHAR_ANIMATION_FOLDER: &str = "chara";
 

@@ -5,12 +5,12 @@ use std::{
     collections::HashMap,
     fs::{self, File},
     io::Cursor,
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use crunch::{Item, PackedItem, Rect, Rotation};
 
-use crate::{bitmap_fonts::font_data::FontData, utils::list_png_files_in_folder};
+use crate::{bitmap_fonts::font_data::FontData, utils::list_files_in_folder};
 
 mod font_data;
 
@@ -22,7 +22,7 @@ pub struct TextureAtlasEntry<T> {
 
 pub fn create_bitmap_font(source_directory: &Path, output_filename: &str, atlas_size: UVec2) {
     println!("Start packing font {}", output_filename);
-    let font_texture_files = list_png_files_in_folder(source_directory)
+    let font_texture_files = list_files_in_folder(source_directory, Some("png"))
         .unwrap_or_else(|_| panic!("Unable to list texture files in {:?}", source_directory));
 
     let font_data_path = source_directory.join("FontData.xml");

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     actions::{spell_hit_action::SpellHitAction, RunningAction},
-    graphics::animations::Animator,
+    graphics::{animations::Animator, pokemons::offsets::PokemonBodyOffset},
     visual_effects::VisualEffect,
 };
 
@@ -34,6 +34,8 @@ pub struct SpellHitAnimation {
 
 fn init_spell_hit_animation(
     query: Query<(Entity, &RunningAction), Added<RunningAction>>,
+    query_children: Query<(&Children)>,
+    query_body_offset: Query<Entity, With<PokemonBodyOffset>>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut commands: Commands,
 ) {
@@ -45,8 +47,16 @@ fn init_spell_hit_animation(
 
         ev_animation_playing.send(ActionAnimationPlayingEvent);
 
+        let target_children = query_children.get(spell_hit_action.target).unwrap();
+
+        let target_entity_hist_effect = target_children
+            .iter()
+            .filter_map(|&child| query_body_offset.get(child).ok())
+            .next()
+            .unwrap_or(spell_hit_action.target);
+
         commands
-            .entity(spell_hit_action.target)
+            .entity(target_entity_hist_effect)
             .with_children(|parent| {
                 parent.spawn((
                     Name::new(spell_hit_action.hit.visual_effect.to_string()),
@@ -55,7 +65,7 @@ fn init_spell_hit_animation(
                         is_loop: false,
                     },
                     SpatialBundle {
-                        // TODO: target the correct part of the pokemon
+                        // TODO: forward a locheight propertie in the VFX to replace the 15
                         transform: Transform::from_translation(Vec3::new(0., 15., 0.)),
                         ..default()
                     },

@@ -14,7 +14,7 @@ use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
 use crate::faction::Faction;
 use crate::map::Position;
-use crate::pieces::{Actor, FacingOrientation, Health, Occupier, Piece, PieceKind};
+use crate::pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind};
 use crate::pokemons::Pokemon;
 use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
 use crate::{GamePlayingSet, GameState};
@@ -62,12 +62,11 @@ fn spawn_player(mut commands: Commands) {
         FacingOrientation(Orientation::South),
         Pokemon {
             id: 4,
-            name: "Charmander".to_string(),
+            form_index: 0,
         },
         Faction::Player,
         Player,
         Occupier,
-        Health { value: 10 },
         Actor,
         Piece {
             kind: PieceKind::Player,

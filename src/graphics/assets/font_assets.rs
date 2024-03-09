@@ -1,8 +1,6 @@
-use crate::GameState;
+use crate::{loading::AssetsLoading, GameState};
 use bevy::prelude::*;
 use bitmap_font::fonts::BitmapFont;
-
-use super::AssetsLoading;
 
 const FONTS_PATH: &str = "fonts";
 

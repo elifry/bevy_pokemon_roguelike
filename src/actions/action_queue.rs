@@ -4,7 +4,7 @@ use bevy::{prelude::*, utils::info};
 
 use crate::{
     actions::{ActionExecutedEvent, RunningAction},
-    pieces::Health,
+    stats::Health,
 };
 
 use super::{Action, ProcessingActionEvent};

@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 use bevy_asset_loader::prelude::*;
 
+use crate::loading::AssetsLoading;
 use crate::GameState;
 
 pub mod binary_data;
@@ -19,9 +20,9 @@ use self::shadow_assets::ShadowAssetsPlugin;
 use self::ui_assets::UIAssetsPlugin;
 use self::visual_effect_assets::VisualEffectAssetsPlugin;
 
-pub struct AssetsPlugin;
+pub struct GraphicAssetsPlugin;
 
-impl Plugin for AssetsPlugin {
+impl Plugin for GraphicAssetsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             FontAssetsPlugin,
@@ -31,18 +32,9 @@ impl Plugin for AssetsPlugin {
             PokemonCharaAssetsPlugin,
             ShadowAssetsPlugin,
         ))
-        .init_collection::<TileAssets>()
-        .init_resource::<AssetsLoading>()
-        .add_systems(OnEnter(GameState::Initializing), set_playing)
-        .add_systems(
-            Update,
-            check_assets_loading.run_if(in_state(GameState::Loading)),
-        );
+        .init_collection::<TileAssets>();
     }
 }
-
-#[derive(Resource, Default)]
-struct AssetsLoading(Vec<UntypedHandle>);
 
 // TODO: handle tile map loading in a separated plugin
 #[derive(AssetCollection, Resource)]
@@ -64,38 +56,4 @@ pub struct TileAssets {
 
     #[asset(path = "tiles/amp_plains_tiles.png")]
     pub amp_plains_texture: Handle<Image>,
-}
-
-fn set_playing(mut next_state: ResMut<NextState<GameState>>) {
-    next_state.set(GameState::Playing);
-}
-
-fn check_assets_loading(
-    mut next_state: ResMut<NextState<GameState>>,
-    loading: Res<AssetsLoading>,
-    asset_server: Res<AssetServer>,
-    mut commands: Commands,
-) {
-    let mut is_loading: bool = false;
-
-    for asset in loading.0.iter() {
-        match asset_server.get_load_state(asset.id()) {
-            Some(LoadState::Loading) => {
-                is_loading = true;
-                break;
-            }
-            Some(LoadState::Failed) => {
-                error!("asset loading error");
-            }
-            _ => {}
-        }
-    }
-
-    if is_loading {
-        return;
-    }
-
-    info!("Assets loaded");
-    commands.remove_resource::<AssetsLoading>();
-    next_state.set(GameState::AssetsLoaded);
 }

@@ -9,7 +9,12 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bitmap_font::BitmapFontPlugin;
 use camera::CameraPlugin;
 use char_animation::CharAnimationPlugin;
+use data::DataPlugin;
 use graphics::GraphicsPlugin;
+use loading::LoadingPlugin;
+use pokemon_data::PokemonDataPlugin;
+use pokemons::PokemonsPlugin;
+use stats::StatsPlugin;
 use test::TestPlugin;
 use ui::UIPlugin;
 use visual_effects::VisualEffectsPlugin;
@@ -24,15 +29,18 @@ mod actions;
 mod ai;
 mod camera;
 mod constants;
+mod data;
 mod faction;
 mod graphics;
 mod ivec2;
+pub mod loading;
 mod map;
 mod menu;
 mod pieces;
 mod player;
 mod pokemons;
 pub mod spells;
+mod stats;
 mod test;
 mod turn;
 mod ui;
@@ -90,6 +98,7 @@ impl Plugin for GamePlugin {
                 // LoadingPlugin, // custom assets loading system can't use for now
                 BitmapFontPlugin,
                 CharAnimationPlugin,
+                PokemonDataPlugin,
                 EguiPlugin,
                 MenuPlugin,
                 MapPlugin,
@@ -101,9 +110,15 @@ impl Plugin for GamePlugin {
                 ActionsPlugin,
                 TurnPlugin,
                 VisualEffectsPlugin,
-                UIPlugin,
                 //Only for testing purposes
                 TestPlugin,
+            ))
+            .add_plugins((
+                StatsPlugin,
+                DataPlugin,
+                LoadingPlugin,
+                PokemonsPlugin,
+                UIPlugin,
             ))
             .add_systems(Update, update_ui_scale.run_if(in_state(GameState::Playing)));
 
