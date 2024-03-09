@@ -98,11 +98,7 @@ fn update_stats_system(
     }
 }
 
-fn add_health_system(
-    mut query: Query<(Entity, &Stats), Added<Stats>>,
-    pokemon_data: Res<Assets<PokemonData>>,
-    mut commands: Commands,
-) {
+fn add_health_system(mut query: Query<(Entity, &Stats), Added<Stats>>, mut commands: Commands) {
     for (entity, stats) in query.iter_mut() {
         commands.entity(entity).insert(Health {
             value: stats.health.value(),
