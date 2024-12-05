@@ -161,6 +161,16 @@ pub enum BaseEvent {
         trigger_msg: EventMsg,
         anims: Vec<Emitter>,
     },
+    #[serde(rename = "PMDC.Dungeon.StealItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    StealItem {
+        affect_target: bool,
+        silent_check: bool,
+        top_down: bool,
+        message: EventMsg,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
     #[serde(rename = "PMDC.Dungeon.StatusBattleEvent, PMDC")]
     #[serde(rename_all = "PascalCase")]
     StatusBattle {
@@ -228,6 +238,19 @@ pub enum BaseEvent {
     #[serde(rename_all = "PascalCase")]
     NatureElement {
         terrain_pair: HashMap<TerrainType, String>,
+    },
+    #[serde(rename = "PMDC.Dungeon.ChangeToAbilityEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ChangeToAbility {
+        target_ability: String,
+        affect_target: bool,
+        silent_check: bool,
+    },
+    #[serde(rename = "PMDC.Dungeon.SwapStatsEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    SwapStats {
+        #[serde(rename = "StatusIDs")]
+        status_ids: Vec<String>,
     },
 }
 
@@ -642,5 +665,53 @@ pub enum Emitter {
         total_time: i64,
         cycles: i64,
         frame_offset: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.SwingSwitchEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    SwingSwitch {
+        loc_height: i64,
+        #[serde(rename = "finished")]
+        finished: bool,
+        amount: i64,
+        stream_time: i64,
+        offset: i64,
+        anim: Anim,
+        rotation_time: i64,
+        axis_ratio: f64,
+        layer: usize,
+    },
+    #[serde(rename = "RogueEssence.Content.FiniteAreaEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    FiniteArea {
+        loc_height: i64,
+        anims: Vec<Emitter>,
+        range: i64,
+        speed: i64,
+        total_particles: i64,
+        layer: usize,
+    },
+    #[serde(rename = "RogueEssence.Content.StaticAreaEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    StaticArea {
+        loc_height: i64,
+        anims: Vec<Emitter>,
+        bursts: i64,
+        particles_per_burst: i64,
+        burst_time: i64,
+        range: i64,
+        layer: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.FiniteReleaseRangeEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    FiniteReleaseRange {
+        loc_height: i64,
+        range: i64,
+        anims: Vec<Emitter>,
+        speed: i64,
+        bursts: i64,
+        particles_per_burst: i64,
+        burst_time: i64,
+        start_distance: i64,
+        layer: i64,
     },
 }
