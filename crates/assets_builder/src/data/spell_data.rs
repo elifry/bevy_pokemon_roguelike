@@ -147,7 +147,7 @@ pub enum BaseEvent {
         states: Vec<EventState>,
         affect_target: bool,
         msg: EventMsg,
-        anims: Vec<Emitter>,
+        anims: Vec<AnimEvent>,
     },
     #[serde(rename = "PMDC.Dungeon.StatusStackBattleEvent, PMDC")]
     #[serde(rename_all = "PascalCase")]
@@ -159,7 +159,7 @@ pub enum BaseEvent {
         silent_check: bool,
         anonymous: bool,
         trigger_msg: EventMsg,
-        anims: Vec<Emitter>,
+        anims: Vec<AnimEvent>,
     },
     #[serde(rename = "PMDC.Dungeon.StealItemEvent, PMDC")]
     #[serde(rename_all = "PascalCase")]
@@ -180,7 +180,7 @@ pub enum BaseEvent {
         silent_check: bool,
         anonymous: bool,
         trigger_msg: EventMsg,
-        anims: Vec<Emitter>,
+        anims: Vec<AnimEvent>,
     },
     #[serde(rename = "PMDC.Dungeon.StatusStateBattleEvent, PMDC")]
     #[serde(rename_all = "PascalCase")]
@@ -192,7 +192,7 @@ pub enum BaseEvent {
         silent_check: bool,
         anonymous: bool,
         trigger_msg: EventMsg,
-        anims: Vec<Emitter>,
+        anims: Vec<AnimEvent>,
     },
     #[serde(rename = "PMDC.Dungeon.MirrorMoveEvent, PMDC")]
     #[serde(rename_all = "PascalCase")]
@@ -229,7 +229,7 @@ pub enum BaseEvent {
         silent_check: bool,
         anonymous: bool,
         trigger_msg: EventMsg,
-        anims: Vec<Emitter>,
+        anims: Vec<AnimEvent>,
     },
     #[serde(rename = "PMDC.Dungeon.AddElementEvent, PMDC")]
     #[serde(rename_all = "PascalCase")]
@@ -252,6 +252,320 @@ pub enum BaseEvent {
         #[serde(rename = "StatusIDs")]
         status_ids: Vec<String>,
     },
+    #[serde(rename = "PMDC.Dungeon.DestroyItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    DestroyItem {
+        top_down: bool,
+        held_only: bool,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
+    #[serde(rename = "PMDC.Dungeon.RemoveTrapEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RemoveTrap,
+    #[serde(rename = "PMDC.Dungeon.ThrowBackEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ThrowBack {
+        distance: i64,
+        hit_event: Box<BaseEvent>,
+    },
+    #[serde(rename = "PMDC.Dungeon.MaxHPDamageEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    MaxHPDamage {
+        #[serde(rename = "HPFraction")]
+        hp_fraction: i64,
+    },
+    #[serde(rename = "PMDC.Dungeon.KnockBackEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    KnockBack { distance: i64 },
+    #[serde(rename = "PMDC.Dungeon.ReflectStatsEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ReflectStats {
+        #[serde(rename = "StatusIDs")]
+        status_ids: Vec<String>,
+    },
+    #[serde(rename = "PMDC.Dungeon.TransferStatusEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    TransferStatus {
+        remove: bool,
+        major_status: bool,
+        minor_status: bool,
+        bad_status: bool,
+        good_status: bool,
+    },
+    #[serde(rename = "PMDC.Dungeon.ReflectAbilityEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ReflectAbility { affect_target: bool, msg: EventMsg },
+    #[serde(rename = "PMDC.Dungeon.RandomMoveEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RandomMove,
+    #[serde(rename = "PMDC.Dungeon.StrongestMoveEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    StrongestMove,
+    #[serde(rename = "PMDC.Dungeon.RemoveItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RemoveItem { blocked_by_terrain: bool },
+    #[serde(rename = "PMDC.Dungeon.AdditionalEndEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    AdditionalEnd { base_events: Vec<BaseEvent> },
+    #[serde(rename = "PMDC.Dungeon.InvokeCustomBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    InvokeCustomBattle {
+        hitbox_action: HitboxAction,
+        explosion: Explosion,
+        new_data: RawData,
+        msg: EventMsg,
+        affect_target: bool,
+    },
+    #[serde(rename = "PMDC.Dungeon.RestoreHPEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RestoreHP {
+        numerator: i32,
+        denominator: i32,
+        affect_target: bool,
+    },
+    #[serde(rename = "PMDC.Dungeon.EndeavorEvent, PMDC")]
+    Endeavor,
+    #[serde(rename = "PMDC.Dungeon.CutHPDamageEvent, PMDC")]
+    CutHPDamage,
+    #[serde(rename = "PMDC.Dungeon.LevelDamageEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    LevelDamage {
+        affect_target: bool,
+        numerator: i32,
+        denominator: i32,
+    },
+    #[serde(rename = "PMDC.Dungeon.NatureSpecialEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    NatureSpecial {
+        terrain_pair: HashMap<TerrainType, Box<BaseEvent>>,
+        nature_pair: HashMap<Element, Box<BaseEvent>>,
+    },
+    #[serde(rename = "PMDC.Dungeon.SwitcherEvent, PMDC")]
+    Switcher,
+    #[serde(rename = "PMDC.Dungeon.DisableBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    DisableBattle {
+        #[serde(rename = "LastSlotStatusID")]
+        last_slot_status_id: String,
+        random_fallback: bool,
+        #[serde(rename = "StatusID")]
+        status_id: String,
+        affect_target: bool,
+        silent_check: bool,
+        anonymous: bool,
+        trigger_msg: EventMsg,
+        anims: Vec<AnimEvent>,
+    },
+    #[serde(rename = "PMDC.Dungeon.MimicBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    MimicBattle {
+        #[serde(rename = "LastMoveStatusID")]
+        last_move_status_id: String,
+        new_move_charges: i32,
+    },
+    #[serde(rename = "PMDC.Dungeon.ItemRestoreEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ItemRestore {
+        held_only: bool,
+        item_index: String,
+        default_items: Vec<String>,
+        success_msg: EventMsg,
+    },
+    #[serde(rename = "PMDC.Dungeon.BasePowerDamageEvent, PMDC")]
+    BasePowerDamage,
+    #[serde(rename = "PMDC.Dungeon.FutureAttackEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    FutureAttack {
+        #[serde(rename = "StatusID")]
+        status_id: String,
+        affect_target: bool,
+        silent_check: bool,
+        anonymous: bool,
+        trigger_msg: EventMsg,
+        anims: Vec<AnimEvent>,
+    },
+    #[serde(rename = "PMDC.Dungeon.DropItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    DropItem {
+        message: EventMsg,
+        silent_check: bool,
+        top_down: bool,
+        held_only: bool,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
+    #[serde(rename = "PMDC.Dungeon.SpeedSwapEvent, PMDC")]
+    SpeedSwap,
+    #[serde(rename = "PMDC.Dungeon.UseFoeItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    UseFoeItem {
+        affect_target: bool,
+        silent_check: bool,
+        top_down: bool,
+        held_only: bool,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
+    #[serde(rename = "PMDC.Dungeon.WeatherStackEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    WeatherStack {
+        #[serde(rename = "WeatherID")]
+        weather_id: String,
+        #[serde(rename = "StatusID")]
+        status_id: String,
+        affect_target: bool,
+        silent_check: bool,
+        anonymous: bool,
+        trigger_msg: EventMsg,
+        anims: Vec<AnimEvent>,
+    },
+    #[serde(rename = "PMDC.Dungeon.SketchBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    SketchBattle {
+        #[serde(rename = "LastMoveStatusID")]
+        last_move_status_id: String,
+    },
+    #[serde(rename = "PMDC.Dungeon.ChangeToElementEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ChangeToElement { target_element: String },
+    #[serde(rename = "PMDC.Dungeon.AffectHighestStatBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    AffectHighestStatBattle {
+        affect_target: bool,
+        atk_stat: String,
+        def_stat: String,
+        sp_atk_stat: String,
+        sp_def_stat: String,
+        anonymous: bool,
+        stack: i32,
+    },
+    #[serde(rename = "PMDC.Dungeon.RemoveStatusBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RemoveStatusBattle {
+        #[serde(rename = "StatusID")]
+        status_id: String,
+        affect_target: bool,
+    },
+    #[serde(rename = "PMDC.Dungeon.StatusHPBattleEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    StatusHPBattle {
+        #[serde(rename = "HPFraction")]
+        hp_fraction: i32,
+        #[serde(rename = "StatusID")]
+        status_id: String,
+        affect_target: bool,
+        silent_check: bool,
+        anonymous: bool,
+        trigger_msg: EventMsg,
+        anims: Vec<AnimEvent>,
+    },
+    #[serde(rename = "PMDC.Dungeon.ReflectElementEvent, PMDC")]
+    ReflectElement,
+    #[serde(rename = "PMDC.Dungeon.PainSplitEvent, PMDC")]
+    PainSplit,
+    #[serde(rename = "PMDC.Dungeon.SpiteEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    Spite {
+        #[serde(rename = "LastSlotStatusID")]
+        last_slot_status_id: String,
+        #[serde(rename = "PP")]
+        pp: i32,
+    },
+    #[serde(rename = "PMDC.Dungeon.OHKODamageEvent, PMDC")]
+    OHKODamage,
+    #[serde(rename = "PMDC.Dungeon.HopEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    Hop { distance: i32, reverse: bool },
+    #[serde(rename = "PMDC.Dungeon.RemoveTerrainEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RemoveTerrain {
+        tile_types: Vec<String>,
+        remove_sound: String,
+        remove_anim: Emitter,
+    },
+    #[serde(rename = "PMDC.Dungeon.SwitchHeldItemEvent, PMDC")]
+    SwitchHeldItem,
+    #[serde(rename = "PMDC.Dungeon.SetItemStickyEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    SetItemSticky {
+        sticky: bool,
+        top_down: bool,
+        held_only: bool,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
+    #[serde(rename = "PMDC.Dungeon.PowerTrickEvent, PMDC")]
+    PowerTrick,
+    #[serde(rename = "PMDC.Dungeon.BegItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    BegItem {
+        top_down: bool,
+        held_only: bool,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
+    #[serde(rename = "PMDC.Dungeon.RestEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    Rest {
+        #[serde(rename = "SleepID")]
+        sleep_id: String,
+    },
+    #[serde(rename = "PMDC.Dungeon.WarpAlliesInEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    WarpAlliesIn {
+        distance: i64,
+        amount: i64,
+        farthest_first: bool,
+        silent_fail: bool,
+        msg: EventMsg,
+    },
+    #[serde(rename = "PMDC.Dungeon.RandomGroupWarpEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RandomGroupWarp { distance: i64, affect_target: bool },
+    #[serde(rename = "PMDC.Dungeon.StatSplitEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    StatSplit { attack_stats: bool },
+    #[serde(rename = "PMDC.Dungeon.KnockMoneyEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    KnockMoney { multiplier: i64 },
+    #[serde(rename = "PMDC.Dungeon.TransformEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    Transform {
+        affect_target: bool,
+        #[serde(rename = "StatusID")]
+        status_id: String,
+        transform_charges: i64,
+    },
+    #[serde(rename = "PMDC.Dungeon.PsywaveDamageEvent, PMDC")]
+    PsywaveDamage,
+    #[serde(rename = "PMDC.Dungeon.KnockItemEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    KnockItem {
+        top_down: bool,
+        held_only: bool,
+        priority_item: String,
+        states: Vec<EventState>,
+    },
+    #[serde(rename = "PMDC.Dungeon.UserHPDamageEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    UserHPDamage { reverse: bool },
+    #[serde(rename = "PMDC.Dungeon.BestowItemEvent, PMDC")]
+    BestowItem,
+    #[serde(rename = "PMDC.Dungeon.ShatterTerrainEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    ShatterTerrain { tile_types: Vec<String> },
+    #[serde(rename = "PMDC.Dungeon.GroupEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    Group { base_events: Vec<BaseEvent> },
+    #[serde(rename = "PMDC.Dungeon.RemoveAbilityEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RemoveAbility { target_ability: String },
+    #[serde(rename = "PMDC.Dungeon.RemoveElementEvent, PMDC")]
+    #[serde(rename_all = "PascalCase")]
+    RemoveElement { target_element: String },
+    #[serde(rename = "PMDC.Dungeon.SwapAbilityEvent, PMDC")]
+    SwapAbility,
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone, Copy)]
@@ -266,13 +580,31 @@ pub enum TerrainType {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WeatherPair {
-    pub grassy_terrain: bool,
+    #[serde(default)]
+    pub grassy_terrain: Option<bool>,
+    #[serde(default)]
+    pub sunny: Option<bool>,
+    #[serde(default)]
+    pub rain: Option<bool>,
+    #[serde(default)]
+    pub sandstorm: Option<bool>,
+    #[serde(default)]
+    pub hail: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct EventMsg {
     pub key: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct AnimEvent {
+    pub emitter: Emitter,
+    pub sound: String,
+    pub affect_target: bool,
+    pub delay: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -295,6 +627,12 @@ pub enum EventState {
     CountDown { counter: i32 },
     #[serde(rename = "PMDC.Dungeon.BadStatusState")]
     BadStatus,
+    #[serde(rename = "PMDC.Dungeon.EdibleState")]
+    Edible,
+    #[serde(rename = "PMDC.Dungeon.ExtendWeatherState")]
+    ExtendWeather,
+    #[serde(rename = "PMDC.Dungeon.MajorStatusState")]
+    MajorStatus,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -709,6 +1047,115 @@ pub enum Emitter {
         anims: Vec<Emitter>,
         speed: i64,
         bursts: i64,
+        particles_per_burst: i64,
+        burst_time: i64,
+        start_distance: i64,
+        layer: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.AttachAreaEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    AttachArea {
+        anims: Vec<Emitter>,
+        range: i64,
+        particles_per_burst: i64,
+        add_height: i64,
+        burst_time: i64,
+        layer: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.ColumnAnim, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    Column {
+        anim: Anim,
+        total_time: i32,
+        cycles: i32,
+    },
+    #[serde(rename = "RogueEssence.Content.FiniteGatherEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    FiniteGather {
+        loc_height: i64,
+        anims: Vec<Anim>,
+        use_dest: bool,
+        travel_time: i64,
+        bursts: i64,
+        particles_per_burst: i64,
+        burst_time: i64,
+        start_distance: i64,
+        end_distance: i64,
+        start_variance: i64,
+        layer: i64,
+        cycles: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.SqueezedAreaEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    SqueezedArea {
+        loc_height: i64,
+        anims: Vec<Emitter>,
+        bursts: i64,
+        particles_per_burst: i64,
+        burst_time: i64,
+        range: i64,
+        height_speed: i64,
+        speed_diff: i64,
+        start_height: i64,
+        height_diff: i64,
+        layer: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.FiniteSprinkleEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    FiniteSprinkle {
+        loc_height: i64,
+        anims: Vec<Emitter>,
+        range: i64,
+        speed: i64,
+        total_particles: i64,
+        height_speed: i64,
+        speed_diff: i64,
+        start_height: i64,
+        layer: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.AfterImageEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    AfterImage {
+        anim_time: i32,
+        burst_time: i32,
+        alpha: i32,
+        alpha_speed: i32,
+    },
+    #[serde(rename = "RogueEssence.Content.ClampEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    Clamp {
+        loc_height: i64,
+        #[serde(rename = "finished")]
+        finished: bool,
+        anim1: Anim,
+        anim2: Anim,
+        offset: i64,
+        half_offset: Offset,
+        half_height: i64,
+        linger_start: i64,
+        move_time: i64,
+        linger_end: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.VortexEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    Vortex {
+        loc_height: i64,
+        anims: Vec<Anim>,
+        bursts: i64,
+        particles_per_burst: i64,
+        burst_time: i64,
+        range: i64,
+        start_height: i64,
+        end_height: i64,
+        height_speed: i64,
+        cycle_speed: i64,
+    },
+    #[serde(rename = "RogueEssence.Content.AttachReleaseRangeEmitter, RogueEssence")]
+    #[serde(rename_all = "PascalCase")]
+    AttachReleaseRange {
+        range: i64,
+        anims: Vec<Emitter>,
+        speed: i64,
         particles_per_burst: i64,
         burst_time: i64,
         start_distance: i64,
