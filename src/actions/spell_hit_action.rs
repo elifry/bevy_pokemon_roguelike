@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{spells::SpellHit};
+use crate::spells::SpellHit;
 
 use super::{damage_action::DamageAction, Action};
 
