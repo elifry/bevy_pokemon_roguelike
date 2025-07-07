@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# Directory containing your PNG images
-PNG_DIR="/Users/amaurycivier/dev/bevy_pokemon_roguelike/assets/visual_effects"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Output directory for KTX2 files
-KTX2_DIR="/Users/amaurycivier/dev/bevy_pokemon_roguelike/assets/visual_effects_ktx2"
+# Directory containing your PNG images (relative to script location)
+PNG_DIR="$SCRIPT_DIR/../assets/visual_effects"
+
+# Output directory for KTX2 files (relative to script location)
+KTX2_DIR="$SCRIPT_DIR/../assets/visual_effects_ktx2"
 
 # Create the output directory if it doesn't exist
 mkdir -p "$KTX2_DIR"
