@@ -70,7 +70,7 @@ fn init_spell_cast_animation(
             .with_children(|parent| {
                 // Visual Effect
                 parent.spawn((
-                    Name::new(spell_action.spell.cast.visual_effect.to_string()),
+                    Name::new(spell_action.spell.cast.visual_effect),
                     VisualEffect {
                         name: spell_action.spell.cast.visual_effect,
                         is_loop: false,

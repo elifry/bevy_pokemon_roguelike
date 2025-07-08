@@ -38,6 +38,7 @@ impl Action for MeleeHitAction {
                     attacker: self.attacker,
                     target: target.0,
                     value: self.damage,
+                    move_type: None,
                 }) as Box<dyn Action>
             })
             .collect::<Vec<_>>();
