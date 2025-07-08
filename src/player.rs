@@ -5,6 +5,7 @@ use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
 use leafwing_input_manager::{Actionlike, InputManagerBundle};
+use rand::Rng;
 
 use crate::actions::destroy_wall_action::DestroyWallAction;
 use crate::actions::melee_hit_action::MeleeHitAction;
@@ -56,12 +57,28 @@ pub enum PlayerAction {
     SpellSlot4,
 }
 
-fn spawn_player(mut commands: Commands) {
+fn spawn_player(
+    mut commands: Commands,
+    pokemon_char_assets: Res<crate::graphics::assets::pokemon_chara_assets::PokemonCharaAssets>,
+) {
+    // TODO: This random Pokemon selection is temporary for testing purposes.
+    // In the future, this will be replaced with player choice during game start/character creation.
+    let available_pokemon_ids: Vec<u32> = pokemon_char_assets.0.keys().cloned().collect();
+
+    if available_pokemon_ids.is_empty() {
+        panic!("No Pokemon character assets loaded! Check the assets/chara directory.");
+    }
+
+    let starter_id =
+        available_pokemon_ids[rand::thread_rng().gen_range(0..available_pokemon_ids.len())];
+
+    info!("Starting with Pokemon ID: {}", starter_id);
+
     commands.spawn((
         Name::new("Player"),
         FacingOrientation(Orientation::South),
         Pokemon {
-            id: 4,
+            id: starter_id,
             form_index: 0,
         },
         Faction::Player,
