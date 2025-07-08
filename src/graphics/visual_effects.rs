@@ -32,12 +32,62 @@ fn spawn_visual_effect_renderer(
     query: Query<(Entity, &VisualEffect, &Transform), Added<VisualEffect>>,
 ) {
     for (entity, effect, _transform) in query.iter() {
-        let Some(effect_texture_info) = visual_effect_assets.0.get(effect.name).cloned() else {
-            warn!("Visual effect texture not found for {}", effect.name);
-            continue;
-        };
+        let effect_texture_info =
+            if let Some(info) = visual_effect_assets.0.get(effect.name).cloned() {
+                info
+            } else {
+                warn!(
+                    "Visual effect texture not found for {}, using fallback",
+                    effect.name
+                );
+
+                // Create a minimal fallback effect that completes quickly
+                // This prevents hanging when visual effects are missing
+                let fallback_frames = vec![AnimationFrame {
+                    atlas_index: 0,
+                    duration: Duration::from_millis(100), // Very short duration
+                }];
+
+                commands.entity(entity).insert((
+                    AutoDespawnEffect,
+                    Animator::new(
+                        Default::default(), // atlas_layout
+                        Default::default(), // texture
+                        fallback_frames,    // frames
+                        false,              // is_loop
+                        None,               // return_frame
+                        None,               // hit_frame
+                        None,               // rush_frame
+                    ),
+                    // Don't add Sprite components for fallback - keep it invisible
+                ));
+                continue;
+            };
 
         let Some(texture_atlas) = texture_atlases.get(&effect_texture_info.layout) else {
+            warn!(
+                "Texture atlas not found for {}, using fallback",
+                effect.name
+            );
+
+            // Same fallback for missing texture atlas
+            let fallback_frames = vec![AnimationFrame {
+                atlas_index: 0,
+                duration: Duration::from_millis(100),
+            }];
+
+            commands.entity(entity).insert((
+                AutoDespawnEffect,
+                Animator::new(
+                    Default::default(), // atlas_layout
+                    Default::default(), // texture
+                    fallback_frames,    // frames
+                    false,              // is_loop
+                    None,               // return_frame
+                    None,               // hit_frame
+                    None,               // rush_frame
+                ),
+            ));
             continue;
         };
 

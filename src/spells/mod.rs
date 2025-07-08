@@ -15,7 +15,6 @@ pub enum SpellType {
 #[derive(Debug, Clone)]
 pub struct SpellHit {
     pub visual_effect: &'static str,
-    pub damage: i32,
 }
 
 #[derive(Debug, Clone)]
@@ -27,8 +26,17 @@ pub struct SpellCast {
 #[derive(Debug, Clone)]
 pub struct Spell {
     pub name: &'static str,
+    pub move_type: &'static str,
+    pub base_power: i32,
+    pub category: MoveCategory,
     pub range: RangeInclusive<i32>,
     pub spell_type: SpellType,
     pub hit: SpellHit,
     pub cast: SpellCast,
+}
+
+#[derive(Debug, Clone)]
+pub enum MoveCategory {
+    Physical,
+    Special,
 }
