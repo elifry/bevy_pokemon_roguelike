@@ -46,7 +46,7 @@ pub struct Health {
 
 impl Health {
     pub fn is_dead(&self) -> bool {
-        self.value == 0
+        self.value <= 0
     }
 }
 
