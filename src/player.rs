@@ -13,7 +13,7 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
-use crate::data::assets::{pokemon_data::PokemonConversion, spell_data::SpellDataLookup};
+use crate::data::assets::spell_data::SpellDataLookup;
 use crate::faction::Faction;
 use crate::map::Position;
 use crate::pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind};
@@ -60,31 +60,20 @@ pub enum PlayerAction {
 
 fn spawn_player(
     mut commands: Commands,
-    pokemon_conversion: Res<PokemonConversion>,
     pokemon_char_assets: Res<crate::graphics::assets::pokemon_chara_assets::PokemonCharaAssets>,
 ) {
-    // Get available Pokemon IDs that have character assets loaded
+    // TODO: This random Pokemon selection is temporary for testing purposes.
+    // In the future, this will be replaced with player choice during game start/character creation.
     let available_pokemon_ids: Vec<u32> = pokemon_char_assets.0.keys().cloned().collect();
 
     if available_pokemon_ids.is_empty() {
         panic!("No Pokemon character assets loaded! Check the assets/chara directory.");
     }
 
-    // Randomly select from Pokemon that have character assets available
     let starter_id =
         available_pokemon_ids[rand::thread_rng().gen_range(0..available_pokemon_ids.len())];
 
-    // Look up the Pokemon name from the conversion data
-    let pokemon_name = pokemon_conversion
-        .0
-        .get_by_left(&starter_id)
-        .cloned()
-        .unwrap_or_else(|| format!("Unknown Pokemon (ID: {})", starter_id));
-
-    info!(
-        "Starting with Pokemon ID: {} ({}) - using available character assets",
-        starter_id, pokemon_name
-    );
+    info!("Starting with Pokemon ID: {}", starter_id);
 
     commands.spawn((
         Name::new("Player"),
