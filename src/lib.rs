@@ -36,6 +36,7 @@ mod ivec2;
 pub mod loading;
 mod map;
 mod menu;
+mod move_type;
 mod pieces;
 mod player;
 mod pokemons;

@@ -15,6 +15,7 @@ use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
 use crate::faction::Faction;
 use crate::map::Position;
+use crate::move_type::MoveCategory;
 use crate::pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind};
 use crate::pokemons::Pokemon;
 use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
@@ -170,6 +171,7 @@ fn take_action(
                 hit: SpellHit {
                     visual_effect: "Flamethrower",
                     damage: 1,
+                    move_type: MoveCategory::Special,
                 },
                 cast: SpellCast {
                     visual_effect: "Circle_Small_Blue_In",
