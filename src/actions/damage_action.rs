@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     map::Position,
+    move_type::MoveCategory,
     pieces::PieceDeathEvent,
     stats::{Health, Stats},
 };
@@ -13,6 +14,7 @@ pub struct DamageAction {
     pub attacker: Entity,
     pub target: Entity,
     pub value: i32,
+    pub move_type: MoveCategory,
 }
 
 impl Action for DamageAction {
@@ -25,7 +27,18 @@ impl Action for DamageAction {
             return Err(());
         };
 
+        let health_before = health.value;
         health.value = health.value.saturating_sub(self.value);
+        let health_after = health.value;
+        if let Some((attack_stat, _)) = self.move_type.get_damage_stats() {
+            info!(
+                "Applied {} damage (using {}). Health: {}→{}",
+                self.value,
+                attack_stat.as_str(),
+                health_before,
+                health_after
+            );
+        }
 
         let mut next_actions = vec![];
         if health.is_dead() {
@@ -54,6 +67,11 @@ impl Action for DamageAction {
     }
 
     fn can_execute(&self, world: &mut World) -> bool {
-        return world.get::<Health>(self.target).is_some();
+        // Status moves don't deal direct damage
+        if let Some(_) = self.move_type.get_damage_stats() {
+            world.get::<Health>(self.target).is_some()
+        } else {
+            false
+        }
     }
 }

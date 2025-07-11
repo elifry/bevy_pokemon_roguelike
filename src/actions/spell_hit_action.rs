@@ -21,6 +21,7 @@ impl Action for SpellHitAction {
             attacker: self.caster,
             target: self.target,
             value: self.hit.damage,
+            move_type: self.hit.move_type.clone(),
         })])
     }
 
