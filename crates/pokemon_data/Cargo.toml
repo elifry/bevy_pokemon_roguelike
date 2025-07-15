@@ -7,11 +7,11 @@ edition = "2021"
 
 [dependencies]
 common = { path = "../common" }
-bevy = { version = "0.13.0", default-features = false, features = [
+bevy = { workspace = true, default-features = false, features = [
   "bevy_asset",
   "bevy_sprite",
 ] }
-serde = { version = "1.0", features = ["derive"] }
-thiserror = "1.0.56"
-strum = { version = "0.26.0", features = ["derive"] }
-ron = "0.8.1"
+serde = { workspace = true }
+thiserror = { workspace = true }
+strum = { workspace = true }
+ron = { workspace = true }
