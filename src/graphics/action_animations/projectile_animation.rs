@@ -65,7 +65,7 @@ fn init_projectile_animation(
         let to = get_world_position(&spell_projectile_action.target, EFFECT_Z);
 
         commands.spawn((
-            Name::new(spell_projectile_action.projectile.visual_effect.to_string()),
+            Name::new(spell_projectile_action.projectile.visual_effect),
             VisualEffect {
                 name: spell_projectile_action.projectile.visual_effect,
                 is_loop: true,

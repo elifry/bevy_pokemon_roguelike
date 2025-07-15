@@ -23,6 +23,7 @@ impl Action for DamageAction {
             return Err(());
         };
 
+        // Get mutable reference to health
         let Some(mut health) = world.get_mut::<Health>(self.target) else {
             return Err(());
         };

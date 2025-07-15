@@ -59,7 +59,7 @@ fn init_spell_hit_animation(
             .entity(target_entity_hist_effect)
             .with_children(|parent| {
                 parent.spawn((
-                    Name::new(spell_hit_action.hit.visual_effect.to_string()),
+                    Name::new(spell_hit_action.hit.visual_effect),
                     VisualEffect {
                         name: spell_hit_action.hit.visual_effect,
                         is_loop: false,

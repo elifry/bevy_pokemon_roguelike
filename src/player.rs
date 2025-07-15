@@ -1,6 +1,7 @@
-use bevy::prelude::*;
 use char_animation::anim_key::AnimKey;
 use char_animation::orientation::Orientation;
+
+use bevy::prelude::*;
 use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
@@ -13,11 +14,13 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
+use crate::actions::{ActionQueue, QueuedAction};
+use crate::data::assets::spell_data::SpellDataLookup;
 use crate::faction::Faction;
 use crate::map::Position;
 use crate::move_type::MoveCategory;
 use crate::pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind};
-use crate::pokemons::Pokemon;
+use crate::pokemons::{Pokemon, PokemonMoveset};
 use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
 use crate::{GamePlayingSet, GameState};
 
@@ -82,6 +85,7 @@ fn spawn_player(
             id: starter_id,
             form_index: 0,
         },
+        PokemonMoveset::new(5), // Level 5 starter with empty moveset (will be populated by update_moveset_system)
         Faction::Player,
         Player,
         Occupier,
@@ -114,6 +118,8 @@ fn spawn_player(
 
 fn take_action(
     player_query: Query<(Entity, &ActionState<PlayerAction>, &Position), With<Player>>,
+    moveset_query: Query<&PokemonMoveset>,
+    spell_data_lookup: Res<SpellDataLookup>,
     mut ev_processing_action: EventReader<ProcessingActionEvent>,
     mut ev_action: EventWriter<PlayerActionEvent>,
 ) {
@@ -159,32 +165,65 @@ fn take_action(
         return;
     }
 
-    if action_state.pressed(&PlayerAction::SpellSlot1) {
-        let action = Box::new(SpellAction {
-            caster: entity,
-            spell: Spell {
-                name: "Flamethrower",
-                range: 1..=3,
-                spell_type: SpellType::Projectile(ProjectileSpell {
-                    visual_effect: "Flamethrower_2",
-                }),
-                hit: SpellHit {
-                    visual_effect: "Flamethrower",
-                    damage: 1,
-                    move_type: MoveCategory::Special,
-                },
-                cast: SpellCast {
-                    visual_effect: "Circle_Small_Blue_In",
-                    animation: AnimKey::Shoot,
-                }, // Damage visual effect: Hit_Neutral
-                   // Cast visual effect: Circle_Small_Blue_Out
-            },
-        });
-        ev_action.send(PlayerActionEvent(vec![action]));
+    // Handle spell slots 1-4
+    for (slot_action, slot_index) in [
+        (PlayerAction::SpellSlot1, 0),
+        (PlayerAction::SpellSlot2, 1),
+        (PlayerAction::SpellSlot3, 2),
+        (PlayerAction::SpellSlot4, 3),
+    ] {
+        if action_state.pressed(&slot_action) {
+            if let Ok(moveset) = moveset_query.get(entity) {
+                if let Some(move_name) = moveset.get_move(slot_index) {
+                    let action = Box::new(SpellAction {
+                        caster: entity,
+                        spell: create_spell_from_move(move_name, &spell_data_lookup),
+                    });
+                    ev_action.send(PlayerActionEvent(vec![action]));
+                    info!("Using move {} from slot {}", move_name, slot_index + 1);
+                } else {
+                    info!("No move available in slot {}", slot_index + 1);
+                }
+            } else {
+                // Fallback for Pokemon without moveset loaded yet
+                let action = Box::new(SpellAction {
+                    caster: entity,
+                    spell: create_spell_from_move("tackle", &spell_data_lookup),
+                });
+                ev_action.send(PlayerActionEvent(vec![action]));
+            }
+            return; // Only handle one spell slot at a time
+        }
     }
 
     if action_state.pressed(&PlayerAction::Skip) {
         let action = Box::new(SkipAction);
         ev_action.send(PlayerActionEvent(vec![action]));
     }
+}
+
+/// Create a spell from a move name using dynamic data loading
+fn create_spell_from_move(move_name: &str, spell_lookup: &SpellDataLookup) -> Spell {
+    info!(
+        "Looking for spell '{}' in data files. Available spells: {}",
+        move_name,
+        spell_lookup.0.len()
+    );
+
+    // Log some available spell names for debugging
+    if spell_lookup.0.len() > 0 {
+        info!(
+            "First few available spells: {:?}",
+            spell_lookup.0.keys().take(5).collect::<Vec<_>>()
+        );
+    }
+
+    // Load from the spell data lookup or panic - no fallbacks!
+    spell_lookup.0.get(move_name)
+        .cloned()
+        .unwrap_or_else(|| panic!(
+            "Spell '{}' not found in data files! Available spells: {}. Fix the spell loading system - no fallbacks allowed!", 
+            move_name,
+            spell_lookup.0.len()
+        ))
 }

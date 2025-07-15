@@ -1,7 +1,8 @@
 use std::ops::RangeInclusive;
 
-use crate::move_type::MoveCategory;
 use char_animation::anim_key::AnimKey;
+
+pub use crate::move_type::MoveCategory;
 
 #[derive(Debug, Clone)]
 pub struct ProjectileSpell {
@@ -29,6 +30,9 @@ pub struct SpellCast {
 #[derive(Debug, Clone)]
 pub struct Spell {
     pub name: &'static str,
+    pub move_type: &'static str,
+    pub base_power: i32,
+    pub category: MoveCategory,
     pub range: RangeInclusive<i32>,
     pub spell_type: SpellType,
     pub hit: SpellHit,

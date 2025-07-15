@@ -41,6 +41,9 @@ impl Action for SpellProjectileAction {
                     caster: self.caster,
                     target: target.0,
                     hit: self.spell.hit.clone(),
+                    move_type: self.spell.move_type.to_string(),
+                    base_power: self.spell.base_power,
+                    category: self.spell.category.clone(),
                 }) as Box<dyn Action>
             })
             .collect::<Vec<_>>();
