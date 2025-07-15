@@ -29,7 +29,7 @@ bitmap_font = { path = "crates/bitmap_font" }
 char_animation = { path = "crates/char_animation" }
 common = { path = "crates/common" }
 pokemon_data = { path = "crates/pokemon_data" }
-bevy = { version = "0.13.0", features = [
+bevy = { version = "0.13.2", features = [
   "asset_processor",
   "basis-universal",
   "ktx2",
@@ -46,13 +46,13 @@ itertools = "0.12.0"
 leafwing-input-manager = "0.13.2"
 quick-xml = { version = "0.31.0", features = ["serialize"] }
 rand = "0.8.5"
-rayon = "1.8.1"
+rayon = "1.10.0"
 serde = "1.0.195"
-serde_json = "1.0"
+serde_json = "1.0.140"
 strum = { version = "0.26.0", features = ["derive"] }
 # serde-xml-rs = "0.6.0"
 thiserror = "1.0.56"
-image = "0.24.8"
+image = "0.24.9"
 glyph_brush_layout = "0.2.3"
 bevy_egui = { version = "0.25.0" }
 unicode-linebreak = "0.1.5"
