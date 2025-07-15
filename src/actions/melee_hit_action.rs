@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::{
     ivec2::IVec2Ext,
     map::Position,
+    move_type::MoveCategory,
     stats::{Health, Stats},
 };
 
@@ -38,7 +39,7 @@ impl Action for MeleeHitAction {
                     attacker: self.attacker,
                     target: target.0,
                     value: self.damage,
-                    move_type: None,
+                    move_type: MoveCategory::Physical,
                 }) as Box<dyn Action>
             })
             .collect::<Vec<_>>();

@@ -75,8 +75,8 @@ impl Action for SpellHitAction {
         Ok(vec![Box::new(DamageAction {
             attacker: self.caster,
             target: self.target,
-            value: final_damage,                     // Pass calculated damage
-            move_type: Some(self.move_type.clone()), // Still pass move type for logging
+            value: self.hit.damage,
+            move_type: self.hit.move_type.clone(),
         })])
     }
 

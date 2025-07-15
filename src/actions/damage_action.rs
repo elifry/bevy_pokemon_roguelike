@@ -1,6 +1,11 @@
 use bevy::prelude::*;
 
-use crate::{map::Position, pieces::PieceDeathEvent, stats::Health};
+use crate::{
+    map::Position,
+    move_type::MoveCategory,
+    pieces::PieceDeathEvent,
+    stats::{Health, Stats},
+};
 
 use super::{death_action::DeathAction, orient_entity, Action};
 
@@ -9,7 +14,7 @@ pub struct DamageAction {
     pub attacker: Entity,
     pub target: Entity,
     pub value: i32,
-    pub move_type: Option<String>,
+    pub move_type: MoveCategory,
 }
 
 impl Action for DamageAction {
@@ -26,17 +31,13 @@ impl Action for DamageAction {
         let health_before = health.value;
         health.value = health.value.saturating_sub(self.value);
         let health_after = health.value;
-        let actual_damage_dealt = health_before - health_after;
-
-        if let Some(move_type) = &self.move_type {
+        if let Some((attack_stat, _)) = self.move_type.get_damage_stats() {
             info!(
-                "Applied {} damage (spell type: {}). Health: {}→{}",
-                self.value, move_type, health_before, health_after
-            );
-        } else {
-            info!(
-                "Applied {} damage (melee attack). Health: {}→{}",
-                self.value, health_before, health_after
+                "Applied {} damage (using {}). Health: {}→{}",
+                self.value,
+                attack_stat.as_str(),
+                health_before,
+                health_after
             );
         }
 
@@ -67,6 +68,11 @@ impl Action for DamageAction {
     }
 
     fn can_execute(&self, world: &mut World) -> bool {
-        return world.get::<Health>(self.target).is_some();
+        // Status moves don't deal direct damage
+        if let Some(_) = self.move_type.get_damage_stats() {
+            world.get::<Health>(self.target).is_some()
+        } else {
+            false
+        }
     }
 }

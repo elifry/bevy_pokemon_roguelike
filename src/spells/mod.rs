@@ -2,6 +2,8 @@ use std::ops::RangeInclusive;
 
 use char_animation::anim_key::AnimKey;
 
+pub use crate::move_type::MoveCategory;
+
 #[derive(Debug, Clone)]
 pub struct ProjectileSpell {
     pub visual_effect: &'static str,
@@ -15,6 +17,8 @@ pub enum SpellType {
 #[derive(Debug, Clone)]
 pub struct SpellHit {
     pub visual_effect: &'static str,
+    pub damage: i32,
+    pub move_type: MoveCategory,
 }
 
 #[derive(Debug, Clone)]
@@ -33,10 +37,4 @@ pub struct Spell {
     pub spell_type: SpellType,
     pub hit: SpellHit,
     pub cast: SpellCast,
-}
-
-#[derive(Debug, Clone)]
-pub enum MoveCategory {
-    Physical,
-    Special,
 }

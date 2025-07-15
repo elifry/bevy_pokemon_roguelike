@@ -376,13 +376,15 @@ fn convert_spell_data_to_spell(spell_name: &str, data: &SpellData) -> Result<Spe
         name: leak_string(obj.name.default_text.clone()),
         move_type: leak_string(obj.data.element.clone()),
         base_power,
-        category,
+        category: category.clone(),
         range,
         spell_type: SpellType::Projectile(ProjectileSpell {
             visual_effect: projectile_effect,
         }),
         hit: SpellHit {
             visual_effect: hit_effect,
+            damage: base_power,
+            move_type: category,
         },
         cast: SpellCast {
             visual_effect: cast_effect,

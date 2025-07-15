@@ -155,6 +155,7 @@ pub fn calculate_pokemon_damage(
             attacker_stats.special_attack.value(),
             defender_stats.special_defense.value(),
         ),
+        MoveCategory::Status => (0, 1), // Status moves don't deal direct damage
     };
 
     info!(

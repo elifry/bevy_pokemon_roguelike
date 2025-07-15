@@ -1,6 +1,7 @@
-use bevy::prelude::*;
 use char_animation::anim_key::AnimKey;
 use char_animation::orientation::Orientation;
+
+use bevy::prelude::*;
 use leafwing_input_manager::action_state::ActionState;
 use leafwing_input_manager::input_map::InputMap;
 use leafwing_input_manager::plugin::InputManagerPlugin;
@@ -13,12 +14,14 @@ use crate::actions::skip_action::SkipAction;
 use crate::actions::spell_action::SpellAction;
 use crate::actions::walk_action::WalkAction;
 use crate::actions::{Action, ProcessingActionEvent};
+use crate::actions::{ActionQueue, QueuedAction};
 use crate::data::assets::spell_data::SpellDataLookup;
 use crate::faction::Faction;
 use crate::map::Position;
+use crate::move_type::MoveCategory;
 use crate::pieces::{Actor, FacingOrientation, Occupier, Piece, PieceKind};
 use crate::pokemons::{Pokemon, PokemonMoveset};
-use crate::spells::{MoveCategory, ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
+use crate::spells::{ProjectileSpell, Spell, SpellCast, SpellHit, SpellType};
 use crate::{GamePlayingSet, GameState};
 
 pub struct PlayerPlugin;
