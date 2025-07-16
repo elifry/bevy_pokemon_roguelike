@@ -3,7 +3,7 @@ use ai::AIPlugin;
 use bevy::app::App;
 
 use bevy::prelude::*;
-use bevy_egui::{EguiPlugin, EguiSettings};
+use bevy_inspector_egui::bevy_egui::{EguiPlugin, EguiSet, EguiSettings, EguiUserTextures};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bitmap_font::BitmapFontPlugin;

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::text::Text2dBounds;
-use bevy_egui::egui::Color32;
-use bevy_egui::{egui, EguiContexts};
+use bevy_inspector_egui::bevy_egui::egui::Color32;
+use bevy_inspector_egui::bevy_egui::{egui, EguiContexts};
 
 use crate::graphics::assets::font_assets::FontAssets;
 use crate::graphics::assets::ui_assets::UIAssets;

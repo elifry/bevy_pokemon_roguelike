@@ -6,10 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { workspace = true, default-features = false, features = ["bevy_asset"] }
+bevy = { workspace = true }
+bevy-inspector-egui = { workspace = true }
 bincode = { workspace = true }
 image = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
-bevy_egui = { workspace = true }
+serde = { workspace = true }

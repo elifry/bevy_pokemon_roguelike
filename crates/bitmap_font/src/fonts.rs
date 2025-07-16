@@ -10,7 +10,7 @@ use bevy::{
     },
     utils::BoxedFuture,
 };
-use bevy_egui::egui;
+use bevy_inspector_egui::bevy_egui::egui;
 use bincode::error::DecodeError;
 use thiserror::Error;
 

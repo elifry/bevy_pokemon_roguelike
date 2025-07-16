@@ -1,7 +1,7 @@
 //! Bitmap font label widget
 
 use bevy::prelude::Handle;
-use bevy_egui::egui::{self, Color32, Widget};
+use bevy_inspector_egui::bevy_egui::egui::{self, Color32, Widget};
 use bitmap_font::{bfn, fonts::BitmapFont, BitmapFontCache, BitmapFontCacheItem};
 
 use super::layout::{process_glyph_layout, TextSection};

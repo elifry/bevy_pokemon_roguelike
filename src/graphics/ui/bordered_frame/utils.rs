@@ -1,11 +1,11 @@
-use bevy_egui::egui::{self, Pos2, Rect, TextureId, Vec2};
+use bevy_inspector_egui::bevy_egui::egui::{self, epaint, Pos2, Rect, TextureId, Vec2};
 
 pub fn build_nine_patch_mesh(
     dest_rect: Rect,
     texture: TextureId,
     atlas_size: Pos2,
     texture_size: Rect,
-    texture_border_size: egui::style::Margin,
+    texture_border_size: epaint::Margin,
 ) -> egui::Mesh {
     let white = egui::Color32::WHITE;
 
@@ -16,7 +16,7 @@ pub fn build_nine_patch_mesh(
     let ty1 = (texture_size.min.y + texture_size.height()) / atlas_size.y;
 
     // UV coordinates for the 9-patch borders, relative to the sub-image
-    let buv = egui::style::Margin {
+    let buv = epaint::Margin {
         left: texture_border_size.left / texture_size.width(),
         right: texture_border_size.right / texture_size.width(),
         top: texture_border_size.top / texture_size.height(),

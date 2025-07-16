@@ -15,12 +15,11 @@ members = [
 
 [workspace.dependencies]
 bevy = "0.13.2"
-bevy-inspector-egui = "0.23.2"
+bevy-inspector-egui = "0.24.0"
 bevy_asset_loader = { version = "0.20.0", features = [
   "standard_dynamic_assets",
   "2d",
 ] }
-bevy_egui = "0.25.0" # Should be able to go up to 0.27 with bevy 0.13 but throws errors
 bevy_math = "0.13.0"
 bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 bimap = "0.6.3"
@@ -60,7 +59,6 @@ pokemon_data = { path = "crates/pokemon_data" }
 bevy = { workspace = true }
 bevy-inspector-egui = { workspace = true }
 bevy_asset_loader = { workspace = true }
-bevy_egui = { workspace = true }
 bevy_math = { workspace = true }
 bimap = { workspace = true }
 clap = { workspace = true }

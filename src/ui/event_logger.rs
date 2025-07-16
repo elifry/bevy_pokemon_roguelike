@@ -3,7 +3,7 @@ use egui::Color32;
 use std::collections::VecDeque;
 
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiContexts};
+use bevy_inspector_egui::bevy_egui::{egui, EguiContexts};
 
 use crate::actions::damage_action::DamageAction;
 use crate::actions::death_action::DeathAction;

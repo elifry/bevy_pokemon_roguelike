@@ -2,7 +2,7 @@
 // Adapted from <https://docs.rs/egui/0.18.1/src/egui/containers/frame.rs.html>
 
 use bevy::prelude::*;
-use bevy_egui::egui::{self, Pos2};
+use bevy_inspector_egui::bevy_egui::egui::{self, epaint};
 
 use crate::graphics::ui::bordered_frame::utils::build_nine_patch_mesh;
 
@@ -16,10 +16,10 @@ use super::{BorderImage, BorderImageBackground};
 pub struct BorderedFrame {
     texture: egui::TextureId,
     texture_size: egui::Rect,
-    texture_border_size: egui::style::Margin,
+    texture_border_size: epaint::Margin,
     atlas_size: egui::Pos2,
-    padding: egui::style::Margin,
-    margin: egui::style::Margin,
+    padding: epaint::Margin,
+    margin: epaint::Margin,
     background: Option<BorderedFrameBackground>,
 }
 
@@ -42,7 +42,7 @@ impl BorderedFrame {
                 egui::Pos2::new(s.min.x as f32, s.min.y as f32),
                 egui::Pos2::new(s.max.x as f32, s.max.y as f32),
             ),
-            texture_border_size: egui::style::Margin {
+            texture_border_size: epaint::Margin {
                 left: if let Val::Px(px) = b.left { px } else { 0. },
                 right: if let Val::Px(px) = b.right { px } else { 0. },
                 top: if let Val::Px(px) = b.top { px } else { 0. },
@@ -58,7 +58,7 @@ impl BorderedFrame {
     /// Set the padding. This will be applied on the inside of the border.
     #[must_use = "You must call .show() to render the frame"]
     pub fn padding(mut self, margin: UiRect) -> Self {
-        self.padding = egui::style::Margin {
+        self.padding = epaint::Margin {
             left: if let Val::Px(px) = margin.left {
                 px
             } else {
@@ -107,7 +107,7 @@ impl BorderedFrame {
     /// Set the margin. This will be applied on the outside of the border.
     #[must_use = "You must call .show() to render the frame"]
     pub fn margin(mut self, margin: UiRect) -> Self {
-        self.margin = egui::style::Margin {
+        self.margin = epaint::Margin {
             left: if let Val::Px(px) = margin.left {
                 px
             } else {
