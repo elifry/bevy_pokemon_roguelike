@@ -21,7 +21,7 @@ bevy_asset_loader = { version = "0.20.2", features = [
   "2d",
 ] }
 bevy_math = "0.13.2"
-bincode = { version = "2.0.0-rc.3", features = ["serde"] }
+bincode = { version = "2.0.1", features = ["serde"] }
 bimap = "0.6.3"
 clap = { version = "4.5.41", features = ["derive"] }
 crunch = "0.5.3"
