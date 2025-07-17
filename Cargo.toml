@@ -29,7 +29,7 @@ dyn-clone = "1.0.19"
 glyph_brush_layout = "0.2.4"
 image = "0.25.6"
 itertools = "0.14.0"
-leafwing-input-manager = "0.13.2"
+leafwing-input-manager = "0.13.3"
 quick-xml = { version = "0.31.0", features = ["serialize", "serde"] }
 rand = "0.8.5"
 rayon = "1.8.1"
