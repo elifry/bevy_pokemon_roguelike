@@ -1,6 +1,8 @@
 use bevy_math::UVec2;
 use bitmap_font::bfn::{BoundingBox, Font, Glyph};
-use image::{DynamicImage, GenericImage, ImageOutputFormat, Rgba, RgbaImage};
+use image::{
+    codecs::png::PngEncoder, ColorType, DynamicImage, GenericImage, ImageEncoder, Rgba, RgbaImage,
+};
 use std::{
     collections::HashMap,
     fs::{self, File},
@@ -116,8 +118,15 @@ pub fn create_bitmap_font(source_directory: &Path, output_filename: &str, atlas_
             atlas.save(format!("{output_filename}-debug.png")).unwrap();
 
             let mut texture_bytes: Vec<u8> = Vec::new();
-            DynamicImage::ImageRgba8(atlas)
-                .write_to(&mut Cursor::new(&mut texture_bytes), ImageOutputFormat::Png)
+            let mut cursor = Cursor::new(&mut texture_bytes);
+            let encoder = PngEncoder::new(&mut cursor);
+            encoder
+                .write_image(
+                    atlas.as_raw(),
+                    atlas.width(),
+                    atlas.height(),
+                    ColorType::Rgba8.into(),
+                )
                 .expect("Failed to compress atlas image");
 
             let font_sheet_data = Font {
