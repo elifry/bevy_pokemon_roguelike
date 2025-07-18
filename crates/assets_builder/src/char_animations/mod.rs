@@ -10,7 +10,7 @@ use std::{
 use ::char_animation::orientation::Orientation;
 use bevy_math::{IVec2, URect, UVec2, Vec2};
 use char_animation::file::{CharAnimationFile, CharAnimationFileEntry, CharAnimationOffsets};
-use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
+use image::{codecs::png::PngEncoder, ColorType, DynamicImage, ImageBuffer, ImageEncoder, Rgba};
 
 use self::anim_data::{AnimData, AnimInfo};
 
@@ -79,10 +79,14 @@ pub fn create_char_animation(source_directory: &Path, output_filename: &str) {
             .collect::<Vec<_>>();
 
         let mut animation_texture_bytes: Vec<u8> = Vec::new();
-        DynamicImage::ImageRgba8(animation_texture)
-            .write_to(
-                &mut Cursor::new(&mut animation_texture_bytes),
-                ImageOutputFormat::Png,
+        let mut cursor = Cursor::new(&mut animation_texture_bytes);
+        let encoder = PngEncoder::new(&mut cursor);
+        encoder
+            .write_image(
+                animation_texture.as_raw(),
+                animation_texture.width(),
+                animation_texture.height(),
+                ColorType::Rgba8.into(),
             )
             .expect("Failed to compress animation texture");
 

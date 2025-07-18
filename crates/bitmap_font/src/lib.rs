@@ -4,10 +4,11 @@ use bevy::{
     app::{App, Plugin, Update},
     asset::{AssetApp, Assets, Handle},
     ecs::system::Res,
+    prelude::IntoSystemConfigs,
 };
-use bevy_egui::{
+use bevy_inspector_egui::bevy_egui::{
     egui::{self, mutex::Mutex},
-    EguiContexts,
+    EguiContexts, EguiSet,
 };
 use fonts::{BitmapFont, BitmapFontData, BitmapFontLoader};
 
@@ -20,7 +21,7 @@ impl Plugin for BitmapFontPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<BitmapFont>()
             .init_asset_loader::<BitmapFontLoader>()
-            .add_systems(Update, font_texture_update);
+            .add_systems(Update, (font_texture_update).after(EguiSet::InitContexts));
     }
 }
 
@@ -34,13 +35,12 @@ pub struct BitmapFontCacheItem {
     pub font_data: Arc<BitmapFontData>,
 }
 
-/// Loop through all [`BitmapFont`] assets and map their texture ids and uvs to their handle
-pub(crate) fn font_texture_update(fonts: Res<Assets<BitmapFont>>, mut egui_ctx: EguiContexts) {
+fn font_texture_update(fonts: Res<Assets<BitmapFont>>, mut contexts: EguiContexts) {
     for (handle_id, font) in fonts.iter() {
-        let texture_id = egui_ctx.add_image(font.data.texture.clone_weak());
+        let texture_id = contexts.add_image(font.data.texture.clone_weak());
         let handle = Handle::Weak(handle_id);
 
-        let ctx = egui_ctx.ctx_mut();
+        let ctx = contexts.ctx_mut();
         ctx.memory_mut(|ctx| {
             let mut bitmap_font_texture_datas = ctx
                 .data
