@@ -36,7 +36,7 @@ fn check_assets_loading(
                 is_loading = true;
                 break;
             }
-            Some(LoadState::Failed) => {
+            Some(LoadState::Failed(_)) => {
                 error!("asset loading error");
             }
             _ => {}

@@ -14,13 +14,16 @@ members = [
 ]
 
 [workspace.dependencies]
-bevy = "0.13.2"
-bevy-inspector-egui = "0.24.0"
-bevy_asset_loader = { version = "0.20.2", features = [
+# Bevy-Related
+bevy = "0.14.2"
+bevy-inspector-egui = "0.27.0"
+bevy_asset_loader = { version = "0.21.0", features = [
   "standard_dynamic_assets",
   "2d",
 ] }
-bevy_math = "0.13.2"
+bevy_math = "0.14.2"
+leafwing-input-manager = "0.14.0"
+# Other
 bincode = { version = "2.0.1", features = ["serde"] }
 bimap = "0.6.3"
 clap = { version = "4.5.41", features = ["derive"] }
@@ -29,7 +32,6 @@ dyn-clone = "1.0.19"
 glyph_brush_layout = "0.2.4"
 image = "0.25.6"
 itertools = "0.14.0"
-leafwing-input-manager = "0.13.3"
 quick-xml = { version = "0.38.0", features = ["serialize", "serde"] }
 rand = "0.9.1"
 ron = "0.10.1"

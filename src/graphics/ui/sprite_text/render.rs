@@ -105,7 +105,8 @@ pub(crate) fn render_texture(
                 let glyph_image = if color == Color::WHITE {
                     glyph_image
                 } else {
-                    let mut color = Rgba(color.as_rgba_u8());
+                    let [r, g, b, a] = color.to_srgba().to_u8_array();
+                    let mut color = Rgba([r, g, b, a]);
                     color.invert();
 
                     // Create a new image buffer to hold the tinted image

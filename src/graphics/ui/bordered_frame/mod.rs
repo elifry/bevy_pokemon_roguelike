@@ -28,7 +28,7 @@ impl BorderImage {
         border_size: UiRect,
         atlas_size: Option<UVec2>,
     ) -> Self {
-        let world = world.cell();
+        // let world = world.cell();
         let asset_server = world.resource::<AssetServer>();
         let handle = asset_server.load(path);
 
@@ -62,7 +62,7 @@ impl BorderImageBackground {
         texture_size: URect,
         atlas_size: Option<UVec2>,
     ) -> Self {
-        let world = world.cell();
+        // let world = world.cell();
         let asset_server = world.resource::<AssetServer>();
         let handle = asset_server.load(path);
 
