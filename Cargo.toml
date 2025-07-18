@@ -30,8 +30,8 @@ glyph_brush_layout = "0.2.4"
 image = "0.25.6"
 itertools = "0.14.0"
 leafwing-input-manager = "0.13.3"
-quick-xml = { version = "0.31.0", features = ["serialize", "serde"] }
-rand = "0.8.5"
+quick-xml = { version = "0.38.0", features = ["serialize", "serde"] }
+rand = "0.9.1"
 rayon = "1.8.1"
 ron = "0.10.1"
 serde = { version = "1.0.195", features = ["derive"] }
