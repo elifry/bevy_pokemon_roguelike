@@ -99,18 +99,9 @@ fn animate_world_number(
         transform.translation.y += time.delta_seconds() * 10.;
 
         if animated.timer.fraction() > 0.5 {
-            let Color::Rgba {
-                red,
-                green,
-                blue,
-                alpha,
-            } = sprite.color.as_rgba()
-            else {
-                warn!("Failed to extract world number color");
-                continue;
-            };
+            let [red, green, blue, alpha] = sprite.color.to_srgba().to_f32_array();
             let alpha = (alpha - time.delta_seconds() * 1.).max(0.);
-            sprite.color = Color::rgba(red, green, blue, alpha);
+            sprite.color = Color::srgba(red, green, blue, alpha);
         }
     }
 }

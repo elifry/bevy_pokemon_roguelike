@@ -23,8 +23,8 @@ struct ButtonColors {
 impl Default for ButtonColors {
     fn default() -> Self {
         ButtonColors {
-            normal: Color::rgb(0.15, 0.15, 0.15),
-            hovered: Color::rgb(0.25, 0.25, 0.25),
+            normal: Color::srgb(0.15, 0.15, 0.15),
+            hovered: Color::srgb(0.25, 0.25, 0.25),
         }
     }
 }
@@ -72,7 +72,7 @@ fn setup_menu(mut commands: Commands) {
                         "Play",
                         TextStyle {
                             font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
@@ -120,7 +120,7 @@ fn setup_menu(mut commands: Commands) {
                         "Made with Bevy",
                         TextStyle {
                             font_size: 15.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));
@@ -141,7 +141,7 @@ fn setup_menu(mut commands: Commands) {
                     },
                     ButtonColors {
                         normal: Color::NONE,
-                        hovered: Color::rgb(0.25, 0.25, 0.25),
+                        hovered: Color::srgb(0.25, 0.25, 0.25),
                     },
                     OpenLink("https://github.com/NiklasEi/bevy_game_template"),
                 ))
@@ -150,7 +150,7 @@ fn setup_menu(mut commands: Commands) {
                         "Open source",
                         TextStyle {
                             font_size: 15.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
+                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
                     ));

@@ -164,7 +164,7 @@ impl BorderedFrame {
         content_rect.max.x = content_rect.max.x.max(content_rect.min.x);
         content_rect.max.y = content_rect.max.y.max(content_rect.min.y);
 
-        let content_ui = ui.child_ui(content_rect, *ui.layout());
+        let content_ui = ui.child_ui(content_rect, *ui.layout(), None);
 
         BorderedFramePrepared {
             frame: self,
