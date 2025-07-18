@@ -3,6 +3,7 @@ use ai::AIPlugin;
 use bevy::app::App;
 
 use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 use bevy_inspector_egui::bevy_egui::{EguiPlugin, EguiSet, EguiSettings, EguiUserTextures};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -133,24 +134,30 @@ impl Plugin for GamePlugin {
 }
 
 fn update_ui_scale(
-    mut egui_settings: ResMut<EguiSettings>,
+    mut egui_query: Query<(&mut EguiSettings, Option<&PrimaryWindow>), With<Window>>,
     windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
     projection: Query<&OrthographicProjection, With<Camera>>,
 ) {
     if let Ok(window) = windows.get_single() {
         if let Ok(projection) = projection.get_single() {
-            match projection.scaling_mode {
-                bevy::render::camera::ScalingMode::FixedVertical(fixed_ratio) => {
-                    let window_height = window.height();
-                    let scale = window_height / fixed_ratio / (projection.scale);
-                    egui_settings.scale_factor = scale;
+            // Find the primary window's egui settings
+            for (mut egui_settings, primary_window) in egui_query.iter_mut() {
+                if primary_window.is_some() {
+                    match projection.scaling_mode {
+                        bevy::render::camera::ScalingMode::FixedVertical(fixed_ratio) => {
+                            let window_height = window.height();
+                            let scale = window_height / fixed_ratio / (projection.scale);
+                            egui_settings.scale_factor = scale;
+                        }
+                        bevy::render::camera::ScalingMode::FixedHorizontal(fixed_ratio) => {
+                            let window_width = window.width();
+                            let scale = window_width / fixed_ratio / (projection.scale);
+                            egui_settings.scale_factor = scale;
+                        }
+                        _ => {}
+                    }
+                    break; // Only update the primary window
                 }
-                bevy::render::camera::ScalingMode::FixedHorizontal(fixed_ratio) => {
-                    let window_width = window.width();
-                    let scale = window_width / fixed_ratio / (projection.scale);
-                    egui_settings.scale_factor = scale;
-                }
-                _ => {}
             }
         }
     }
