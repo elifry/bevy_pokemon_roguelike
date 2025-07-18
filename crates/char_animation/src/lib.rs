@@ -6,7 +6,7 @@ use bevy::{
     asset::{
         io::Reader, Asset, AssetApp, AssetLoader, AsyncReadExt, Handle, LoadContext, LoadedAsset,
     },
-    math::Vec2,
+    math::{UVec2, Vec2},
     reflect::TypePath,
     render::{
         render_asset::RenderAssetUsages,
@@ -114,9 +114,9 @@ impl AssetLoader for CharAnimationLoader {
                     let texture_handle = load_context
                         .add_loaded_labeled_asset(texture_label, LoadedAsset::from(texture));
 
-                    let tile_size = Vec2::new(
-                        char_animation_entry.frame_width as f32,
-                        char_animation_entry.frame_height as f32,
+                    let tile_size = UVec2::new(
+                        char_animation_entry.frame_width,
+                        char_animation_entry.frame_height,
                     );
 
                     let rows = match char_animation_entry.is_single_orientation {
@@ -126,8 +126,8 @@ impl AssetLoader for CharAnimationLoader {
 
                     let atlas_layout = TextureAtlasLayout::from_grid(
                         tile_size,
-                        char_animation_entry.durations.len(),
-                        rows,
+                        char_animation_entry.durations.len() as u32,
+                        rows as u32,
                         None,
                         None,
                     );

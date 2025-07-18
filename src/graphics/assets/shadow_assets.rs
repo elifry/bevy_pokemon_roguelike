@@ -31,7 +31,7 @@ fn load_shadow_assets(
     shadow_assets.texture = asset_server.load(SHADOWS_ASSET);
     loading.0.push(shadow_assets.texture.clone().untyped());
 
-    let atlas_layout = TextureAtlasLayout::from_grid(Vec2::new(32., 16.), 3, 14, None, None);
+    let atlas_layout = TextureAtlasLayout::from_grid(UVec2::new(32, 16), 3, 14, None, None);
     shadow_assets.atlas_layout = atlases.add(atlas_layout);
     loading.0.push(shadow_assets.atlas_layout.clone().untyped());
 }

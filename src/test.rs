@@ -137,12 +137,12 @@ fn spawn_test(font_assets: Res<FontAssets>, mut commands: Commands) {
     };
     let text_red_style = SpriteTextStyle {
         font: font_assets.text.clone(),
-        color: Color::RED,
+        color: Color::srgb(1.0, 0.0, 0.0), // RED
         ..default()
     };
     let text_blue_style = SpriteTextStyle {
         font: font_assets.text.clone(),
-        color: Color::hex("7098e3").unwrap(),
+        color: Color::srgb(0.44, 0.59, 0.89), // Approximation of 7098e3 in hex
         ..default()
     };
 

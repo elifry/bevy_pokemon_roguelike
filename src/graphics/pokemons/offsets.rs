@@ -92,15 +92,31 @@ pub fn debug_offsets(
 
         // Calculate the offset vector based on provided offsets and adjustments
         let body_position = base_translation + offsets.body;
-        gizmos.circle_2d(body_position + Vec2::new(0.5, 0.5), 1., Color::GREEN);
+        gizmos.circle_2d(
+            body_position + Vec2::new(0.5, 0.5),
+            1.,
+            Color::srgb(0.0, 1.0, 0.0),
+        ); // GREEN
 
         let head_position = base_translation + offsets.head;
-        gizmos.circle_2d(head_position + Vec2::new(0.5, 0.5), 1., Color::BLACK);
+        gizmos.circle_2d(
+            head_position + Vec2::new(0.5, 0.5),
+            1.,
+            Color::srgb(0.0, 0.0, 0.0),
+        ); // BLACK
 
         let right_position = base_translation + offsets.right;
-        gizmos.circle_2d(right_position + Vec2::new(0.5, 0.5), 1., Color::BLUE);
+        gizmos.circle_2d(
+            right_position + Vec2::new(0.5, 0.5),
+            1.,
+            Color::srgb(0.0, 0.0, 1.0),
+        ); // BLUE
 
         let left_position = base_translation + offsets.left;
-        gizmos.circle_2d(left_position + Vec2::new(0.5, 0.5), 1., Color::RED);
+        gizmos.circle_2d(
+            left_position + Vec2::new(0.5, 0.5),
+            1.,
+            Color::srgb(1.0, 0.0, 0.0),
+        ); // RED
     }
 }

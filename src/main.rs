@@ -4,7 +4,6 @@ use bevy_pokemon_roguelike::GamePlugin;
 fn main() {
     App::new()
         .insert_resource(Msaa::Off)
-        .insert_resource(AssetMetaCheck::Always)
         .insert_resource(AmbientLight {
             color: Color::default(),
             brightness: 1.,
@@ -13,6 +12,7 @@ fn main() {
             DefaultPlugins
                 .set(AssetPlugin {
                     mode: AssetMode::Unprocessed,
+                    meta_check: AssetMetaCheck::Always,
                     ..default()
                 })
                 .set(WindowPlugin {

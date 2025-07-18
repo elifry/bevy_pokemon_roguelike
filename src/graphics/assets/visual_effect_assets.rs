@@ -105,8 +105,8 @@ fn process_effect_assets(
             VisualEffectDirectionType::None => {
                 let tile_size = vf_texture.height();
                 TextureAtlasLayout::from_grid(
-                    Vec2::splat(tile_size as f32),
-                    (vf_texture.width() / tile_size) as usize,
+                    UVec2::splat(tile_size),
+                    (vf_texture.width() / tile_size) as u32,
                     1,
                     None,
                     None,
@@ -115,8 +115,8 @@ fn process_effect_assets(
             VisualEffectDirectionType::Dir5 => {
                 let tile_size = vf_texture.height() / 5;
                 TextureAtlasLayout::from_grid(
-                    Vec2::splat(tile_size as f32),
-                    (vf_texture.width() / tile_size) as usize,
+                    UVec2::splat(tile_size),
+                    (vf_texture.width() / tile_size) as u32,
                     5,
                     None,
                     None,
@@ -125,8 +125,8 @@ fn process_effect_assets(
             VisualEffectDirectionType::Dir8 => {
                 let tile_size = vf_texture.height() / 8;
                 TextureAtlasLayout::from_grid(
-                    Vec2::splat(tile_size as f32),
-                    (vf_texture.width() / tile_size) as usize,
+                    UVec2::splat(tile_size),
+                    (vf_texture.width() / tile_size) as u32,
                     8,
                     None,
                     None,

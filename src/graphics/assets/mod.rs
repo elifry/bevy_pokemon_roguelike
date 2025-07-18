@@ -40,14 +40,14 @@ impl Plugin for GraphicAssetsPlugin {
 #[derive(AssetCollection, Resource)]
 pub struct TileAssets {
     #[asset(texture_atlas_layout(
-        tile_size_x = 24.,
-        tile_size_y = 24.,
+        tile_size_x = 24,
+        tile_size_y = 24,
         columns = 21,
         rows = 24,
-        padding_x = 1.,
-        padding_y = 1.,
-        offset_x = 1.,
-        offset_y = 1.
+        padding_x = 1,
+        padding_y = 1,
+        offset_x = 1,
+        offset_y = 1
     ))]
     pub tile_layout: Handle<TextureAtlasLayout>,
 
