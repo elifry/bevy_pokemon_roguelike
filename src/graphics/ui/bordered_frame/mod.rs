@@ -1,5 +1,5 @@
 use bevy::{asset::AssetPath, prelude::*};
-use bevy_egui::egui;
+use bevy_inspector_egui::bevy_egui::{egui, EguiUserTextures};
 
 pub use ui::*;
 
@@ -32,7 +32,7 @@ impl BorderImage {
         let asset_server = world.resource::<AssetServer>();
         let handle = asset_server.load(path);
 
-        let mut ctx = world.resource_mut::<bevy_egui::EguiUserTextures>();
+        let mut ctx = world.resource_mut::<EguiUserTextures>();
 
         let atlas_size = atlas_size.unwrap_or(texture_size.max);
 
@@ -66,7 +66,7 @@ impl BorderImageBackground {
         let asset_server = world.resource::<AssetServer>();
         let handle = asset_server.load(path);
 
-        let mut ctx = world.resource_mut::<bevy_egui::EguiUserTextures>();
+        let mut ctx = world.resource_mut::<EguiUserTextures>();
 
         let atlas_size = atlas_size.unwrap_or(texture_size.max);
 
