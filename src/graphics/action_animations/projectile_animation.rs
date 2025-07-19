@@ -31,7 +31,7 @@ impl Plugin for ProjectileAnimationPlugin {
     }
 }
 
-#[derive(Clone)]
+#[derive(Component, Clone)]
 pub struct ProjectileAnimation {
     pub caster: Entity,
     pub to: Vec3,
@@ -64,23 +64,25 @@ fn init_projectile_animation(
         });
         let to = get_world_position(&spell_projectile_action.target, EFFECT_Z);
 
-        commands.spawn((
-            Name::new(spell_projectile_action.projectile.visual_effect.to_string()),
-            VisualEffect {
-                name: spell_projectile_action.projectile.visual_effect,
-                is_loop: true,
-            },
-            SpatialBundle {
-                transform: Transform::from_translation(from),
-                ..default()
-            },
-            AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
-                caster: spell_projectile_action.caster,
-                to,
-                from,
-                t: 0.,
-            })),
-        ));
+        let entity = commands
+            .spawn((
+                Name::new(spell_projectile_action.projectile.visual_effect.to_string()),
+                VisualEffect {
+                    name: spell_projectile_action.projectile.visual_effect,
+                    is_loop: false,
+                },
+                Sprite::default(),
+                Transform::from_translation(from),
+                Visibility::default(),
+            ))
+            .id();
+
+        commands.entity(entity).insert(ProjectileAnimation {
+            caster: spell_projectile_action.caster,
+            to,
+            from,
+            t: 0.,
+        });
     }
 }
 
@@ -104,7 +106,7 @@ fn projectile_animation(
             ev_animation_playing.send(ActionAnimationPlayingEvent);
 
             projectile_animation.t = (projectile_animation.t
-                + PROJECTILE_SPEED * time.delta_seconds() * GAME_SPEED)
+                + PROJECTILE_SPEED * time.delta_secs() * GAME_SPEED)
                 .clamp(0., 1.);
             transform.translation = projectile_animation
                 .from

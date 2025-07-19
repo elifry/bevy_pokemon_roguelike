@@ -1,9 +1,21 @@
 use bevy::{
-    prelude::{default, *},
+    prelude::*,
     sprite::Anchor,
-    text::{BreakLineOn, Text2dBounds},
+    text::{LineBreak, TextBounds},
 };
 use bitmap_font::fonts::BitmapFont;
+
+/// A wrapper component for Handle<Image> to make it compatible with Bevy 0.15
+/// where Handle<T> is no longer automatically a Component.
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct SpriteTextTexture(pub Handle<Image>);
+
+impl Default for SpriteTextTexture {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
 
 #[derive(Bundle, Default, Clone, Debug)]
 pub struct Text2DSpriteBundle {
@@ -12,7 +24,7 @@ pub struct Text2DSpriteBundle {
     /// How the text is positioned relative to its transform.
     pub text_anchor: Anchor,
     /// The maximum width and height of the text.
-    pub text_2d_bounds: Text2dBounds,
+    pub text_2d_bounds: TextBounds,
     /// The transform of the text.
     pub transform: Transform,
     /// The global transform of the text.
@@ -25,7 +37,7 @@ pub struct Text2DSpriteBundle {
     pub view_visibility: ViewVisibility,
     // Internal rendering
     pub sprite: Sprite,
-    pub texture: Handle<Image>,
+    pub texture: SpriteTextTexture,
 }
 
 #[derive(Component, Debug, Clone, Reflect)]
@@ -36,7 +48,7 @@ pub struct SpriteText {
     /// Should not affect its position within a container.
     pub alignment: JustifyText,
     /// How the text should linebreak when running out of the bounds determined by max_size
-    pub linebreak_behavior: BreakLineOn,
+    pub linebreak_behavior: LineBreak,
 }
 
 #[derive(Debug, Clone, Reflect)]
@@ -82,7 +94,7 @@ impl SpriteText {
     /// Returns this [`Text`] with soft wrapping disabled.
     /// Hard wrapping, where text contains an explicit linebreak such as the escape sequence `\n`, will still occur.
     pub const fn with_no_wrap(mut self) -> Self {
-        self.linebreak_behavior = BreakLineOn::NoWrap;
+        self.linebreak_behavior = LineBreak::NoWrap;
         self
     }
 
@@ -99,7 +111,7 @@ impl Default for SpriteText {
         Self {
             sections: Default::default(),
             alignment: JustifyText::Left,
-            linebreak_behavior: BreakLineOn::WordBoundary,
+            linebreak_behavior: LineBreak::WordBoundary,
         }
     }
 }

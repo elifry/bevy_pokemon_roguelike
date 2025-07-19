@@ -76,7 +76,8 @@ fn init_spell_cast_animation(
                         is_loop: false,
                     },
                     AutoDespawnEffect,
-                    SpatialBundle::default(),
+                    Transform::default(),
+                    Visibility::default(),
                 ));
             });
     }

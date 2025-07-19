@@ -5,6 +5,18 @@ use std::time::Duration;
 
 use crate::GamePlayingSet;
 
+/// A wrapper component for TextureAtlas to make it compatible with Bevy 0.15
+/// where TextureAtlas is no longer automatically a Component.
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct TextureAtlasComponent(pub TextureAtlas);
+
+impl Default for TextureAtlasComponent {
+    fn default() -> Self {
+        Self(TextureAtlas::default())
+    }
+}
+
 pub struct AnimationsPlugin;
 
 impl Plugin for AnimationsPlugin {
@@ -116,8 +128,8 @@ impl AnimationIndices {
 
 fn animation_system(
     time: Res<Time>,
-    mut query: Query<(Entity, &mut Animator, &mut TextureAtlas)>,
-    mut ev_finished: EventWriter<AnimationFinished>,
+    mut query: Query<(Entity, &mut Animator, &mut TextureAtlasComponent)>,
+    mut ev_animation_finished: EventWriter<AnimationFinished>,
     mut ev_animation_frame_changed: EventWriter<AnimationFrameChangedEvent>,
 ) {
     for (entity, mut animator, mut sprite) in &mut query.iter_mut() {
@@ -129,7 +141,7 @@ fn animation_system(
 
         if !animator.is_loop && animator.current_frame > animator.frames.len() - 1 {
             // is finished
-            ev_finished.send(AnimationFinished(entity));
+            ev_animation_finished.send(AnimationFinished(entity));
             animator.is_finished = true;
             continue;
         }

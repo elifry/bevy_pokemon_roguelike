@@ -140,7 +140,7 @@ pub(crate) fn event_logger_ui(
     }
 
     if scroll_animation.target_offset > 0. {
-        let delta = time.delta_seconds() * SCROLL_SPEED;
+        let delta = time.delta_secs() * SCROLL_SPEED;
         let prev_current_offset = scroll_animation.target_offset;
         scroll_animation.target_offset -= delta;
 
@@ -150,7 +150,7 @@ pub(crate) fn event_logger_ui(
     }
 
     egui::TopBottomPanel::bottom("bottom")
-        .frame(egui::Frame::none())
+        .frame(egui::Frame::NONE)
         .show_separator_line(false)
         .exact_height(64.)
         .show(ctx, |ui| {

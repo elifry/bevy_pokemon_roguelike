@@ -16,11 +16,18 @@ pub fn build_nine_patch_mesh(
     let ty1 = (texture_size.min.y + texture_size.height()) / atlas_size.y;
 
     // UV coordinates for the 9-patch borders, relative to the sub-image
-    let buv = epaint::Margin {
-        left: texture_border_size.left / texture_size.width(),
-        right: texture_border_size.right / texture_size.width(),
-        top: texture_border_size.top / texture_size.height(),
-        bottom: texture_border_size.bottom / texture_size.height(),
+    struct UvBorders {
+        left: f32,
+        right: f32,
+        top: f32,
+        bottom: f32,
+    }
+
+    let buv = UvBorders {
+        left: texture_border_size.leftf() / texture_size.width(),
+        right: texture_border_size.rightf() / texture_size.width(),
+        top: texture_border_size.topf() / texture_size.height(),
+        bottom: texture_border_size.bottomf() / texture_size.height(),
     };
 
     // Convert UV border margins to texture UV coordinates
@@ -39,15 +46,15 @@ pub fn build_nine_patch_mesh(
 
     // Top left
     mesh.add_rect_with_uv(
-        Rect::from_min_size(dest_rect.min, Vec2::new(b.left, b.top)),
+        Rect::from_min_size(dest_rect.min, Vec2::new(b.leftf(), b.topf())),
         egui::Rect::from_min_max(Pos2::new(tx0, ty0), Pos2::new(uv_left, uv_top)),
         white,
     );
     // Top center
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(b.left, 0.0),
-            Vec2::new(dest_rect.width() - b.left - b.right, b.top),
+            dest_rect.min + Vec2::new(b.leftf(), 0.0),
+            Vec2::new(dest_rect.width() - b.leftf() - b.rightf(), b.topf()),
         ),
         egui::Rect::from_min_max(Pos2::new(uv_left, ty0), Pos2::new(uv_left, uv_top)),
         white,
@@ -55,8 +62,8 @@ pub fn build_nine_patch_mesh(
     // Top right
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            Pos2::new(dest_rect.max.x - b.right, dest_rect.min.y),
-            Vec2::new(b.right, b.top),
+            Pos2::new(dest_rect.max.x - b.rightf(), dest_rect.min.y),
+            Vec2::new(b.rightf(), b.topf()),
         ),
         Rect::from_min_max(
             Pos2::new(uv_right, ty0), // Start right before the right border, top aligned
@@ -67,8 +74,8 @@ pub fn build_nine_patch_mesh(
     // Middle left
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(0.0, b.top),
-            Vec2::new(b.left, dest_rect.height() - b.top - b.bottom),
+            dest_rect.min + Vec2::new(0.0, b.topf()),
+            Vec2::new(b.leftf(), dest_rect.height() - b.topf() - b.bottomf()),
         ),
         egui::Rect::from_min_max(Pos2::new(tx0, uv_top), Pos2::new(uv_left, uv_bottom)),
         white,
@@ -76,10 +83,10 @@ pub fn build_nine_patch_mesh(
     // Middle center
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(b.left, b.top),
+            dest_rect.min + Vec2::new(b.leftf(), b.topf()),
             Vec2::new(
-                dest_rect.width() - b.left - b.right,
-                dest_rect.height() - b.top - b.bottom,
+                dest_rect.width() - b.leftf() - b.rightf(),
+                dest_rect.height() - b.topf() - b.bottomf(),
             ),
         ),
         egui::Rect::from_min_max(Pos2::new(uv_left, uv_top), Pos2::new(uv_right, uv_bottom)),
@@ -88,8 +95,8 @@ pub fn build_nine_patch_mesh(
     // Middle right
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(dest_rect.width() - b.right, b.top),
-            Vec2::new(b.right, dest_rect.height() - b.top - b.bottom),
+            dest_rect.min + Vec2::new(dest_rect.width() - b.rightf(), b.topf()),
+            Vec2::new(b.rightf(), dest_rect.height() - b.topf() - b.bottomf()),
         ),
         egui::Rect::from_min_max(Pos2::new(uv_right, uv_top), Pos2::new(tx1, uv_bottom)),
         white,
@@ -97,8 +104,8 @@ pub fn build_nine_patch_mesh(
     // Bottom left
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(0.0, dest_rect.height() - b.bottom),
-            Vec2::new(b.left, b.bottom),
+            dest_rect.min + Vec2::new(0.0, dest_rect.height() - b.bottomf()),
+            Vec2::new(b.leftf(), b.bottomf()),
         ),
         egui::Rect::from_min_max(Pos2::new(tx0, uv_bottom), Pos2::new(uv_left, ty1)),
         white,
@@ -106,8 +113,8 @@ pub fn build_nine_patch_mesh(
     // Bottom center
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(b.left, dest_rect.height() - b.bottom),
-            Vec2::new(dest_rect.width() - b.left - b.right, b.bottom),
+            dest_rect.min + Vec2::new(b.leftf(), dest_rect.height() - b.bottomf()),
+            Vec2::new(dest_rect.width() - b.leftf() - b.rightf(), b.bottomf()),
         ),
         egui::Rect::from_min_max(Pos2::new(uv_left, uv_bottom), Pos2::new(uv_right, ty1)),
         white,
@@ -115,8 +122,12 @@ pub fn build_nine_patch_mesh(
     // Bottom right
     mesh.add_rect_with_uv(
         Rect::from_min_size(
-            dest_rect.min + Vec2::new(dest_rect.width() - b.right, dest_rect.height() - b.bottom),
-            Vec2::new(b.right, b.bottom),
+            dest_rect.min
+                + Vec2::new(
+                    dest_rect.width() - b.rightf(),
+                    dest_rect.height() - b.bottomf(),
+                ),
+            Vec2::new(b.rightf(), b.bottomf()),
         ),
         egui::Rect::from_min_max(Pos2::new(uv_right, uv_bottom), Pos2::new(tx1, ty1)),
         white,

@@ -96,7 +96,7 @@ fn move_animation(
             ev_animation_playing.send(ActionAnimationPlayingEvent);
 
             move_animation.t =
-                (move_animation.t + WALK_SPEED * time.delta_seconds() * GAME_SPEED).clamp(0., 1.);
+                (move_animation.t + WALK_SPEED * time.delta_secs() * GAME_SPEED).clamp(0., 1.);
             transform.translation = move_animation
                 .from
                 .lerp(move_animation.to, move_animation.t);

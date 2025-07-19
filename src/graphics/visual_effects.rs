@@ -2,13 +2,39 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{constants::GAME_SPEED, visual_effects::VisualEffect, GameState};
+use crate::{
+    constants::GAME_SPEED, graphics::assets::visual_effect_assets::VisualEffectAssets,
+    visual_effects::VisualEffect, GameState,
+};
 
 use super::{
     animations::{AnimationFinished, AnimationFrame, Animator},
-    assets::visual_effect_assets::VisualEffectAssets,
-    FRAME_DURATION_MILLIS,
+    EFFECT_Z, FRAME_DURATION_MILLIS,
 };
+
+/// A wrapper component for Handle<Image> to make it compatible with Bevy 0.15
+/// where Handle<T> is no longer automatically a Component.
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct VisualEffectImageHandle(pub Handle<Image>);
+
+impl Default for VisualEffectImageHandle {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
+
+/// A wrapper component for TextureAtlas to make it compatible with Bevy 0.15
+/// where TextureAtlas is no longer automatically a Component.
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct VisualEffectTextureAtlas(pub TextureAtlas);
+
+impl Default for VisualEffectTextureAtlas {
+    fn default() -> Self {
+        Self(TextureAtlas::default())
+    }
+}
 
 pub struct VisualEffectsPlugin;
 
@@ -55,7 +81,8 @@ fn spawn_visual_effect_renderer(
 
         let first_index = frames[0].atlas_index;
 
-        commands.entity(entity).insert((
+        let mut entity_commands = commands.entity(entity);
+        entity_commands.insert((
             Animator::new(
                 effect_texture_info.layout.clone(),
                 effect_texture_info.texture.clone(),
@@ -66,12 +93,12 @@ fn spawn_visual_effect_renderer(
                 None,
             ),
             Sprite::default(),
-            effect_texture_info.texture.clone(),
-            TextureAtlas {
-                index: first_index,
-                layout: effect_texture_info.layout.clone(),
-            },
         ));
+        entity_commands.insert(VisualEffectImageHandle(effect_texture_info.texture.clone()));
+        entity_commands.insert(VisualEffectTextureAtlas(TextureAtlas {
+            index: first_index,
+            layout: effect_texture_info.layout.clone(),
+        }));
     }
 }
 

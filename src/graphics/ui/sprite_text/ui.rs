@@ -236,7 +236,7 @@ impl<'a> Widget for UISpriteText<'a> {
         let empty_response = ui.allocate_response(egui::Vec2::ZERO, egui::Sense::hover());
 
         // Calculate label layout
-        let wrap_width = if ui.wrap_text() {
+        let wrap_width = if ui.wrap_mode() != egui::TextWrapMode::Extend {
             Some(ui.available_width())
         } else {
             None

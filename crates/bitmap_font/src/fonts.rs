@@ -8,7 +8,7 @@ use bevy::{
         render_asset::RenderAssetUsages,
         render_resource::{Extent3d, TextureDimension, TextureFormat},
     },
-    utils::BoxedFuture,
+    utils::{BoxedFuture, ConditionalSendFuture},
 };
 use bevy_inspector_egui::bevy_egui::egui;
 use bincode::error::DecodeError;
@@ -45,13 +45,13 @@ impl AssetLoader for BitmapFontLoader {
     type Settings = ();
     type Error = BitmapFontLoaderError;
 
-    fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader,
-        _settings: &'a (),
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
+    fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        load_context: &mut LoadContext,
+    ) -> impl ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
+        async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
             let font = bfn::Font::load(&bytes)?;
@@ -70,7 +70,7 @@ impl AssetLoader for BitmapFontLoader {
 
                 let glyph_uv = egui::Rect::from_min_size(
                     egui::Pos2::new(
-                        (glyph.bounds.x as f32 / width),
+                        glyph.bounds.x as f32 / width,
                         glyph.bounds.y as f32 / height,
                     ),
                     egui::Vec2::new(
@@ -114,7 +114,7 @@ impl AssetLoader for BitmapFontLoader {
             };
 
             Ok(bitmap_font)
-        })
+        }
     }
 
     fn extensions(&self) -> &[&str] {

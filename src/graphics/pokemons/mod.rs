@@ -3,6 +3,7 @@ mod pokemon_animator;
 mod shadow;
 
 use bevy::prelude::*;
+use bevy::sprite::TextureAtlas;
 use char_animation::{anim_key::AnimKey, CharAnimation};
 
 use crate::{
@@ -22,6 +23,39 @@ use super::{
     action_animations::ActionAnimationSet, assets::pokemon_chara_assets::PokemonCharaAssets,
     POKEMON_Z,
 };
+
+/// A wrapper component for TextureAtlas to make it compatible with Bevy 0.15
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct PokemonTextureAtlas(pub TextureAtlas);
+
+impl Default for PokemonTextureAtlas {
+    fn default() -> Self {
+        Self(TextureAtlas::default())
+    }
+}
+
+/// A wrapper component for Handle<CharAnimation> to make it compatible with Bevy 0.15
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct PokemonCharAnimationHandle(pub Handle<CharAnimation>);
+
+impl Default for PokemonCharAnimationHandle {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
+
+/// A wrapper component for Handle<Image> to make it compatible with Bevy 0.15
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct PokemonImageHandle(pub Handle<Image>);
+
+impl Default for PokemonImageHandle {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
 
 pub struct PokemonPlugin;
 
@@ -72,9 +106,9 @@ fn update_animator(
             Entity,
             &FacingOrientation,
             &PokemonAnimationState,
-            &Handle<CharAnimation>,
-            &mut TextureAtlas,
-            &mut Handle<Image>,
+            &PokemonCharAnimationHandle,
+            &mut PokemonTextureAtlas,
+            &mut PokemonImageHandle,
         ),
         Or<(Changed<FacingOrientation>, Changed<PokemonAnimationState>)>,
     >,
@@ -100,7 +134,7 @@ fn update_animator(
             continue;
         };
         texture_atlas.layout = animator.atlas_layout.clone();
-        *texture = animator.texture.clone();
+        **texture = animator.texture.clone();
         commands.entity(entity).insert(animator);
         ev_animator_updated.send(AnimatorUpdatedEvent(entity));
     }
@@ -127,19 +161,18 @@ fn spawn_pokemon_renderer(
             layout: animation_data.atlas_layout.clone(),
         };
 
-        commands
-            .entity(entity)
-            .insert((
-                PokemonAnimationState(default_state),
-                pokemon_animation_handle.clone(),
-                char_animation_offsets.clone(),
-                SpriteSheetBundle {
-                    atlas,
-                    texture: animation_data.texture.clone(),
-                    transform: Transform::from_translation(v),
-                    ..default()
-                },
-            ))
+        let mut entity_commands = commands.entity(entity);
+        entity_commands.insert((
+            PokemonAnimationState(default_state),
+            char_animation_offsets.clone(),
+            Sprite::default(),
+            Transform::from_translation(v),
+        ));
+        entity_commands.insert(PokemonCharAnimationHandle(pokemon_animation_handle.clone()));
+        entity_commands.insert(PokemonTextureAtlas(atlas));
+        entity_commands.insert(PokemonImageHandle(animation_data.texture.clone()));
+
+        entity_commands
             .with_children(|parent| {
                 // Shadow
                 parent.spawn((Name::new("Shadow"), PokemonShadow::default()));
@@ -148,14 +181,16 @@ fn spawn_pokemon_renderer(
                 parent.spawn((
                     Name::new("HeadOffset"),
                     PokemonHeadOffset,
-                    SpatialBundle::default(),
+                    Transform::default(),
+                    Visibility::default(),
                 ));
             })
             .with_children(|parent| {
                 parent.spawn((
                     Name::new("BodyOffset"),
                     PokemonBodyOffset,
-                    SpatialBundle::default(),
+                    Transform::default(),
+                    Visibility::default(),
                 ));
             });
     }

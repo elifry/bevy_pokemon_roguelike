@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::Text2dBounds};
+use bevy::{prelude::*, render::render_resource::Extent3d, sprite::Anchor, text::TextBounds};
 use bitmap_font::{bfn, fonts::BitmapFont};
 use image::{GenericImage, ImageBuffer, Pixel, Rgba, RgbaImage};
 
@@ -7,6 +7,7 @@ use super::{
     utils::{extract_sub_image, subtract_color_from_pixel},
     SpriteText,
 };
+use crate::graphics::ui::sprite_text::text::{SpriteTextStyle, SpriteTextTexture};
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum SpriteTextRenderSet {
@@ -15,11 +16,11 @@ pub enum SpriteTextRenderSet {
 }
 
 pub(crate) fn new_image_from_default(
-    mut query: Query<&mut Handle<Image>, Added<SpriteText>>,
+    mut query: Query<&mut SpriteTextTexture, Added<SpriteText>>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for mut texture in query.iter_mut() {
-        *texture = images.add(Image::default());
+        **texture = images.add(Image::default());
     }
 }
 
@@ -28,17 +29,17 @@ pub(crate) fn render_texture(
     mut query: Query<
         (
             &SpriteText,
-            &Text2dBounds,
-            &Handle<Image>,
+            &TextBounds,
+            &SpriteTextTexture,
             &Anchor,
             &mut Sprite,
         ),
-        Or<(Changed<SpriteText>, Changed<Anchor>, Changed<Text2dBounds>)>,
+        Or<(Changed<SpriteText>, Changed<Anchor>, Changed<TextBounds>)>,
     >,
     font_assets: Res<Assets<BitmapFont>>,
     mut images: ResMut<Assets<Image>>,
 ) {
-    for (sprite_text, bounds, image, text_anchor, mut sprite) in query.iter_mut() {
+    for (sprite_text, bounds, texture, text_anchor, mut sprite) in query.iter_mut() {
         let sections_data: Vec<_> = sprite_text
             .sections
             .iter()
@@ -62,8 +63,10 @@ pub(crate) fn render_texture(
             })
             .collect::<Vec<_>>();
 
-        let Some(layout) = process_glyph_layout(&text_sections, Some(bounds.size.x as usize))
-        else {
+        let Some(layout) = process_glyph_layout(
+            &text_sections,
+            Some(bounds.width.unwrap_or(f32::MAX) as usize),
+        ) else {
             warn!("Failed to calculated glyph layout");
             continue;
         };
@@ -150,7 +153,7 @@ pub(crate) fn render_texture(
         sprite.anchor = *text_anchor;
 
         // Update the texture
-        if let Some(prev_image) = images.get_mut(image.id()) {
+        if let Some(prev_image) = images.get_mut(texture.id()) {
             prev_image.data.clear();
             prev_image.data.extend_from_slice(&combined);
             prev_image.resize(Extent3d {

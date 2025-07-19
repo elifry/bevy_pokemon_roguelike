@@ -3,7 +3,6 @@ use bevy_pokemon_roguelike::GamePlugin;
 
 fn main() {
     App::new()
-        .insert_resource(Msaa::Off)
         .insert_resource(AmbientLight {
             color: Color::default(),
             brightness: 1.,

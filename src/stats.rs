@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::{inspector_options::ReflectInspectorOptions, InspectorOptions};
 use pokemon_data::PokemonData;
 
-use crate::{pokemons::Pokemon, GameState};
+use crate::{data::PokemonDataHandle, pokemons::Pokemon, GameState};
 
 const MAX_STAT: i32 = 255;
 const MAX_HP: i32 = 999;
@@ -65,14 +65,14 @@ pub struct Stats {
 #[allow(clippy::type_complexity)]
 fn update_stats_system(
     mut query: Query<
-        (Entity, &Pokemon, &Handle<PokemonData>, Option<&mut Stats>),
-        Changed<Handle<PokemonData>>,
+        (Entity, &Pokemon, &PokemonDataHandle, Option<&mut Stats>),
+        Changed<PokemonDataHandle>,
     >,
-    pokemon_data: Res<Assets<PokemonData>>,
+    pokemon_assets: Res<Assets<PokemonData>>,
     mut commands: Commands,
 ) {
     for (entity, pokemon, pokemon_data_handle, mut stats) in query.iter_mut() {
-        let Some(data) = pokemon_data.get(pokemon_data_handle) else {
+        let Some(data) = pokemon_assets.get(&**pokemon_data_handle) else {
             warn!("Unable to retrieve pokemon data for stats");
             continue;
         };
