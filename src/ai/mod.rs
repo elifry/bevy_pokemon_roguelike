@@ -108,7 +108,7 @@ fn plan_walk(
             .iter()
             .map(|v| {
                 // randomize movement choices
-                let mut d = rng.gen_range(-10..0);
+                let mut d = rng.random_range(-10..0);
                 if let Some(path) = &path_to_player {
                     // however prioritze a movement if it leads to the player
                     if path.contains(v) {

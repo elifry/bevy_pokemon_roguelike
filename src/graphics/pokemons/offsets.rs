@@ -1,11 +1,14 @@
 use bevy::prelude::*;
-use char_animation::{file::CharAnimationOffsets, CharAnimation};
+use char_animation::{anim_key::AnimKey, file::CharAnimationOffsets, CharAnimation};
 
 use crate::{
-    graphics::animations::AnimationFrameChangedEvent, pieces::FacingOrientation, pokemons::Pokemon,
+    graphics::{
+        animations::AnimationFrameChangedEvent,
+        pokemons::{PokemonAnimationState, PokemonCharAnimationHandle},
+    },
+    pieces::FacingOrientation,
+    pokemons::Pokemon,
 };
-
-use super::PokemonAnimationState;
 
 //
 #[derive(Component, Default)]
@@ -23,7 +26,7 @@ pub struct PokemonRightOffset;
 /// Update the [`PokemonOffsets`] based on its current texture each new animation frame
 pub fn update_offsets(
     mut query: Query<(
-        &Handle<CharAnimation>,
+        &PokemonCharAnimationHandle,
         &mut CharAnimationOffsets,
         &PokemonAnimationState,
         &FacingOrientation,
@@ -39,7 +42,7 @@ pub fn update_offsets(
         };
 
         let char_animation = char_animation_assets
-            .get(char_animation_handle)
+            .get(&**char_animation_handle)
             .expect("Failed to load char animation for pokemon");
 
         let animation_data = char_animation

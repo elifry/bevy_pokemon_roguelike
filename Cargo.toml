@@ -15,14 +15,14 @@ members = [
 
 [workspace.dependencies]
 # Bevy-Related
-bevy = "0.14.2"
-bevy-inspector-egui = "0.27.0"
-bevy_asset_loader = { version = "0.21.0", features = [
+bevy = "0.15.3"
+bevy-inspector-egui = "0.30.0"
+bevy_asset_loader = { version = "0.22.0", features = [
   "standard_dynamic_assets",
   "2d",
 ] }
-bevy_math = "0.14.2"
-leafwing-input-manager = "0.14.0"
+bevy_math = "0.15.3"
+leafwing-input-manager = "0.16.0"
 # Other
 bincode = { version = "2.0.1", features = ["serde"] }
 bimap = "0.6.3"

@@ -8,7 +8,7 @@ use bevy::{
 };
 use bevy_inspector_egui::bevy_egui::{
     egui::{self, mutex::Mutex},
-    EguiContexts, EguiSet,
+    EguiContexts,
 };
 use fonts::{BitmapFont, BitmapFontData, BitmapFontLoader};
 
@@ -21,7 +21,7 @@ impl Plugin for BitmapFontPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<BitmapFont>()
             .init_asset_loader::<BitmapFontLoader>()
-            .add_systems(Update, (font_texture_update).after(EguiSet::InitContexts));
+            .add_systems(Update, font_texture_update);
     }
 }
 

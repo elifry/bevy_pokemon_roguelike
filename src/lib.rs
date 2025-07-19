@@ -4,7 +4,7 @@ use bevy::app::App;
 
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_inspector_egui::bevy_egui::{EguiPlugin, EguiSet, EguiSettings, EguiUserTextures};
+use bevy_inspector_egui::bevy_egui::{EguiContextSettings, EguiPlugin, EguiUserTextures};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bitmap_font::BitmapFontPlugin;
@@ -87,7 +87,7 @@ impl Plugin for GamePlugin {
                 (
                     GamePlayingSet::Inputs,
                     GamePlayingSet::Controls,
-                    GamePlayingSet::AI.run_if(on_event::<PlayerActionEvent>()),
+                    GamePlayingSet::AI.run_if(any_with_component::<PlayerActionEvent>),
                     GamePlayingSet::TurnLogics,
                     GamePlayingSet::Animations,
                     GamePlayingSet::Actions,
@@ -134,7 +134,7 @@ impl Plugin for GamePlugin {
 }
 
 fn update_ui_scale(
-    mut egui_query: Query<(&mut EguiSettings, Option<&PrimaryWindow>), With<Window>>,
+    mut egui_query: Query<(&mut EguiContextSettings, Option<&PrimaryWindow>), With<Window>>,
     windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
     projection: Query<&OrthographicProjection, With<Camera>>,
 ) {
@@ -144,15 +144,13 @@ fn update_ui_scale(
             for (mut egui_settings, primary_window) in egui_query.iter_mut() {
                 if primary_window.is_some() {
                     match projection.scaling_mode {
-                        bevy::render::camera::ScalingMode::FixedVertical(fixed_ratio) => {
+                        bevy::render::camera::ScalingMode::FixedVertical { viewport_height } => {
                             let window_height = window.height();
-                            let scale = window_height / fixed_ratio / (projection.scale);
-                            egui_settings.scale_factor = scale;
+                            egui_settings.scale_factor = window_height / viewport_height;
                         }
-                        bevy::render::camera::ScalingMode::FixedHorizontal(fixed_ratio) => {
+                        bevy::render::camera::ScalingMode::FixedHorizontal { viewport_width } => {
                             let window_width = window.width();
-                            let scale = window_width / fixed_ratio / (projection.scale);
-                            egui_settings.scale_factor = scale;
+                            egui_settings.scale_factor = window_width / viewport_width;
                         }
                         _ => {}
                     }

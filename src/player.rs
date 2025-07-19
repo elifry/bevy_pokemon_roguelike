@@ -71,7 +71,7 @@ fn spawn_player(
     }
 
     let starter_id =
-        available_pokemon_ids[rand::thread_rng().gen_range(0..available_pokemon_ids.len())];
+        available_pokemon_ids[rand::rng().random_range(0..available_pokemon_ids.len())];
 
     info!("Starting with Pokemon ID: {}", starter_id);
 

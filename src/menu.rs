@@ -34,111 +34,111 @@ struct Menu;
 
 fn setup_menu(mut commands: Commands) {
     info!("menu");
+    let button_colors = ButtonColors::default();
     commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    flex_direction: FlexDirection::Column,
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    ..default()
-                },
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
                 ..default()
             },
             Menu,
         ))
-        .with_children(|children| {
-            let button_colors = ButtonColors::default();
-            children
+        .with_children(|parent| {
+            parent
                 .spawn((
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(140.0),
-                            height: Val::Px(50.0),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            ..Default::default()
-                        },
-                        background_color: button_colors.normal.into(),
-                        ..Default::default()
+                    Button,
+                    Node {
+                        width: Val::Px(150.0),
+                        height: Val::Px(65.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        ..default()
                     },
-                    button_colors,
+                    BorderColor(Color::BLACK),
+                    BackgroundColor(button_colors.normal),
+                    ButtonColors {
+                        normal: button_colors.normal,
+                        hovered: button_colors.hovered,
+                    },
                     ChangeState(GameState::Playing),
                 ))
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Play",
-                        TextStyle {
+                    parent.spawn((
+                        Text::new("Play"),
+                        TextFont {
                             font_size: 40.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
+                        TextColor(Color::srgb(0.9, 0.9, 0.9)),
                     ));
                 });
         });
     commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::SpaceAround,
-                    bottom: Val::Px(5.),
-                    width: Val::Percent(100.),
-                    position_type: PositionType::Absolute,
-                    ..default()
-                },
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                align_items: AlignItems::End,
+                justify_content: JustifyContent::End,
                 ..default()
             },
             Menu,
         ))
-        .with_children(|children| {
-            children
+        .with_children(|parent| {
+            parent
                 .spawn((
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(170.0),
-                            height: Val::Px(50.0),
-                            justify_content: JustifyContent::SpaceAround,
-                            align_items: AlignItems::Center,
-                            padding: UiRect::all(Val::Px(5.)),
-                            ..Default::default()
-                        },
-                        background_color: Color::NONE.into(),
-                        ..Default::default()
+                    Button,
+                    Node {
+                        width: Val::Px(170.0),
+                        height: Val::Px(50.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        margin: UiRect::all(Val::Px(20.0)),
+                        ..default()
                     },
+                    BorderColor(Color::BLACK),
+                    BackgroundColor(Color::NONE),
                     ButtonColors {
                         normal: Color::NONE,
-                        ..default()
+                        hovered: Color::srgb(0.25, 0.25, 0.25),
                     },
                     OpenLink("https://bevyengine.org"),
                 ))
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Made with Bevy",
-                        TextStyle {
+                    parent.spawn((
+                        Text::new("Made with Bevy"),
+                        TextFont {
                             font_size: 15.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
+                        TextColor(Color::srgb(0.9, 0.9, 0.9)),
                     ));
                 });
-            children
+            parent
                 .spawn((
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(170.0),
-                            height: Val::Px(50.0),
-                            justify_content: JustifyContent::SpaceAround,
-                            align_items: AlignItems::Center,
-                            padding: UiRect::all(Val::Px(5.)),
-                            ..default()
-                        },
-                        background_color: Color::NONE.into(),
-                        ..Default::default()
+                    Button,
+                    Node {
+                        width: Val::Px(140.0),
+                        height: Val::Px(50.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        margin: UiRect::all(Val::Px(20.0)),
+                        ..default()
                     },
+                    BorderColor(Color::BLACK),
+                    BackgroundColor(Color::NONE),
                     ButtonColors {
                         normal: Color::NONE,
                         hovered: Color::srgb(0.25, 0.25, 0.25),
@@ -146,13 +146,13 @@ fn setup_menu(mut commands: Commands) {
                     OpenLink("https://github.com/NiklasEi/bevy_game_template"),
                 ))
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Open source",
-                        TextStyle {
+                    parent.spawn((
+                        Text::new("Open source"),
+                        TextFont {
                             font_size: 15.0,
-                            color: Color::srgb(0.9, 0.9, 0.9),
                             ..default()
                         },
+                        TextColor(Color::srgb(0.9, 0.9, 0.9)),
                     ));
                 });
         });

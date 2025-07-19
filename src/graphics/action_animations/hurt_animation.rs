@@ -94,7 +94,8 @@ fn init_hurt_animation(
                         is_loop: false,
                     },
                     AutoDespawnEffect,
-                    SpatialBundle::default(),
+                    Transform::default(),
+                    Visibility::default(),
                 ));
             });
 
@@ -108,7 +109,8 @@ fn init_hurt_animation(
                         value: -damage_action.value,
                         r#type: WorldNumberType::Damage,
                     },
-                    SpatialBundle::default(),
+                    Transform::default(),
+                    Visibility::default(),
                 ));
             });
     }
@@ -138,7 +140,7 @@ fn hurt_animation(
         }
 
         // Shake the entity
-        let shake_value = (time.elapsed_seconds() * 40.).cos() * 0.6;
+        let shake_value = (time.elapsed_secs() * 40.).cos() * 0.6;
         match orientation.0 {
             // Shake on the Y axis if the actor is oriented on south/north
             Orientation::North | Orientation::South => transform.translation.y += shake_value,

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::text::Text2dBounds;
+use bevy::text::TextBounds;
 use bevy_inspector_egui::bevy_egui::egui::Color32;
 use bevy_inspector_egui::bevy_egui::{egui, EguiContexts};
 
@@ -25,7 +25,7 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>, ui_assets: Res<UIAsse
     let ctx = ctx.ctx_mut();
 
     egui::TopBottomPanel::bottom("bottom")
-        .frame(egui::Frame::none())
+        .frame(egui::Frame::NONE)
         .show_separator_line(false)
         .exact_height(64.)
         .show(ctx, |ui| {
@@ -42,7 +42,7 @@ fn ui(mut ctx: EguiContexts, font_assets: Res<FontAssets>, ui_assets: Res<UIAsse
                     // ui.set_clip_rect(screen_rect);
                     ui.spacing_mut().item_spacing.y = 0.;
                     egui::ScrollArea::vertical()
-                        .id_source("first")
+                        .id_salt("first")
                         .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
                         .stick_to_bottom(true)
                         //.max_height(10.)
@@ -151,7 +151,8 @@ fn spawn_test(font_assets: Res<FontAssets>, mut commands: Commands) {
             value: 10,
             r#type: WorldNumberType::Damage,
         },
-        SpatialBundle::from_transform(Transform::from_translation(Vec3::new(0., 0., 20.))),
+        Transform::from_translation(Vec3::new(0., 0., 20.)),
+        Visibility::default(),
     ));
 
     // commands

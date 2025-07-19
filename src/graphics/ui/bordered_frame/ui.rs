@@ -43,10 +43,26 @@ impl BorderedFrame {
                 egui::Pos2::new(s.max.x as f32, s.max.y as f32),
             ),
             texture_border_size: epaint::Margin {
-                left: if let Val::Px(px) = b.left { px } else { 0. },
-                right: if let Val::Px(px) = b.right { px } else { 0. },
-                top: if let Val::Px(px) = b.top { px } else { 0. },
-                bottom: if let Val::Px(px) = b.bottom { px } else { 0. },
+                left: if let Val::Px(px) = b.left {
+                    px.round() as i8
+                } else {
+                    0
+                },
+                right: if let Val::Px(px) = b.right {
+                    px.round() as i8
+                } else {
+                    0
+                },
+                top: if let Val::Px(px) = b.top {
+                    px.round() as i8
+                } else {
+                    0
+                },
+                bottom: if let Val::Px(px) = b.bottom {
+                    px.round() as i8
+                } else {
+                    0
+                },
             },
             atlas_size: egui::Pos2::new(style.atlas_size.x as f32, style.atlas_size.y as f32),
             padding: Default::default(),
@@ -60,20 +76,24 @@ impl BorderedFrame {
     pub fn padding(mut self, margin: UiRect) -> Self {
         self.padding = epaint::Margin {
             left: if let Val::Px(px) = margin.left {
-                px
+                px.round() as i8
             } else {
-                0.
+                0
             },
             right: if let Val::Px(px) = margin.right {
-                px
+                px.round() as i8
             } else {
-                0.
+                0
             },
-            top: if let Val::Px(px) = margin.top { px } else { 0. },
-            bottom: if let Val::Px(px) = margin.bottom {
-                px
+            top: if let Val::Px(px) = margin.top {
+                px.round() as i8
             } else {
-                0.
+                0
+            },
+            bottom: if let Val::Px(px) = margin.bottom {
+                px.round() as i8
+            } else {
+                0
             },
         };
 
@@ -81,6 +101,35 @@ impl BorderedFrame {
     }
 
     /// Set the margin. This will be applied on the outside of the border.
+    #[must_use = "You must call .show() to render the frame"]
+    pub fn margin(mut self, margin: UiRect) -> Self {
+        self.margin = epaint::Margin {
+            left: if let Val::Px(px) = margin.left {
+                px.round() as i8
+            } else {
+                0
+            },
+            right: if let Val::Px(px) = margin.right {
+                px.round() as i8
+            } else {
+                0
+            },
+            top: if let Val::Px(px) = margin.top {
+                px.round() as i8
+            } else {
+                0
+            },
+            bottom: if let Val::Px(px) = margin.bottom {
+                px.round() as i8
+            } else {
+                0
+            },
+        };
+
+        self
+    }
+
+    /// Set the background image.
     #[must_use = "You must call .show() to render the frame"]
     pub fn background(mut self, background: &BorderImageBackground) -> Self {
         self.background = Some(BorderedFrameBackground {
@@ -100,31 +149,6 @@ impl BorderedFrame {
                 background.atlas_size.y as f32,
             ),
         });
-
-        self
-    }
-
-    /// Set the margin. This will be applied on the outside of the border.
-    #[must_use = "You must call .show() to render the frame"]
-    pub fn margin(mut self, margin: UiRect) -> Self {
-        self.margin = epaint::Margin {
-            left: if let Val::Px(px) = margin.left {
-                px
-            } else {
-                0.
-            },
-            right: if let Val::Px(px) = margin.right {
-                px
-            } else {
-                0.
-            },
-            top: if let Val::Px(px) = margin.top { px } else { 0. },
-            bottom: if let Val::Px(px) = margin.bottom {
-                px
-            } else {
-                0.
-            },
-        };
 
         self
     }
@@ -164,7 +188,11 @@ impl BorderedFrame {
         content_rect.max.x = content_rect.max.x.max(content_rect.min.x);
         content_rect.max.y = content_rect.max.y.max(content_rect.min.y);
 
-        let content_ui = ui.child_ui(content_rect, *ui.layout(), None);
+        let content_ui = ui.new_child(
+            egui::UiBuilder::new()
+                .max_rect(content_rect)
+                .layout(*ui.layout()),
+        );
 
         BorderedFramePrepared {
             frame: self,
@@ -182,7 +210,7 @@ impl BorderedFrame {
             self.texture_border_size,
         );
 
-        let mut shapes = vec![egui::Shape::Mesh(border_mesh)];
+        let mut shapes = vec![egui::Shape::Mesh(std::sync::Arc::new(border_mesh))];
 
         if let Some(ref background) = self.background {
             let background_mesh = build_nine_patch_mesh(
@@ -193,7 +221,7 @@ impl BorderedFrame {
                 self.texture_border_size,
             );
 
-            shapes.push(egui::Shape::Mesh(background_mesh));
+            shapes.push(egui::Shape::Mesh(std::sync::Arc::new(background_mesh)));
         }
         egui::Shape::Vec(shapes)
     }
@@ -213,8 +241,8 @@ impl BorderedFramePrepared {
         let min_rect = self.content_ui.min_rect();
         let m = self.frame.padding;
         let paint_rect = egui::Rect {
-            min: min_rect.min - Vec2::new(m.left, m.top),
-            max: min_rect.max + Vec2::new(m.right, m.bottom),
+            min: min_rect.min - Vec2::new(m.leftf(), m.topf()),
+            max: min_rect.max + Vec2::new(m.rightf(), m.bottomf()),
         };
         if ui.is_rect_visible(paint_rect) {
             let shape = self.frame.paint(paint_rect);

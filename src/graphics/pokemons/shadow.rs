@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use char_animation::CharAnimation;
+use char_animation::{file::CharAnimationOffsets, CharAnimation};
 
 use crate::{
     constants::GAME_SPEED,
@@ -9,13 +9,37 @@ use crate::{
     graphics::{
         animations::{AnimationFrame, AnimationFrameChangedEvent, Animator},
         assets::shadow_assets::ShadowAssets,
+        pokemons::{PokemonAnimationState, PokemonCharAnimationHandle},
         FRAME_DURATION_MILLIS, SHADOW_POKEMON_Z,
     },
     map::{GameMap, Position, TerrainData},
     pieces::FacingOrientation,
+    pokemons::Pokemon,
 };
 
-use super::PokemonAnimationState;
+use super::PokemonTextureAtlas;
+
+/// A wrapper component for Handle<Image> to make it compatible with Bevy 0.15 (for shadows)
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct ShadowImageHandle(pub Handle<Image>);
+
+impl Default for ShadowImageHandle {
+    fn default() -> Self {
+        Self(Handle::default())
+    }
+}
+
+/// A wrapper component for TextureAtlas to make it compatible with Bevy 0.15 (for shadows)
+#[derive(Component, Debug, Clone, Reflect, Deref, DerefMut)]
+#[reflect(Component)]
+pub struct ShadowTextureAtlas(pub TextureAtlas);
+
+impl Default for ShadowTextureAtlas {
+    fn default() -> Self {
+        Self(TextureAtlas::default())
+    }
+}
 
 #[derive(Component, Default)]
 pub struct PokemonShadow;
@@ -78,12 +102,13 @@ pub fn spawn_shadow_renderer(
         };
 
         commands.entity(entity).insert((
-            SpriteSheetBundle {
-                transform: Transform::from_translation(Vec3::new(0., 0., SHADOW_POKEMON_Z)),
-                texture: shadow_assets.texture.clone(),
-                atlas,
-                ..default()
-            },
+            Sprite::default(),
+            Transform::from_translation(Vec3::new(0., 0., SHADOW_POKEMON_Z)),
+            ShadowImageHandle(shadow_assets.texture.clone()),
+            ShadowTextureAtlas(TextureAtlas {
+                index: 0,
+                layout: shadow_assets.atlas_layout.clone(),
+            }),
             Animator::new(
                 shadow_assets.atlas_layout.clone(),
                 shadow_assets.texture.clone(),
@@ -99,7 +124,7 @@ pub fn spawn_shadow_renderer(
 
 pub fn update_shadow_offsets(
     mut query_parent: Query<(
-        &Handle<CharAnimation>,
+        &PokemonCharAnimationHandle,
         &PokemonAnimationState,
         &FacingOrientation,
         &Children,
@@ -120,7 +145,7 @@ pub fn update_shadow_offsets(
                 continue;
             };
             let char_animation = char_animation_assets
-                .get(char_animation_handle)
+                .get(&**char_animation_handle)
                 .expect("Failed to load char animation for pokemon");
 
             let animation_data = char_animation

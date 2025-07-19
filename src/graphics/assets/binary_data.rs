@@ -1,7 +1,7 @@
 use bevy::{
     asset::{io::Reader, AssetLoader, AsyncReadExt, LoadContext},
     prelude::*,
-    utils::BoxedFuture,
+    utils::{BoxedFuture, ConditionalSendFuture},
 };
 use serde::Deserialize;
 use thiserror::Error;
@@ -36,18 +36,17 @@ impl AssetLoader for BinaryDataLoader {
     type Settings = ();
     type Error = BinaryDataLoaderError;
 
-    fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader,
-        _settings: &'a (),
-        _load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
+    fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        _load_context: &mut LoadContext,
+    ) -> impl ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
+        async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
-
             Ok(BinaryData(bytes))
-        })
+        }
     }
 
     fn extensions(&self) -> &[&str] {

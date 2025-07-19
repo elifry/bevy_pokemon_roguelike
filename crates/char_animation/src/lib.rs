@@ -6,15 +6,16 @@ use bevy::{
     asset::{
         io::Reader, Asset, AssetApp, AssetLoader, AsyncReadExt, Handle, LoadContext, LoadedAsset,
     },
+    image::Image,
     math::{UVec2, Vec2},
+    prelude::*,
     reflect::TypePath,
     render::{
         render_asset::RenderAssetUsages,
         render_resource::{Extent3d, TextureDimension, TextureFormat},
-        texture::Image,
     },
     sprite::TextureAtlasLayout,
-    utils::BoxedFuture,
+    utils::{BoxedFuture, ConditionalSendFuture},
 };
 use bincode::error::DecodeError;
 use file::{CharAnimationFile, CharAnimationOffsets};
@@ -78,13 +79,13 @@ impl AssetLoader for CharAnimationLoader {
     type Settings = ();
     type Error = CharAnimationLoaderError;
 
-    fn load<'a>(
-        &'a self,
-        reader: &'a mut Reader,
-        _settings: &'a (),
-        load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
+    fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        load_context: &mut LoadContext,
+    ) -> impl ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
+        async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
             let char_animation_file = CharAnimationFile::load(&bytes)?;
@@ -159,7 +160,7 @@ impl AssetLoader for CharAnimationLoader {
             Ok(CharAnimation {
                 anim: char_animations,
             })
-        })
+        }
     }
 
     fn extensions(&self) -> &[&str] {

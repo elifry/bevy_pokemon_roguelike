@@ -102,7 +102,12 @@ pub struct Tile(pub TerrainData);
 
 fn spawn_map(mut commands: Commands, mut current_map: ResMut<GameMap>) {
     let tilemap = commands
-        .spawn((Tilemap, Name::new("Tilemap"), SpatialBundle { ..default() }))
+        .spawn((
+            Tilemap,
+            Name::new("Tilemap"),
+            Transform::default(),
+            Visibility::default(),
+        ))
         .id();
 
     for (position, tile_data) in current_map.tiles.clone().into_iter() {

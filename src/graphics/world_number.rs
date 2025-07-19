@@ -96,11 +96,11 @@ fn animate_world_number(
             commands.entity(entity).despawn_recursive();
         }
         // transform.translation.x = (time.elapsed_seconds() * 40.).cos() * 0.6;
-        transform.translation.y += time.delta_seconds() * 10.;
+        transform.translation.y += time.delta_secs() * 10.;
 
         if animated.timer.fraction() > 0.5 {
             let [red, green, blue, alpha] = sprite.color.to_srgba().to_f32_array();
-            let alpha = (alpha - time.delta_seconds() * 1.).max(0.);
+            let alpha = (alpha - time.delta_secs() * 1.).max(0.);
             sprite.color = Color::srgba(red, green, blue, alpha);
         }
     }
