@@ -116,6 +116,7 @@ fn spawn_map(mut commands: Commands, mut current_map: ResMut<GameMap>) {
                 Position(position),
                 Tile(tile_data),
                 Name::new(format!("Tile (x:{}, y:{})", position.x, position.y)),
+                Visibility::default(),
             ))
             .id();
         commands.entity(tilemap).add_child(tile);

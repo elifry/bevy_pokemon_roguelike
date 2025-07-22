@@ -42,7 +42,11 @@ impl Plugin for VisualEffectsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_visual_effect_renderer, auto_despawn_effect)
+            (
+                spawn_visual_effect_renderer,
+                animate_visual_effects,
+                auto_despawn_effect,
+            )
                 .run_if(in_state(GameState::Playing)),
         );
     }
@@ -80,6 +84,20 @@ fn spawn_visual_effect_renderer(
             .collect::<Vec<_>>();
 
         let first_index = frames[0].atlas_index;
+        let first_urect = texture_atlas.textures[first_index];
+
+        // Calculate sprite size from the first frame
+        let sprite_size = Vec2::new(
+            (first_urect.max.x - first_urect.min.x) as f32,
+            (first_urect.max.y - first_urect.min.y) as f32,
+        );
+
+        let rect = Rect::new(
+            first_urect.min.x as f32,
+            first_urect.min.y as f32,
+            first_urect.max.x as f32,
+            first_urect.max.y as f32,
+        );
 
         let mut entity_commands = commands.entity(entity);
         entity_commands.insert((
@@ -92,13 +110,76 @@ fn spawn_visual_effect_renderer(
                 None,
                 None,
             ),
-            Sprite::default(),
+            Sprite {
+                custom_size: Some(sprite_size),
+                image: effect_texture_info.texture.clone(),
+                rect: Some(rect),
+                ..Default::default()
+            },
+            Visibility::default(),
+            InheritedVisibility::default(),
         ));
         entity_commands.insert(VisualEffectImageHandle(effect_texture_info.texture.clone()));
-        entity_commands.insert(VisualEffectTextureAtlas(TextureAtlas {
-            index: first_index,
-            layout: effect_texture_info.layout.clone(),
-        }));
+    }
+}
+
+fn animate_visual_effects(
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Animator, &mut Sprite), With<VisualEffect>>,
+    atlas_layouts: Res<Assets<TextureAtlasLayout>>,
+) {
+    for (entity, mut animator, mut sprite) in query.iter_mut() {
+        animator.timer.tick(time.delta());
+
+        if !animator.timer.finished() {
+            continue;
+        }
+
+        if !animator.is_loop && animator.current_frame >= animator.frames.len() - 1 {
+            // Animation is finished
+            continue;
+        }
+
+        let Some(frame) = animator.frames.get(animator.current_frame).cloned() else {
+            warn!(
+                "animation frame not found for visual effect entity {:?}",
+                entity
+            );
+            continue;
+        };
+
+        // Update the sprite to show the current frame
+        let layout = atlas_layouts
+            .get(&animator.atlas_layout)
+            .expect("Visual effect atlas layout not loaded");
+        let urect = layout.textures[frame.atlas_index];
+        let rect = Rect::new(
+            urect.min.x as f32,
+            urect.min.y as f32,
+            urect.max.x as f32,
+            urect.max.y as f32,
+        );
+
+        let sprite_size = Vec2::new(
+            (urect.max.x - urect.min.x) as f32,
+            (urect.max.y - urect.min.y) as f32,
+        );
+
+        sprite.rect = Some(rect);
+        sprite.custom_size = Some(sprite_size);
+
+        // Set timer for next frame
+        animator.timer.set_duration(frame.duration);
+        animator.timer.reset();
+
+        // Move to next frame
+        animator.current_frame = if animator.current_frame + 1 < animator.frames.len() {
+            animator.current_frame + 1
+        } else if animator.is_loop {
+            0
+        } else {
+            animator.current_frame + 1
+        };
     }
 }
 

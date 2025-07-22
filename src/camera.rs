@@ -18,6 +18,7 @@ pub struct Orthographic2DCamera;
 fn spawn_2d_camera(mut commands: Commands) {
     commands.spawn((
         Camera2d,
+        Orthographic2DCamera,
         Msaa::Off,
         OrthographicProjection {
             scaling_mode: ScalingMode::FixedVertical {

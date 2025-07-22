@@ -97,7 +97,7 @@ impl Plugin for GamePlugin {
                     .run_if(in_state(GameState::Playing)),
             )
             .add_plugins((
-                // LoadingPlugin, // custom assets loading system can't use for now
+                LoadingPlugin,
                 BitmapFontPlugin,
                 CharAnimationPlugin,
                 PokemonDataPlugin,
@@ -105,6 +105,8 @@ impl Plugin for GamePlugin {
                 MenuPlugin,
                 MapPlugin,
                 PiecesPlugin,
+            ))
+            .add_plugins((
                 GraphicsPlugin,
                 CameraPlugin,
                 PlayerPlugin,
@@ -115,13 +117,7 @@ impl Plugin for GamePlugin {
                 //Only for testing purposes
                 TestPlugin,
             ))
-            .add_plugins((
-                StatsPlugin,
-                DataPlugin,
-                LoadingPlugin,
-                PokemonsPlugin,
-                UIPlugin,
-            ))
+            .add_plugins((StatsPlugin, DataPlugin, PokemonsPlugin, UIPlugin))
             .add_systems(Update, update_ui_scale.run_if(in_state(GameState::Playing)));
 
         #[cfg(debug_assertions)]
@@ -134,29 +130,18 @@ impl Plugin for GamePlugin {
 }
 
 fn update_ui_scale(
-    mut egui_query: Query<(&mut EguiContextSettings, Option<&PrimaryWindow>), With<Window>>,
+    mut egui_query: Query<&mut EguiContextSettings, With<Window>>,
     windows: Query<&Window, With<bevy::window::PrimaryWindow>>,
-    projection: Query<&OrthographicProjection, With<Camera>>,
 ) {
     if let Ok(window) = windows.get_single() {
-        if let Ok(projection) = projection.get_single() {
-            // Find the primary window's egui settings
-            for (mut egui_settings, primary_window) in egui_query.iter_mut() {
-                if primary_window.is_some() {
-                    match projection.scaling_mode {
-                        bevy::render::camera::ScalingMode::FixedVertical { viewport_height } => {
-                            let window_height = window.height();
-                            egui_settings.scale_factor = window_height / viewport_height;
-                        }
-                        bevy::render::camera::ScalingMode::FixedHorizontal { viewport_width } => {
-                            let window_width = window.width();
-                            egui_settings.scale_factor = window_width / viewport_width;
-                        }
-                        _ => {}
-                    }
-                    break; // Only update the primary window
-                }
-            }
+        // Calculate scale factor based on window size
+        // The camera uses viewport_height: 640.0, so we want UI to scale accordingly
+        let target_height = 640.0;
+        let scale_factor = window.height() / target_height;
+
+        // Apply the scale factor to all egui contexts
+        for mut egui_settings in egui_query.iter_mut() {
+            egui_settings.scale_factor = scale_factor;
         }
     }
 }

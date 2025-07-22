@@ -1,5 +1,7 @@
 use bevy::{asset::LoadState, prelude::*};
+use bevy_asset_loader::prelude::*;
 
+use crate::graphics::assets::TileAssets;
 use crate::GameState;
 
 pub struct LoadingPlugin;
@@ -27,6 +29,7 @@ fn check_assets_loading(
     loading: Res<AssetsLoading>,
     asset_server: Res<AssetServer>,
     mut commands: Commands,
+    tile_assets: Option<Res<TileAssets>>,
 ) {
     let mut is_loading: bool = false;
 
@@ -41,6 +44,11 @@ fn check_assets_loading(
             }
             _ => {}
         }
+    }
+
+    // Check tile assets from bevy_asset_loader
+    if tile_assets.is_none() {
+        is_loading = true;
     }
 
     if is_loading {

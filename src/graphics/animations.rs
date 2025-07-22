@@ -22,8 +22,8 @@ pub struct AnimationsPlugin;
 impl Plugin for AnimationsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AnimationFinished>()
-            .add_event::<AnimationFrameChangedEvent>()
-            .add_systems(Update, animation_system.in_set(GamePlayingSet::LateLogics));
+            .add_event::<AnimationFrameChangedEvent>();
+        // .add_systems(Update, animation_system.in_set(GamePlayingSet::LateLogics));
     }
 }
 

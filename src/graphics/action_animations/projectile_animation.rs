@@ -71,18 +71,26 @@ fn init_projectile_animation(
                     name: spell_projectile_action.projectile.visual_effect,
                     is_loop: false,
                 },
-                Sprite::default(),
                 Transform::from_translation(from),
                 Visibility::default(),
+                InheritedVisibility::default(),
             ))
             .id();
 
-        commands.entity(entity).insert(ProjectileAnimation {
-            caster: spell_projectile_action.caster,
-            to,
-            from,
-            t: 0.,
-        });
+        commands.entity(entity).insert((
+            ProjectileAnimation {
+                caster: spell_projectile_action.caster,
+                to,
+                from,
+                t: 0.,
+            },
+            AnimationHolder(ActionAnimation::Projectile(ProjectileAnimation {
+                caster: spell_projectile_action.caster,
+                to,
+                from,
+                t: 0.,
+            })),
+        ));
     }
 }
 
