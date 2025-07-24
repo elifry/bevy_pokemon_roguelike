@@ -64,9 +64,9 @@ fn init_spell_hit_animation(
                         name: spell_hit_action.hit.visual_effect,
                         is_loop: false,
                     },
-                    Sprite::default(),
                     Transform::from_translation(Vec3::new(0., 15., 0.)),
                     Visibility::default(),
+                    InheritedVisibility::default(),
                     AnimationHolder(ActionAnimation::SpellHit(SpellHitAnimation {
                         target: spell_hit_action.target,
                         caster: spell_hit_action.caster,

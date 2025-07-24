@@ -96,6 +96,7 @@ fn init_hurt_animation(
                     AutoDespawnEffect,
                     Transform::default(),
                     Visibility::default(),
+                    InheritedVisibility::default(),
                 ));
             });
 

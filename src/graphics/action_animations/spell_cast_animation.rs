@@ -78,6 +78,7 @@ fn init_spell_cast_animation(
                     AutoDespawnEffect,
                     Transform::default(),
                     Visibility::default(),
+                    InheritedVisibility::default(),
                 ));
             });
     }

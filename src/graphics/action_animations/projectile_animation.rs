@@ -4,8 +4,8 @@ use crate::{
     actions::{spell_projectile_action::SpellProjectileAction, RunningAction},
     constants::GAME_SPEED,
     graphics::{
-        animations::Animator, get_world_position, pokemons::offsets::PokemonHeadOffset, EFFECT_Z,
-        POSITION_TOLERANCE, PROJECTILE_SPEED,
+        animations::Animator, get_world_position, pokemons::offsets::PokemonHeadOffset,
+        visual_effects::AutoDespawnEffect, EFFECT_Z, POSITION_TOLERANCE, PROJECTILE_SPEED,
     },
     map::Position,
     visual_effects::VisualEffect,
@@ -71,6 +71,7 @@ fn init_projectile_animation(
                     name: spell_projectile_action.projectile.visual_effect,
                     is_loop: false,
                 },
+                AutoDespawnEffect,
                 Transform::from_translation(from),
                 Visibility::default(),
                 InheritedVisibility::default(),
@@ -95,18 +96,24 @@ fn init_projectile_animation(
 }
 
 fn projectile_animation(
-    mut query: Query<(Entity, &mut AnimationHolder, &mut Transform, &Animator), With<VisualEffect>>,
+    mut query: Query<
+        (Entity, &mut AnimationHolder, &mut Transform, &mut Animator),
+        With<VisualEffect>,
+    >,
     time: Res<Time>,
     mut ev_animation_playing: EventWriter<ActionAnimationPlayingEvent>,
     mut ev_animation_finished: EventWriter<ActionAnimationFinishedEvent>,
     mut ev_animation_next: EventWriter<ActionAnimationNextEvent>,
     mut commands: Commands,
 ) {
-    for (entity, mut animation, mut transform, _animator) in query.iter_mut() {
+    for (entity, mut animation, mut transform, mut animator) in query.iter_mut() {
         let AnimationHolder(ActionAnimation::Projectile(projectile_animation)) = animation.as_mut()
         else {
             continue;
         };
+
+        // Update the animator so the visual effect animates
+        animator.timer.tick(time.delta());
 
         let d = (projectile_animation.to - transform.translation).length();
 

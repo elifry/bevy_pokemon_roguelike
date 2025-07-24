@@ -112,6 +112,9 @@ fn move_animation(
             continue;
         }
 
+        // Reset to idle animation when movement is finished
+        animation_state.0 = AnimKey::Idle;
+
         ev_animation_finished.send(ActionAnimationFinishedEvent(move_animation.entity));
     }
 }
